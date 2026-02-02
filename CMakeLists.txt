@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.30)
+
+# in my/github/vcpkg
+# ./vcpkg install entt:x64-windows --x-install-root="../anclient/examples/example.qml/vcpkg_packages"
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
+
 project(anson.cmake LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)

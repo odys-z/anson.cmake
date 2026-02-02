@@ -53,5 +53,6 @@ compile_commands.json
 
 *_qmlcache.qrc
 
+build
 vcpkg_packages
 vcpkg_installed
