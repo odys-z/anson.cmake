@@ -1,3 +1,3 @@
 // dev/ping.cpp
-#include "jprotocol.h"
+#include "io/odysz/jprotocol.h"
 int main() { return 0; }

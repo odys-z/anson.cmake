@@ -10,6 +10,7 @@ add_library(anson INTERFACE
     io/odysz/anson.h
     io/odysz/jprotocol.h
     io/odysz/json.h
+    io/odysz/common.h
 )
 
 add_library(anson::anson ALIAS anson)
