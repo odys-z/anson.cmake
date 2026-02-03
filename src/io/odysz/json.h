@@ -11,9 +11,6 @@
 #include "anson.h"
 #include "jprotocol.h"
 
-// using json = nlohmann::json;
-// using namespace nlohmann;
-
 namespace anson {
 
 using namespace entt::literals;
