@@ -5,8 +5,6 @@
 #include <entt/meta/meta.hpp>
 #include <entt/entt.hpp>
 
-#define NL '\n'
-
 using namespace  std ;
 
 namespace anson {
@@ -46,8 +44,8 @@ class Anson {
 public:
     std::string type;
 
-    Anson() { cout << "defalut contructor" << NL ; }
-    Anson(string t) : type(t) { cout << "override contructor, type = " << t << NL ; }
+    Anson() { cout << "defalut contructor" << endl ; }
+    Anson(string t) : type(t) { cout << "override contructor, type = " << t << endl ; }
 
 };
 
