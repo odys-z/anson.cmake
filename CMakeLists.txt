@@ -10,6 +10,15 @@ project(anson.cmake LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(/utf-8)
+
+# I can't solve the MSVC mojibake problem. You might be better remove any MSVC kit's language packs other than English.
+# add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+# if(MSVC)
+# This forces MSVC to report errors in a way that avoids some encoding issues
+# add_compile_options(/source-charset:utf-8 /execution-charset:utf-8)
+# endif()
+
 # Generate compile_commands.json for clangd/IDE integration (single-config only)
 if(NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

@@ -11,7 +11,7 @@ using namespace anson;
 
 template<typename T>
 void load_json(const std::string& raw_json, T& out_obj) {
-    EnTTSaxParser handler;
+    EnTTSaxParser handler(out_obj);
 
     // Wrap our existing C++ instance so the parser can fill it
     handler.set_root(entt::forward_as_meta(out_obj));
@@ -48,10 +48,10 @@ TEST(HELLO, ENTT_META) {
     EchoReq echobd{"echo..."};
     msg.Body(echobd);
 
-    cout << "Echo: " << msg.body.back()->echo << NL;
+    cout << "Echo: " << msg.body.back()->echo << endl;
 
-    cout << serialize_json(msg) << NL;
-    serialize_recursive(msg, cout) << NL;
+    cout << serialize_json(msg) << endl;
+    serialize_recursive(msg, cout) << endl;
 
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"
               R"("port": 2, "body": [{"a": "r/query", "echo": "echo..."}]})",
@@ -63,7 +63,7 @@ TEST(HELLO, ENTT_META) {
     auto req_instance = echo_type.construct();
     std::cout << "Actual Type Name: " << req_instance.type().info().name() << std::endl;
     EchoReq* echoreq = req_instance.try_cast<EchoReq>();
-    cout << "EchoReq Reflected: " << echoreq->a << NL;
+    cout << "EchoReq Reflected: " << echoreq->a << endl;
 
     // Set the 'echo' field
     if (auto data = echo_type.data("echo"_hs)) {

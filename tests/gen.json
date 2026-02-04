@@ -1,0 +1,7 @@
+{ "type": "io.oz.gen.cmake.settings",
+
+"src": ["io/odysz/anson.h","io/odysz/jprotocol.h"],
+
+"gen": "json.h"
+
+}

@@ -22,16 +22,18 @@ TEST(Anson, Base) {
     cout << "Actual Type Name: " << anobj.type << endl;
     ASSERT_EQ("", anobj.type);
 
-    anptr = an_type.construct("io.odysz.anson.Anson");
+    // anptr = an_type.construct("io.odysz.anson.Anson");
+    anptr = an_type.construct(Anson::_type_);
     Anson& anobj2 = anptr.cast<anson::Anson&>();
-    ASSERT_EQ("io.odysz.anson.Anson", anobj2.type);
+    // ASSERT_EQ("io.odysz.anson.Anson", anobj2.type);
+    ASSERT_EQ(Anson::_type_, anobj2.type);
 
     std::string json_input = R"({"type": "input"})";
     // 1. dereferencing the shared_ptr, which results in a reference to the anson::Anson object
     // 2. Passing *ans to rttr::instance creates an instance that refers to the original object (shallow copy)
     EnTTSaxParser  handler(anobj2);
 
-    cout << "[2] " << json_input << NL;
+    cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
@@ -43,19 +45,25 @@ TEST(Anson, AnsonBody) {
     auto b = entt::resolve("AnsonBody"_hs);
     auto v = b.construct(std::string("r/ds"));
     AnsonBody* anb = v.try_cast<AnsonBody>();
-    cout << "[1] anb.type: " << anb->type << NL;
+    cout << "[1] anb.type: " << anb->type << endl;
     ASSERT_EQ("io.odysz.jprotocol.AnsonBody", anb->type);
     ASSERT_EQ("r/ds", anb->a);
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
     EnTTSaxParser handler(*anb);
 
-    cout << "[2] " << json_input << NL;
+    cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
-    cout << "[3] ok: " << result << ", type: " << anb->type << ", a: " << anb->a << NL;
+    cout << "[3] ok: " << result << ", type: " << anb->type << ", a: " << anb->a << endl;
     ASSERT_TRUE(result);
     ASSERT_EQ("input", anb->type);
     ASSERT_EQ("r/query", anb->a);
+
+    AnsonBody anc;
+    result = Anson::from_json<AnsonBody>(json_input, anc);
+    ASSERT_TRUE(result);
+    ASSERT_EQ("input", anc.type);
+    ASSERT_EQ("r/query", anc.a);
 }
 
 // TEST(Anson, AnsonMsg) {
@@ -69,7 +77,7 @@ TEST(Anson, AnsonBody) {
 //     // create an instance and return the pointer
 //     msg->body.push_back(std::make_shared<EchoReq>("Hello"));
 
-//     cout << "[1] msg.port: " << msg->port << NL;
+//     cout << "[1] msg.port: " << msg->port << endl;
 //     ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->type);
 //     ASSERT_EQ("echo", msg->port);
 //     ASSERT_EQ("r/query", msg->body.at(0)->a);
@@ -77,9 +85,9 @@ TEST(Anson, AnsonBody) {
 
 //     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 //     RttrSaxHandler handler(*msg);
-//     cout << "[2] " << json_input << NL;
+//     cout << "[2] " << json_input << endl;
 //     bool result = nlohmann::json::sax_parse(json_input, &handler);
-//     cout << "[3] ok: " << result << ", type: " << msg->type << ", port: " << msg->port << NL;
+//     cout << "[3] ok: " << result << ", type: " << msg->type << ", port: " << msg->port << endl;
 
 //     ASSERT_TRUE(result);
 //     ASSERT_EQ("input", msg->type);
@@ -87,7 +95,7 @@ TEST(Anson, AnsonBody) {
 
 //     EchoReq* reqbd = msg->body.at(0).get();
 
-//     cout << "[4] body: " << msg->body.size() << ", type: " << reqbd->type << ", a: " << reqbd->a << NL;
+//     cout << "[4] body: " << msg->body.size() << ", type: " << reqbd->type << ", a: " << reqbd->a << endl;
 //     EXPECT_EQ("io.odysz.jprotocol.QueryReq", reqbd->type) << "TODO: nested parser is not for HelloWorld.";
 //     EXPECT_EQ("r", reqbd->a);
 // }

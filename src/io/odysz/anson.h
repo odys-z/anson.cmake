@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -36,21 +37,30 @@ public:
     virtual IJsonable* toJson(string& buf);
 };
 
+template<typename T>
+class EnTTSaxParser;
+
 /**
  * @brief The Anson class
  * java type: io.odysz.anson.Anson
  */
 class Anson {
 public:
+    inline static const string _type_ = "io.odysz.anson.Anson";
     std::string type;
 
     Anson() { cout << "defalut contructor" << endl ; }
     Anson(string t) : type(t) { cout << "override contructor, type = " << t << endl ; }
-
+    
+    template <typename T>
+    static bool from_json(const string& json, T& an) {
+        EnTTSaxParser<T> handler{an};
+        return nlohmann::json::sax_parse(json, &handler);
+    }
 };
 
 class SemanticObject : public Anson {
-
+    map<string, any> data;
 };
 }
 

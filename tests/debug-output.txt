@@ -1,0 +1,182 @@
+# gen-registry.py:
+
+import CppHeaderParser
+import sys
+import os
+
+def generate_entt_registration(header_files, namespace="anson"):
+    all_classes = []
+    all_enums = []
+
+    # --- 1. Dynamic Includes ---
+    for header in header_files:
+        print(f'#include "{os.path.basename(header)}"')
+    print(f'#include <entt/meta/factory.hpp>\n#include <entt/meta/meta.hpp>\n')
+
+    # --- 2. Parsing Loop ---
+    for header in header_files:
+        if not os.path.exists(header):
+            print(f"// Error: File not found: {header}", file=sys.stderr)
+            continue
+
+        try:
+            cpp_header = CppHeaderParser.CppHeader(header)
+        except Exception as e:
+            print(f"// Error: Failed to parse file {header}: {e}", file=sys.stderr)
+            continue
+
+        for class_name, class_obj in cpp_header.classes.items():
+            try:
+                # Filter: Templates
+                if "<" in class_name or ">" in class_name:
+                    continue
+
+                # Filter: Forward Declarations
+                if not class_obj.get("inherits") and \
+                   not class_obj["methods"]["public"] and \
+                   not class_obj["properties"]["public"]:
+                    print(f"// Skipping '{class_name}': Forward declaration.", file=sys.stderr)
+                    continue
+
+                # Filter: Abstract or Virtual Methods
+                is_virtual = False
+                for scope in ["public", "protected", "private"]:
+                    for method in class_obj["methods"][scope]:
+                        if method.get("virtual") or method.get("pure_virtual"):
+                            is_virtual = True
+                            break
+                    if is_virtual: break
+
+                if is_virtual:
+                    print(f"// Skipping '{class_name}': Abstract or has virtual methods.", file=sys.stderr)
+                    continue
+
+                # --- 3. Data extraction ---
+                bases = []
+                for inherit in class_obj.get("inherits", []):
+                    # Robust check for the base class name key
+                    base_raw = inherit.get("class") or inherit.get("point")
+                    if base_raw:
+                        bases.append(base_raw.split("::")[-1])
+
+                fields = [prop["name"] for prop in class_obj["properties"]["public"] if not prop.get("static")]
+
+                has_default_ctor = any(len(m["parameters"]) == 0 for m in class_obj["methods"]["public"] if m["name"] == class_name)
+
+                all_classes.append({
+                    "name": class_name,
+                    "bases": bases,
+                    "fields": fields,
+                    "has_default_ctor": has_default_ctor
+                })
+
+            except Exception as class_e:
+                print(f"// Error: Failed to process class '{class_name}': {class_e}", file=sys.stderr)
+                continue
+
+        # Process Enums
+        for enm in cpp_header.enums:
+            if enm.get("name"):
+                all_enums.append({
+                    "name": enm["name"],
+                    "values": [v["name"] for v in enm["values"]]
+                })
+
+    # --- 4. Generation in Requested Format ---
+    print(f"namespace {namespace} {{")
+    print("inline void register_meta() {")
+    print("    using namespace entt::literals;\n")
+
+    for cls in all_classes:
+        name = cls['name']
+        print(f"    entt::meta_factory<{namespace}::{name}>()")
+        print(f"        .type(\"{name}\"_hs)")
+
+        if cls["has_default_ctor"]:
+            print("        .ctor<>()")
+
+        for base in cls["bases"]:
+            print(f"        .base<{namespace}::{base}>()")
+
+        for field in cls["fields"]:
+            print(f"        .data<&{namespace}::{name}::{field}>(\"{field}\"_hs, \"{field}\")")
+
+        print("    ;\n")
+
+    for enm in all_enums:
+        print(f"    entt::meta_factory<{namespace}::{enm['name']}>()")
+        print(f"        .type(\"{enm['name']}\"_hs)")
+        for val in enm["values"]:
+            print(f"        .data<{namespace}::{enm['name']}::{val}>(\"{val}\"_hs)")
+        print("    ;\n")
+
+    print("}\n}")
+
+if __name__ == "__main__":
+    input_paths = ["io/odysz/anson.h", "io/odysz/jprotocol.h"]
+    generate_entt_registration(input_paths)
+
+-------------------------------------------------------------------------------------
+github\anson.cmake\src\gen-registry.py
+#include "anson.h"
+#include "jprotocol.h"
+#include <entt/meta/factory.hpp>
+#include <entt/meta/meta.hpp>
+
+namespace anson {
+inline void register_meta() {
+    using namespace entt::literals;
+
+    entt::meta_factory<anson::Anson>()
+        .type("Anson"_hs)
+        .ctor<>()
+        .data<&anson::Anson::type>("type"_hs, "type")
+    ;
+
+    entt::meta_factory<anson::SemanticObject>()
+        .type("SemanticObject"_hs)
+        .base<anson::Anson>()
+    ;
+
+    entt::meta_factory<anson::AnsonBody>()
+        .type("AnsonBody"_hs)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::AnsonBody::a>("a"_hs, "a")
+    ;
+
+    entt::meta_factory<anson::EchoReq>()
+        .type("EchoReq"_hs)
+        .ctor<>()
+        .base<anson::AnsonBody>()
+        .data<&anson::EchoReq::echo>("echo"_hs, "echo")
+    ;
+
+    entt::meta_factory<anson::UserReq>()
+        .type("UserReq"_hs)
+        .base<anson::AnsonBody>()
+        .data<&anson::UserReq::data>("data"_hs, "data")
+    ;
+
+    entt::meta_factory<anson::AnsonResp>()
+        .type("AnsonResp"_hs)
+        .ctor<>()
+        .base<anson::AnsonBody>()
+        .data<&anson::AnsonResp::code>("code"_hs, "code")
+    ;
+
+    entt::meta_factory<anson::AnsonMsg>()
+        .type("AnsonMsg"_hs)
+        .base<anson::Anson>()
+        .data<&anson::AnsonMsg::body>("body"_hs, "body")
+        .data<&anson::AnsonMsg::port>("port"_hs, "port")
+    ;
+
+}
+}
+// Skipping 'IJsonable': Abstract or has virtual methods.
+// Skipping 'Port': Forward declaration.
+// Skipping 'MsgCode': Forward declaration.
+// Skipping 'OnError': Forward declaration.
+
+Process finished with exit code 0
