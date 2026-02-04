@@ -53,6 +53,9 @@ compile_commands.json
 
 *_qmlcache.qrc
 
+.idea
+.venv
 build
 vcpkg_packages
 vcpkg_installed
+commit.comments*
