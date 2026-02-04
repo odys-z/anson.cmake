@@ -4,6 +4,29 @@ import os
 # Gemini: from anson.anson import Anson
 from anson.io.odysz.anson import Anson
 
+'''
+Gemini generated Anson class for the gen.json configuration.
+============================================================
+
+    from anson.anson import Anson
+    #    anson.io.odysz.anson import Anson
+
+    class CmakeSettings(Anson):
+        """Mapping for io.oz.gen.cmake.settings"""
+        def __init__(self):
+            super().__init__()
+            self.type = "io.oz.gen.cmake.settings" # not correct. Gemini doesn't know the type's rule. But shouldn't it can be fixed figured out?
+            self.src = []
+            self.gen = ""
+
+    # IMPORTANT: Register the type so the parser knows which class to instantiate
+    from anson.anson import AnsonProtocol # not correct.
+    AnsonProtocol.register("io.oz.gen.cmake.settings", CmakeSettings)
+    # ^ I don't have such code anymore. Where did Gemini found it?
+    # Actually I think it's somewhere tried in order versions/ designs. 
+
+'''
+
 def generate_entt_registration(config_path="gen.json", namespace="anson"):
     # 1. Load config using Antson (Pure Pip / Pure Python)
     if not os.path.exists(config_path):
