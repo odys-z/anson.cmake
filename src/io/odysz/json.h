@@ -2,6 +2,7 @@
  * The eqivalent of gen.antlr.json + JSONAnsonListener
  */
 #pragma once
+
 #include <nlohmann/json.hpp>
 #include <entt/meta/meta.hpp>
 #include <entt/entt.hpp>

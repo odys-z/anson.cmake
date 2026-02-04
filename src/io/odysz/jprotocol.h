@@ -12,9 +12,13 @@ namespace anson {
  */
 class AnsonBody : public anson::Anson {
 public:
+    inline static const string _type_ = "io.odysz.jprotocol.AnsonBody";
+
     string a;
 
-    AnsonBody(string a) : Anson("io.odysz.jprotocol.AnsonBody") , a(a) {}
+    AnsonBody() : Anson(_type_) {}
+
+    AnsonBody(string a) : Anson(_type_) , a(a) {}
 
     AnsonBody(string a, string type) : Anson(type), a(a) {}
 };
