@@ -24,6 +24,7 @@ inline void register_meta() {
         .ctor<>()
         .ctor<const std::string&>()
         .data<&anson::Anson::type>("type"_hs, "type");
+        // .data<&anson::Anson::type, entt::as_ref_t>("type"_hs, "type");
 
     // Register SemanticObject
     entt::meta_factory<anson::SemanticObject>()
@@ -72,21 +73,21 @@ inline void register_meta() {
     // Register Port enum
     entt::meta_factory<anson::Port>()
         .type("Port"_hs)
-        .data<anson::Port::query>("query"_hs)
-        .data<anson::Port::update>("update"_hs)
-        .data<anson::Port::echo>("echo"_hs);
+        .data<anson::Port::query>("query"_hs, "query")
+        .data<anson::Port::update>("update"_hs, "update")
+        .data<anson::Port::echo>("echo"_hs, "echo");
 
     // Register MsgCode enum
     entt::meta_factory<anson::MsgCode>()
         .type("MsgCode"_hs)
-        .data<anson::MsgCode::ok>("ok"_hs)
-        .data<anson::MsgCode::exSession>("exSession"_hs)
-        .data<anson::MsgCode::exSemantic>("exSemantic"_hs)
-        .data<anson::MsgCode::exIo>("exIo"_hs)
-        .data<anson::MsgCode::exTransct>("exTransct"_hs)
-        .data<anson::MsgCode::exDA>("exDA"_hs)
-        .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
-        .data<anson::MsgCode::ext>("ext"_hs);
+        .data<anson::MsgCode::ok>("ok"_hs, "ok")
+        .data<anson::MsgCode::exSession>("exSession"_hs, "exSession")
+        .data<anson::MsgCode::exSemantic>("exSemantic"_hs, "exSemantic")
+        .data<anson::MsgCode::exIo>("exIo"_hs, "exIo")
+        .data<anson::MsgCode::exTransct>("exTransct"_hs, "exTransact")
+        .data<anson::MsgCode::exDA>("exDA"_hs, "exDA")
+        .data<anson::MsgCode::exGeneral>("exGeneral"_hs, "exGeneral")
+        .data<anson::MsgCode::ext>("ext"_hs, "ext");
 }
 
 }

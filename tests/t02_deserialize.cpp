@@ -4,7 +4,8 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
-#include "io/odysz/json.h"
+#include <io/odysz/json.h>
+#include <io/odysz/serializer.h>
 
 
 using namespace std;
@@ -13,7 +14,7 @@ using namespace anson;
 using namespace entt;
 
 TEST(Anson, Base) {
-    // register_meta();
+    register_meta();
 
     auto an_type = entt::resolve("Anson"_hs);
     // auto anptr = construct_typed<anson::Anson>(an_type);
@@ -46,7 +47,7 @@ TEST(Anson, AnsonBody) {
     auto v = b.construct(std::string("r/ds"));
     AnsonBody* anb = v.try_cast<AnsonBody>();
     cout << "[1] anb.type: " << anb->type << endl;
-    ASSERT_EQ("io.odysz.jprotocol.AnsonBody", anb->type);
+    ASSERT_EQ(AnsonBody::_type_, anb->type);
     ASSERT_EQ("r/ds", anb->a);
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
@@ -62,8 +63,8 @@ TEST(Anson, AnsonBody) {
     AnsonBody anc;
     result = Anson::from_json<AnsonBody>(json_input, anc);
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anc.type);
-    ASSERT_EQ("r/query", anc.a);
+    ASSERT_EQ("input", anc.type) << "[4.1]";
+    ASSERT_EQ("r/query", anc.a) << "[4.2]";
 }
 
 // TEST(Anson, AnsonMsg) {

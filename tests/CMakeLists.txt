@@ -16,11 +16,14 @@ add_executable(unit_tests
   t02_deserialize.cpp
 )
 
+
 find_package(nlohmann_json CONFIG REQUIRED)
 
 target_link_libraries(unit_tests 
     PRIVATE 
-        anson 
+        anson
         nlohmann_json::nlohmann_json
         gtest_main
 )
+
+add_dependencies(unit_tests anson)

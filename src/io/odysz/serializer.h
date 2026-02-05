@@ -21,13 +21,14 @@ inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any 
     // 2. Then, handle fields of the current class
     for (auto [id, data] : type.data()) {
         if (!first) os << ", ";
+        first = false;
 
         // Use .name() from your meta_factory registration
         os << "\"" << data.name() << "\": ";
 
         // Pass the instance to data.get() to extract the value
+        // if (type.is_enum()) ; else
         serialize_recursive(data.get(instance), os);
-        first = false;
     }
     return os;
 }
@@ -131,31 +132,58 @@ private:
     std::vector<entt::meta_any> stack;
     entt::id_type active_key{0};
 
+    inline entt::meta_data find_data_recursive(entt::meta_type type, entt::id_type id) {
+        if (!type) return {};
+
+        // Look in current type
+        if (auto data = type.data(id)) return data;
+
+        // Look in bases
+        for (auto [base_id, base_type] : type.base()) {
+            if (auto data = find_data_recursive(base_type, id)) {
+                return data;
+            }
+        }
+        return {};
+    }
+
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
         if (!stack.empty() && active_key != 0) {
-            auto data = stack.back().type().data(active_key);
+            auto ref_instance = stack.back().as_ref();
+            auto instance = *ref_instance ? (*ref_instance).as_ref() : ref_instance;
+            auto data = instance.type().data(active_key);
+            // auto data = find_data_recursive(instance.type(), active_key);
+
+            // debug
+            // auto curr_type = instance.type();
+            // std::cout << "Current type: " << (curr_type ? curr_type.info().name() : "null") << endl;
+            // std::cout << "Found data for key " << active_key << ": "
+            //           << (data ? "YES" : "NO") << "  name = "
+            //           << (data ? data.name() : "n/a") << "\n";
+
             if (data) {
-                data.set(stack.back(), std::forward<T>(val));
+                // cout << "Anson.type before: " << instance.cast<anson::Anson&>().type << endl;
+                data.set(instance, std::forward<V>(val));
+                // cout << "Anson.type after: " << instance.cast<anson::Anson&>().type << endl;
             }
         }
     }
 
 public:
     EnTTSaxParser(T& envlop) {
-        stack.push_back(envlop);
+        stack.push_back(&envlop);
     }
 
     bool start_object(std::size_t size) override {
         if (active_key != 0 && !stack.empty()) {
-            auto data = stack.back().type().data(active_key);
+            auto instance = stack.back().as_ref();
+            auto data = instance.type().data(active_key);
             if (data) {
-                stack.push_back(data.get(stack.back()));
+                // Push the member itself onto the stack
+                stack.push_back(data.get(instance));
             }
-        } else if (stack.empty()) {
-            // This is the root object, we assume the caller set it up
-            return true;
         }
         return true;
     }

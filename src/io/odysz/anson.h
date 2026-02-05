@@ -50,7 +50,7 @@ public:
     std::string type;
 
     Anson() { cout << "defalut contructor" << endl ; }
-    Anson(string t) : type(t) { cout << "override contructor, type = " << t << endl ; }
+    Anson(string t) : type(t) { cout << "override constructor, type = " << t << endl ; }
     
     template <typename T>
     static bool from_json(const string& json, T& an) {

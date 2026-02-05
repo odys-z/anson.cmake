@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
+#include <io/odysz/serializer.h>
 #include "io/odysz/json.h"
 
 using json = nlohmann::json;
@@ -54,7 +55,7 @@ TEST(HELLO, ENTT_META) {
     serialize_recursive(msg, cout) << endl;
 
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"
-              R"("port": 2, "body": [{"a": "r/query", "echo": "echo..."}]})",
+              R"("port": "echo", "body": [{"a": "r/query", "echo": "echo..."}]})",
               serialize_json(msg))
         << "Obviously lack of port name, TODO ...";
 
