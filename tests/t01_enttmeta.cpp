@@ -5,7 +5,7 @@
 #include <iostream>
 #include <io/odysz/jprotocol.h>
 #include <io/odysz/serializer.h>
-#include "io/odysz/json.h"
+#include "io/odysz/json.hpp"
 
 using json = nlohmann::json;
 using namespace anson;
@@ -57,7 +57,7 @@ TEST(HELLO, ENTT_META) {
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"
               R"("port": "echo", "body": [{"a": "r/query", "echo": "echo..."}]})",
               serialize_json(msg))
-        << "Obviously lack of port name, TODO ...";
+        << "static _type_ must be ignored, port name must used as the enum value...";
 
     // 1. Create EchoReq via reflection
     auto echo_type = entt::resolve("EchoReq"_hs);

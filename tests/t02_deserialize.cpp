@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
-#include <io/odysz/json.h>
+#include <io/odysz/json.hpp>
 #include <io/odysz/serializer.h>
 
 

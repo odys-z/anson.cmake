@@ -45,27 +45,6 @@ enum class Port { query, update, echo,
   docstier,
 };
 
-// class JavaEnum {
-//     string n;
-// public:
-//     inline static const string null = "null";
-
-//     JavaEnum() {}
-//     JavaEnum(string name) : n(name){}
-//     virtual string name () const { return n; }
-//     static JavaEnum valof(const string& name) { return JavaEnum(name); }
-// };
-
-// class Port : public JavaEnum {
-// public:
-//     inline static const int echo = 0;
-//     Port() {}
-//     Port(string name) : JavaEnum(name) {}
-
-//     // string name() const override { return n; }
-//     static JavaEnum valof(const string& name) { return Port(name); }
-// };
-
 inline std::ostream& operator<<(std::ostream& os, const Port& p) {
     using namespace entt::literals;
 
@@ -97,7 +76,6 @@ std::optional<E> from_enum_string(const std::string& s) {
 
     if (type) {
         for (auto [id, data] : type.data()) {
-            // if (auto prop = data.prop("name"_hs)) {
             if (auto prop = data.name()) {
                 if (prop == s) {
                     return data.get({}).template cast<E>();
@@ -122,6 +100,10 @@ enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral
 class AnsonResp : public AnsonBody{
 public:
     MsgCode code;
+
+    /** Java (server) exception. To be implemented */
+    // AnsonException   ex;
+
     AnsonResp() : AnsonBody("NA", "io.odysz.semantic.jprotocol.AnsonResp") {}
 
     AnsonResp(string a) : AnsonBody(a, "io.odysz.semantic.jprotocol.AnsonResp") {}
