@@ -32,35 +32,43 @@ inline void register_meta() {
     entt::meta_factory<anson::IJsonable>()
         .type("IJsonable"_hs)
         .data<&anson::IJsonable::* toBlock(ostream& os, JsonOpt& opts)>("* toBlock(ostream& os, JsonOpt& opts)"_hs, "* toBlock(ostream& os, JsonOpt& opts)")
-        .data<&anson::IJsonable::* toJson(string& buf)>("* toJson(string& buf)"_hs, "* toJson(string& buf)");
+        .data<&anson::IJsonable::* toJson(string& buf)>("* toJson(string& buf)"_hs, "* toJson(string& buf)")
+        ;
 
     entt::meta_factory<anson::Anson>()
         .type("Anson"_hs)
-        .data<&anson::Anson::type>("type"_hs, "type");
+        .data<&anson::Anson::type>("type"_hs, "type")
+        ;
 
     entt::meta_factory<anson::SemanticObject>()
         .type("SemanticObject"_hs)
-        .data<&anson::SemanticObject::data>("data"_hs, "data");
+        .data<&anson::SemanticObject::data>("data"_hs, "data")
+        ;
 
     entt::meta_factory<anson::AnsonBody>()
         .type("AnsonBody"_hs)
-        .data<&anson::AnsonBody::a>("a"_hs, "a");
+        .data<&anson::AnsonBody::a>("a"_hs, "a")
+        ;
 
     entt::meta_factory<anson::EchoReq>()
         .type("EchoReq"_hs)
-        .data<&anson::EchoReq::echo>("echo"_hs, "echo");
+        .data<&anson::EchoReq::echo>("echo"_hs, "echo")
+        ;
 
     entt::meta_factory<anson::UserReq>()
         .type("UserReq"_hs)
-        .data<&anson::UserReq::data>("data"_hs, "data");
+        .data<&anson::UserReq::data>("data"_hs, "data")
+        ;
 
     entt::meta_factory<anson::AnsonResp>()
         .type("AnsonResp"_hs)
-        .data<&anson::AnsonResp::code>("code"_hs, "code");
+        .data<&anson::AnsonResp::code>("code"_hs, "code")
+        ;
 
     entt::meta_factory<anson::OnError>()
         .type("OnError"_hs)
-        .data<&anson::OnError::err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)>("err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)"_hs, "err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)");
+        .data<&anson::OnError::err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)>("err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)"_hs, "err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args)")
+        ;
 
 }
 }
