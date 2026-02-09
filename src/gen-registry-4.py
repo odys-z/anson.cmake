@@ -57,6 +57,9 @@ def generate_entt_registration(config: CSettings, namespace="anson"):
             for node in captures["class_name"]:
                 found_classes.append(node.text.decode('utf8'))
 
+            for field in captures["field"]:
+                print(field)
+
     # 4. Generate Output
     indent = "    "
     output = ["#pragma once", '#include <entt/meta/factory.hpp>', '#include <entt/meta/meta.hpp>', '']

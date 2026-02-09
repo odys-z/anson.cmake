@@ -35,6 +35,12 @@ public:
      * @throws AnsonException
      */
     virtual IJsonable* toJson(string& buf);
+
+    int tree_sitter_test() { return 0; }
+    char& s_test0;
+    char& s_test1;
+    char** s_test2;
+    char** s_test3;
 };
 
 template<typename T>
@@ -60,6 +66,7 @@ public:
 };
 
 class SemanticObject : public Anson {
+public:
     map<string, any> data;
 };
 }

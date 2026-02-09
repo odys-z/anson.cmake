@@ -86,6 +86,14 @@ def generate_entt_registration(config: CSettings, namespace="anson"):
                             continue  # Ignore static fields (even if inline is present)
 
                         decl = member.child_by_field_name("declarator")
+                        """
+                        Whith the query, this decl cannot deprive pointer_declarator for a function return type in a simple way.
+                        Say: 
+                        virtual ostream toblock(); <- decl.type = function_declaration
+                        virtual ostream* toblock(); <- debug: decl.type = pointer declarator
+                        virtual ostream& toblock(); <- ?
+                        virtual ostream** toblock(); <- decl is a pointer of pointer?
+                        """
                         if decl:
                             found_classes[cname]["fields"].append(decl.text.decode('utf8'))
 
@@ -121,17 +129,18 @@ def generate_entt_registration(config: CSettings, namespace="anson"):
         output.append(f"{indent * 2};\n")
 
     # 2. Classes (Fields and Ctors)
+    clss_lns = []
     for cname, info in found_classes.items():
         # line = f"{indent}entt::meta_factory<{namespace}::{cname}>()\n{indent * 2}.type(\"{cname}\"_hs)"
-        output.append(f"{indent}entt::meta_factory<{namespace}::{cname}>()")
-        output.append(f"{indent * 2}.type(\"{cname}\"_hs)")
+        clss_lns.append(f"{indent}entt::meta_factory<{namespace}::{cname}>()")
+        clss_lns.append(f"{indent * 2}.type(\"{cname}\"_hs)")
         for params in info["ctors"]:
-            output.append(f"{indent * 2}.ctor{params}()")
+            clss_lns.append(f"{indent * 2}.ctor{params}()")
         if info["base"]:
-            output.append(f"{indent * 2}.base<{namespace}::{info['base']}>()")
+            clss_lns.append(f"{indent * 2}.base<{namespace}::{info['base']}>()")
         for fname in info["fields"]:
-            output.append(f"{indent * 2}.data<&{namespace}::{cname}::{fname}>(\"{fname}\"_hs, \"{fname}\")")
-        output.append(f"{indent * 2};\n")
+            clss_lns.append(f"{indent * 2}.data<&{namespace}::{cname}::{fname}>(\"{fname}\"_hs, \"{fname}\")")
+        clss_lns.append(f"{indent * 2};\n")
 
     # 3. AnsonMsg Specializations
     for sub in anson_body_subclasses:
