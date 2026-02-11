@@ -157,26 +157,6 @@ def parse_anson(config: CSettings, namespace="anson"):
                 print("Ignore template", T(caps, qv.templ_params), T(caps, qv.templ_entity), T(caps, qv.templ_name))
 
             if "class_name" in caps:
-                # class_node = caps["class_name"][0]
-                # cname = class_node.text.decode('utf8')
-
-                # # Filter templates
-                # is_template = False
-                # p = class_node.parent
-                # while p:
-                #     if p.type == "template_declaration":
-                #         is_template = True
-                #         break
-                #     if p.type in ["translation_unit", "field_declaration_list"]:
-                #         break
-                #     p = p.parent
-                # if is_template: continue
-
-                # if cname not in found_classes:
-                #     base = caps['base_name'][0].text.decode('utf8') if 'base_name' in caps else None
-                #     found_classes[cname] = MetaClass(cname=cname, base=base)
-                #
-                # extract_class_member(caps, cname, found_classes[cname])
                 extract_class_member(caps, found_classes)
 
     return found_enums, found_classes
