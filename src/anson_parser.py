@@ -1,16 +1,15 @@
 """
-
 """
 import os
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, cast
 
 import tree_sitter_cpp as stcpp
-from anson.io.odysz.anson import Anson
-from semanticshare.gen.cmake import CSettings
 from tree_sitter import Language, Parser, Query, QueryCursor, Node
 
-from query_strings import field_id_isfunc, qv
+from anson.io.odysz.anson import Anson
+from semanticshare.gen.cmake import CSettings
+from query_strings import fieldecl_funcdecl_funcdef, field_id_isfunc, field_id_isfunc_1, virtual_funcs, qv
 
 
 @dataclass
@@ -86,19 +85,8 @@ def get_parameter_types(params_node: Node) -> List[str]:
     return type_list
 
 
-def extract_class_member(caps: Dict[str, List[Node]], found_classes: Dict[str, MetaClass]):
+def extract_class_member(caps: Dict[str, List[Node]], cname: str, meta: MetaClass):
     """Processes fields, methods, and constructors for a MetaClass."""
-    class_node = caps[qv.class_name][0]
-    cname = class_node.text.decode('utf8')
-
-    meta: MetaClass
-    if cname not in found_classes:
-        base = caps['base_name'][0].text.decode('utf8') if 'base_name' in caps else None
-        meta = MetaClass(cname=cname, base=base)
-        found_classes[cname] = meta
-    else:
-        meta = found_classes[cname]
-
     # 1. Handle Fields (and filter out methods/static)
     if "field_decl" in caps:
         is_static = any(s.text.decode('utf8') == "static" for s in caps.get("storage", []))
@@ -157,8 +145,8 @@ def parse_anson(config: CSettings, namespace="anson"):
                 print("Ignore template", T(caps, qv.templ_params), T(caps, qv.templ_entity), T(caps, qv.templ_name))
 
             if "class_name" in caps:
-                # class_node = caps["class_name"][0]
-                # cname = class_node.text.decode('utf8')
+                class_node = caps["class_name"][0]
+                cname = class_node.text.decode('utf8')
 
                 # # Filter templates
                 # is_template = False
@@ -180,70 +168,4 @@ def parse_anson(config: CSettings, namespace="anson"):
                 extract_class_member(caps, found_classes)
 
     return found_enums, found_classes
-
-def gen_entt_registry(founds, settings: CSettings, namespace='anson'):
-    found_enums, found_classes = founds
-    # 3. Generate Output
-    indent = "    "
-    output = ['#pragma once',
-              '',
-              '#include <entt/meta/factory.hpp>',
-              '#include <entt/meta/meta.hpp>',
-              '',
-              'using namespace entt::literals;',
-              '']
-
-    for s in settings.src:
-        output.append(f'#include "{os.path.basename(s)}"')
-
-    output.append(f"\nnamespace {namespace} {{")
-    output.append(f"inline void register_meta() {{")
-
-    # Enum Registration (Ensures Port and MsgCode are registered)
-    for ename, evals in found_enums.items():
-        output.append(f"{indent}// Register {ename} enum")
-        output.append(f"{indent}entt::meta_factory<{namespace}::{ename}>()")
-        output.append(f"{indent * 2}.type(\"{ename}\"_hs)")
-        for v in evals:
-            output.append(f"{indent * 2}.data<{namespace}::{ename}::{v}>(\"{v}\"_hs, \"{v}\")")
-        output.append(f"{indent * 2};\n")
-
-    # Class Registration with Data Fields
-    for cname, info in found_classes.items():
-        if cname in found_enums: continue
-        output.append(f"{indent}entt::meta_factory<{namespace}::{cname}>()")
-        output.append(f"{indent * 2}.type(\"{cname}\"_hs)")
-
-        if 'ctors' in info:
-            for params in info["ctors"]:
-                output.append(f"{indent * 2}.ctor{params}()")
-
-        if info["base"]:
-            output.append(f"{indent * 2}.base<{namespace}::{info['base']}>()")
-        for ftype, fname in info["fields"]:
-            output.append(f"{indent * 2}.data<&{namespace}::{cname}::{fname}>(\"{fname}\"_hs, \"{fname}\")")
-        output.append(f"{indent * 2};\n")
-
-    # # Specialized AnsonMsg Template Registration
-    # for sub, base in anson_body_subclasses:
-    #     output.append(f"{indent}// Specialized AnsonMsg for {sub}")
-    #     output.append(f"{indent}entt::meta_factory<{namespace}::AnsonMsg<{namespace}::{sub}>>()")
-    #     output.append(f"{indent * 2}.type(\"AnsonMsg{sub}\"_hs)")
-    #     output.append(f"{indent * 2}.base<{namespace}::{base}>()")
-    #
-    #     # TODO FIXME LLM Error
-    #     output.append(f"{indent * 2}.data<&{namespace}::AnsonMsg<{namespace}::{sub}>::port>(\"port\"_hs, \"port\")")
-    #     output.append(f"{indent * 2}.data<&{namespace}::AnsonMsg<{namespace}::{sub}>::body>(\"body\"_hs, \"body\");\n")
-
-    output.append("}\n}")
-
-    with open(settings.json_h, "w") as f:
-        f.write("\n".join(output))
-
-if __name__ == "__main__":
-    settings: CSettings = cast(CSettings, Anson.from_file("anson.json"))
-    enums, classes = parse_anson(settings)
-    for name, node in enums.items():
-        print(name, node)
-
 

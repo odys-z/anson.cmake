@@ -110,8 +110,10 @@ public:
 };
 
 // c20 template<std::derived_from<AnsonBody> T = AnsonBody>
+    // typename T //, typename = std::enable_if_t<std::is_base_of_v<AnsonBody, T>>
+    /// With anson::AnsonBoyd, any subclass of AnsonBody will be registered by specialize this templated class, AnsonMsg.
 template <
-    typename T //, typename = std::enable_if_t<std::is_base_of_v<AnsonBody, T>>
+    typename T //anson::AnsonBody
     >
 class AnsonMsg: public Anson {
 public:

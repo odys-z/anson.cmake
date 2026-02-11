@@ -175,6 +175,33 @@
     }
   },
 
+  { "type": "abstract_function_declarator",
+    "named": true,
+    "fields": {
+      "declarator": { "multiple": false, "required": false,
+        "types": [ { "type": "_abstract_declarator", "named": true } ]
+      },
+      "parameters": { "multiple": false, "required": true,
+        "types": [ { "type": "parameter_list", "named": true } ]
+      }
+    },
+    "children": { "multiple": true, "required": false,
+      "types": [
+        { "type": "attribute_declaration", "named": true },
+        { "type": "attribute_specifier", "named": true },
+        { "type": "gnu_asm_expression", "named": true },
+        { "type": "noexcept", "named": true },
+        { "type": "ref_qualifier", "named": true },
+        { "type": "requires_clause", "named": true },
+        { "type": "throw_specifier", "named": true },
+        { "type": "trailing_return_type", "named": true },
+        { "type": "type_qualifier", "named": true },
+        { "type": "virtual_specifier", "named": true }
+      ]
+    }
+  },
+
+
   { "type": "pointer_declarator", "named": true,
     "fields": {
       "declarator": { "multiple": false, "required": true,

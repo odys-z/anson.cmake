@@ -5849,59 +5849,24 @@
       ]
     }
   },
-  { "type": "template_declaration",
-    "named": true,
-    "fields": {
-      "parameters": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "template_parameter_list",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": true,
-      "required": true,
+  { "type": "template_declaration", "named": true,
+    "fields": { "parameters": { "multiple": false, "required": true,
+        "types": [ { "type": "template_parameter_list", "named": true } ]
+    } },
+    "children": { "multiple": true, "required": true,
       "types": [
-        {
-          "type": "alias_declaration",
-          "named": true
-        },
-        {
-          "type": "concept_definition",
-          "named": true
-        },
-        {
-          "type": "declaration",
-          "named": true
-        },
-        {
-          "type": "friend_declaration",
-          "named": true
-        },
-        {
-          "type": "function_definition",
-          "named": true
-        },
-        {
-          "type": "requires_clause",
-          "named": true
-        },
-        {
-          "type": "template_declaration",
-          "named": true
-        },
-        {
-          "type": "type_specifier",
-          "named": true
-        }
+        { "type": "alias_declaration", "named": true },
+        { "type": "concept_definition", "named": true },
+        { "type": "declaration", "named": true },
+        { "type": "friend_declaration", "named": true },
+        { "type": "function_definition", "named": true },
+        { "type": "requires_clause", "named": true },
+        { "type": "template_declaration", "named": true },
+        { "type": "type_specifier", "named": true }
       ]
     }
   },
+
   { "type": "template_function",
     "named": true,
     "fields": {
@@ -6010,41 +5975,19 @@
   { "type": "template_parameter_list",
     "named": true,
     "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
+    "children": { "multiple": true, "required": false,
       "types": [
-        {
-          "type": "optional_parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "optional_type_parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "template_template_parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "type_parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "variadic_parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "variadic_type_parameter_declaration",
-          "named": true
-        }
+        { "type": "optional_parameter_declaration", "named": true },
+        { "type": "optional_type_parameter_declaration", "named": true },
+        { "type": "parameter_declaration", "named": true },
+        { "type": "template_template_parameter_declaration", "named": true },
+        { "type": "type_parameter_declaration", "named": true },
+        { "type": "variadic_parameter_declaration", "named": true },
+        { "type": "variadic_type_parameter_declaration", "named": true }
       ]
     }
   },
+
   { "type": "template_template_parameter_declaration",
     "named": true,
     "fields": {
