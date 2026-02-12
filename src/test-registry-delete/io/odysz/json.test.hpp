@@ -8,7 +8,7 @@ using namespace entt::literals;
 #include "."
 
 namespace anson {
-inline void register_meta() {{
+inline void register_meta() {
     // Register Port enum
     entt::meta_factory<anson::Port>()
         .type("Port"_hs)

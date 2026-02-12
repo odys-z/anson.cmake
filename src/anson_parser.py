@@ -1,15 +1,19 @@
 """
 """
 import os
+import re
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, cast
 
 import tree_sitter_cpp as stcpp
+from anson.io.odysz.anson import Anson
+from anson.io.odysz.common import LangExt
+from semanticshare.gen.cmake import CSettings
+
+# requires tree_sitter 0.25.2 (Python 3.10?)
 from tree_sitter import Language, Parser, Query, QueryCursor, Node
 
-from anson.io.odysz.anson import Anson
-from semanticshare.gen.cmake import CSettings
-from query_strings import fieldecl_funcdecl_funcdef, field_id_isfunc, field_id_isfunc_1, virtual_funcs, qv
+from src.query_strings import field_id_isfunc, qv
 
 
 @dataclass
@@ -32,7 +36,7 @@ class MetaClass(Anson):
 
     # Gemini lost the classical __init__(), resulting in error:
     # TypeError: MetaClass.__init__() missing 2 required positional arguments: 'verbose' and '__type__'
-    def __init__(self, cname: str, base: str=None):
+    def __init__(self, cname: str, base: str = None) -> None:
         super().__init__()
         self.cname = cname
         self.base = base
@@ -40,6 +44,40 @@ class MetaClass(Anson):
         self.ctors = []
         self.funcs = []
         # print(self.__type__, cname)
+
+@dataclass
+class MetaTempl(Anson):
+    templ: str = None
+    '''
+    Template Identifier
+    '''
+    ttype: str = None
+    ''' Required type, e.g. AnsonBody '''
+
+    to_special: List[str] = field(default_factory=list)
+    '''
+    E.g. 'EchoReq'
+    '''
+
+    class_meta: MetaClass = None
+
+    def __init__(self, templ_id: str, templ_comments: str, class_meta: MetaClass) -> None:
+        def parse_comments(t_comm: str):
+            if LangExt.isblank(t_comm):
+                return ''
+            cmms = strip_comment(t_comm).split('::')
+            return cmms[1] if cmms[0].strip() == 'anson' else t_comm
+
+        super().__init__()
+        self.templ = templ_id
+        self.ttype = parse_comments(templ_comments)
+        # self.cname = class_name
+        self.class_meta = class_meta
+
+
+def strip_comment(comment):
+    return re.sub(r'\s*((/\*\*+/)|(/\*+)\s*|\s*(\*+)/)|(\s*$)|(\s*//\s*)',
+                  '', comment)
 
 
 def T(caps: dict, qv: str):
@@ -49,15 +87,17 @@ def T(caps: dict, qv: str):
 def has(caps: dict, qv: str) -> bool:
     return qv in caps
 
+
 def extract_enum_data(caps: Dict[str, List[Node]], found_enums: Dict[str, MetaEnum]):
     """Extracts enum names and values into MetaEnum objects."""
-    ename = caps["enum_name"][0].text.decode('utf8')
+    ename = T(caps, qv.enum_name)
     if ename not in found_enums:
         found_enums[ename] = MetaEnum(etype=ename)
 
-    if "enum_val" in caps:
-        for v_node in caps["enum_val"]:
-            val_text = v_node.text.decode('utf8')
+    if qv.enum_val in caps:
+        for _ in caps[qv.enum_val]:
+            # val_text = v_node.text.decode('utf8')
+            val_text = T(caps, qv.enum_val)
             if val_text not in found_enums[ename].enums:
                 found_enums[ename].enums.append(val_text)
 
@@ -85,27 +125,35 @@ def get_parameter_types(params_node: Node) -> List[str]:
     return type_list
 
 
-def extract_class_member(caps: Dict[str, List[Node]], cname: str, meta: MetaClass):
+def extract_class_member(caps: Dict[str, List[Node]], found_classes: Dict[str, MetaClass]) -> MetaClass:
     """Processes fields, methods, and constructors for a MetaClass."""
+    cname = T(caps, qv.class_name)
+
+    meta: MetaClass
+    if cname not in found_classes:
+        base = T(caps, qv.base_name)
+        meta = MetaClass(cname=cname, base=base)
+        found_classes[cname] = meta
+    else:
+        meta = found_classes[cname]
+
     # 1. Handle Fields (and filter out methods/static)
-    if "field_decl" in caps:
-        is_static = any(s.text.decode('utf8') == "static" for s in caps.get("storage", []))
-        decl_node = caps["field_decl"][0]
+    if qv.field_decl in caps:
+        is_static = any(s.text.decode('utf8') == "static" for s in caps.get(qv.storage, []))
 
-        print('Field:', caps['field_name'][0].text.decode('utf8'),
-                       caps['field_type'][0].text.decode('utf8'),
-                       caps['field_register'][0].text.decode('utf8'))
+        print('Field:', T(caps, qv.field_name),
+                        T(caps, qv.field_type),
+                        T(caps, qv.field_regist))
 
-        ftype = caps["field_type"][0].text.decode('utf8')
         if not is_static:
-            meta.fields.append((ftype, decl_node.text.decode('utf8')))
+            meta.fields.append((T(caps, qv.field_type), T(caps, qv.field_decl)))
         else:
-            print("Ignore static", ftype, decl_node.text)
+            print("Ignore Static")
 
     # 2. Handle Explicit Constructors (from declaration or function_definition)
-    elif "ctor_name" in caps:
-        ctor_name = caps["ctor_name"][0].text.decode('utf8')
-        params_node = caps["ctor_params"][0]
+    elif has(caps, qv.ctor_name):
+        ctor_name = T(caps, qv.ctor_name)
+        params_node = caps[qv.ctor_params][0]
         paras = get_parameter_types(params_node)
         if ctor_name == cname:
             meta.ctors.append(paras)
@@ -114,58 +162,57 @@ def extract_class_member(caps: Dict[str, List[Node]], cname: str, meta: MetaClas
             meta.funcs.append(paras)
             print("Func :", ctor_name, paras)
 
-def extract_templs(caps: Dict[str, List[Node]], templs: dict):
-    pass
+    return meta
+
+
+def extract_templs(caps: Dict[str, List[Node]], templs: Dict[str, MetaTempl], classes: Dict[str, MetaClass]):
+    tp_name = T(caps, qv.templ_class)
+
+    if not has(caps, qv.templ_body):
+        print("Not Reachable: Ignore template classes forward declaration.", tp_name)
+        return
+
+    templ_meta = MetaTempl(tp_name, T(caps, qv.templ_entity), classes[tp_name])
+    if templ_meta.ttype in classes:
+        templs[templ_meta.ttype] = templ_meta
+        print("Resolving template", T(caps, qv.templ_class), T(caps, qv.templ_type), ":", templ_meta.ttype)
+    else:
+        print("Ignoring template", T(caps, qv.templ_class), T(caps, qv.templ_type), templ_meta.ttype)
+        print(f'    Make sure base type annotation is correct and is registered before {T(caps, qv.templ_class)}:', templ_meta.ttype)
+
 
 def parse_anson(config: CSettings, namespace="anson"):
     src_files = config.headers if hasattr(config, 'headers') else []
     CPP_LANGUAGE = Language(stcpp.language())
     parser = Parser(CPP_LANGUAGE)
-    query = Query(CPP_LANGUAGE, field_id_isfunc)
+
+    qstr = field_id_isfunc
+    print(qstr)
+    query = Query(CPP_LANGUAGE, qstr)
     cursor = QueryCursor(query)
 
-    found_enums: Dict[str, MetaEnum] = {}
+    found_enums  : Dict[str, MetaEnum]  = {}
     found_classes: Dict[str, MetaClass] = {}
-    found_templs: Dict[str, MetaClass] = {}
+    found_templs : Dict[str, MetaTempl] = {}
 
     for header in src_files:
         if not os.path.exists(header): continue
         with open(header, "rb") as f:
+            print('\n', header)
+            print(' ' + '=' * len(header))
             tree = parser.parse(f.read())
 
         for match in cursor.matches(tree.root_node):
             caps = match[1]
 
-            if "enum_name" in caps:
+            if qv.enum_name in caps:
                 extract_enum_data(caps, found_enums)
 
-            # if "templated_entity" in caps:
             if has(caps, qv.templ_entity):
-                extract_templs(caps, found_templs)
-                print("Ignore template", T(caps, qv.templ_params), T(caps, qv.templ_entity), T(caps, qv.templ_name))
+                # extract_class_member(caps, found_classes)
+                extract_templs(caps, found_templs, found_classes)
 
-            if "class_name" in caps:
-                class_node = caps["class_name"][0]
-                cname = class_node.text.decode('utf8')
-
-                # # Filter templates
-                # is_template = False
-                # p = class_node.parent
-                # while p:
-                #     if p.type == "template_declaration":
-                #         is_template = True
-                #         break
-                #     if p.type in ["translation_unit", "field_declaration_list"]:
-                #         break
-                #     p = p.parent
-                # if is_template: continue
-
-                # if cname not in found_classes:
-                #     base = caps['base_name'][0].text.decode('utf8') if 'base_name' in caps else None
-                #     found_classes[cname] = MetaClass(cname=cname, base=base)
-                #
-                # extract_class_member(caps, cname, found_classes[cname])
+            if qv.class_name in caps:
                 extract_class_member(caps, found_classes)
 
-    return found_enums, found_classes
-
+    return found_enums, found_templs, found_classes
