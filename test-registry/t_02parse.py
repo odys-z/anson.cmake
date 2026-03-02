@@ -6,7 +6,7 @@ from semanticshare.gen.cmake import CSettings
 
 from src.anson_parser import parse_anson
 
-class TemplateTest(unittest.TestCase):
+class TemplateClassTest(unittest.TestCase):
     def test_parser(self):
         # work folder: ..
         settings: CSettings = cast(CSettings, Anson.from_file("test-registry/test.json"))
@@ -20,6 +20,6 @@ class TemplateTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    t = TemplateTest()
+    t = TemplateClassTest()
     t.test_parser()
 

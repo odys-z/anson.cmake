@@ -13,7 +13,7 @@ from semanticshare.gen.cmake import CSettings
 # requires tree_sitter 0.25.2 (Python 3.10?)
 from tree_sitter import Language, Parser, Query, QueryCursor, Node
 
-from src.query_strings import field_id_isfunc, qv
+from src.query_strings import field_id_isfunc, qv, template_class_dag
 
 
 @dataclass
@@ -172,7 +172,7 @@ def extract_templs(caps: Dict[str, List[Node]], templs: Dict[str, MetaTempl], cl
         print("Not Reachable: Ignore template classes forward declaration.", tp_name)
         return
 
-    templ_meta = MetaTempl(tp_name, T(caps, qv.templ_entity), classes[tp_name])
+    templ_meta = MetaTempl(tp_name, T(caps, qv.templ_entity), extract_class_member(caps, classes))
     if templ_meta.ttype in classes:
         templs[templ_meta.ttype] = templ_meta
         print("Resolving template", T(caps, qv.templ_class), T(caps, qv.templ_type), ":", templ_meta.ttype)
@@ -181,13 +181,13 @@ def extract_templs(caps: Dict[str, List[Node]], templs: Dict[str, MetaTempl], cl
         print(f'    Make sure base type annotation is correct and is registered before {T(caps, qv.templ_class)}:', templ_meta.ttype)
 
 
-def parse_anson(config: CSettings, namespace="anson"):
+def parse_anson(config: CSettings, namespace="anson", qstr=template_class_dag):
     src_files = config.headers if hasattr(config, 'headers') else []
     CPP_LANGUAGE = Language(stcpp.language())
     parser = Parser(CPP_LANGUAGE)
 
-    qstr = field_id_isfunc
-    print(qstr)
+    with open("qstr.txt", "w") as f:
+        print(qstr, file=f)
     query = Query(CPP_LANGUAGE, qstr)
     cursor = QueryCursor(query)
 

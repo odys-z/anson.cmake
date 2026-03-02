@@ -1,0 +1,5 @@
+{ "type"   : "gen.cmake.CSettings",
+  "src"    : "src",
+  "headers": ["test-registry/io/odysz/templates.03.h"],
+  "json_h" : "io/odysz/json.03.hpp"
+}

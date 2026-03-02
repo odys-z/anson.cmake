@@ -60,3 +60,4 @@ __pycache__
 vcpkg_packages
 vcpkg_installed
 commit.comments*
+qstr.txt

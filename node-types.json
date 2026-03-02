@@ -6027,22 +6027,12 @@
       "arguments": {
         "multiple": false,
         "required": true,
-        "types": [
-          {
-            "type": "template_argument_list",
-            "named": true
-          }
-        ]
+        "types": [ { "type": "template_argument_list", "named": true } ]
       },
       "name": {
         "multiple": false,
         "required": true,
-        "types": [
-          {
-            "type": "type_identifier",
-            "named": true
-          }
-        ]
+        "types": [ { "type": "type_identifier", "named": true } ]
       }
     }
   },

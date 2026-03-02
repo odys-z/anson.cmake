@@ -84,6 +84,85 @@ q_template_multi_types = f"""(template_declaration
     )
 """
 
+q_class_fields: str = f"""(class_specifier
+        name: (type_identifier) @{qv.class_name}
+        (base_class_clause (type_identifier) @{qv.base_name})?
+        body: (field_declaration_list 
+            [
+                ;; 1.2 Capture Data Members specifically
+                (field_declaration 
+                    (storage_class_specifier)* @{qv.storage}
+                    type: (type_specifier) @{qv.field_type}
+                    declarator: [
+                        ((field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (reference_declarator (field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (pointer_declarator declarator: (field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (pointer_declarator declarator: (pointer_declarator declarator: (field_identifier) @{qv.field_name})) @{qv.field_regist}
+                        ;; (pointer_declarator declarator: (pointer_declarator declarator: (pointer_declarator declarator: field_identifier) @field_name))
+                    ] @{qv.field_decl}) @{qv.is_field}
+
+                ;; 1.2 Capture Generic Data Members specifically
+                (field_declaration 
+                    (storage_class_specifier)* @{qv.storage}
+                    type: (template_type
+                        arguments: (template_argument_list
+                          [
+                            (type_identifier) @{qv.field_name}
+                            (primitive_type) @type_param_id
+                          ]
+                        ) @{qv.field_type}
+                    declarator: [
+                        ((field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (reference_declarator (field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (pointer_declarator declarator: (field_identifier) @{qv.field_name}) @{qv.field_regist}
+                        (pointer_declarator declarator: (pointer_declarator declarator: (field_identifier) @{qv.field_name})) @{qv.field_regist}
+                    ] @{qv.field_decl}) ) @{qv.is_field}
+
+                ;; 2. Capture Function Prototypes (without bodies)
+                (field_declaration
+                    (storage_class_specifier)* @{qv.storage}
+                    type: (_) @{qv.func_retype}
+                    declarator: (function_declarator
+                        declarator: [
+                            (field_identifier) @{qv.ctor_name}
+                            (identifier) @{qv.ctor_name}
+                        ]
+                        parameters: (parameter_list) @{qv.ctor_params})) @{qv.is_func}
+                        
+                ;; 2.1 Capture Abstract Function Prototypes (without bodies) (Note 1)
+ 
+                ;; 3. Capture Function Definitions (with bodies)
+                (function_definition
+                    type: (_)? @{qv.func_retype}
+                    declarator: (function_declarator
+                        declarator: [
+                            (field_identifier) @{qv.ctor_name}
+                            (identifier) @{qv.ctor_name}
+                        ]
+                        parameters: (parameter_list) @{qv.ctor_params})) @{qv.is_func}
+            ]
+        ))
+"""
+
+q_templ_class: str = f"""(template_declaration
+      parameters: (template_parameter_list (
+                    (type_parameter_declaration) @{qv.templ_type}) (comment) @{qv.templ_comment}) @{qv.templ_params}
+      [{q_class_fields}
+      ] @{qv.templ_entity}
+    )
+"""
+
+template_class_dag: str = f"""
+    (enum_specifier 
+        name: (type_identifier) @{qv.enum_name}
+        body: (enumerator_list (enumerator name: (identifier) @{qv.enum_val})))
+    ;; {{q_template_one_comment}}
+    
+    {q_templ_class}
+    
+    {q_class_fields}
+"""
+
 field_id_isfunc: str = f"""
     (enum_specifier 
         name: (type_identifier) @{qv.enum_name}
