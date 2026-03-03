@@ -70,7 +70,6 @@ inline void register_meta() {
         .data<&anson::AnsonResp::code>("code"_hs, "code")
         ;
 
-    /*
     entt::meta_factory<anson::AnsonMsg>()
         .type("AnsonMsg"_hs)
         .ctor<Port>()
@@ -80,7 +79,6 @@ inline void register_meta() {
         .data<&anson::AnsonMsg::port>("port"_hs, "port")
         .data<&anson::AnsonMsg::port>("port"_hs, "port")
         ;
-    */
 
     entt::meta_factory<anson::OnError>()
         .type("OnError"_hs)

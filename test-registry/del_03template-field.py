@@ -40,7 +40,7 @@ q_templ_class_frame = f"""(class_specifier
 class TemplateFieldTest(unittest.TestCase):
     def test_parser(self):
         # work folder: ..
-        settings: CSettings = cast(CSettings, Anson.from_file("test-registry/t_03.json"))
+        settings: CSettings = cast(CSettings, Anson.from_file("test-registry/del_03.json"))
 
         enums, clss, tmpls = parse_anson(settings)
         self.assertTrue ('AnsonBody' in tmpls, 'AnsonBody in resolving!')
