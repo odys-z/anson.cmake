@@ -1,0 +1,5 @@
+{ "type"    : "gen.cmake.CSettings",
+  "requests": [["ast/echo.ast.json", null], ["ast/wsecho.ast.json", null]],
+  "header"  : "test-registry/gen/cpp/t01-echo.hpp",
+  "py"      : "test-registry/gen/py/t01-echo.py"
+}

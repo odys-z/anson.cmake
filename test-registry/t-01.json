@@ -1,6 +1,0 @@
-{ "type"       : "gen.cmake.CSettings",
-  "ansonMsg"   : "io.odysz.semantic.jprotocol.AnsonMsg",
-  "requestMsgs": ["io.odysz.semantic.jprotocol.EchoReq"],
-  "cppheader"  : "test-registry/gen/cpp/echo.hpp",
-  "py"         : "test-registry/gen/py/echo.py"
-}

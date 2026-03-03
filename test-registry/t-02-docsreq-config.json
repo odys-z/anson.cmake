@@ -1,0 +1,7 @@
+{ "type"    : "gen.cmake.CSettings",
+  "requests": [["ast/device.ast.json", "2026-03-02 23:00:00"],
+               ["ast/pageinf.ast.json", "2026-03-03 23:01:01"],
+               ["ast/docsreq.ast.json", "2026-03-03 23:02:02"]],
+  "header"  : "test-registry/gen/cpp/t02-docs.hpp",
+  "py"      : "test-registry/gen/py/t02-docs.py"
+}

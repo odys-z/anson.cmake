@@ -1,8 +1,0 @@
- {"type": "io.odysz.anson.AnsonAst",
-  "msg" : "io.odysz.semantic.jprotocol.AnsonMsg",
-  "body": "io.odysz.semantic.jserv.echo.EchoReq",
-  "base": "io.odysz.semantic.jprotocol.AnsonBody",
-  "uri" : "String",
-   "a"  : "String",
-  "parent": "@enclosing"
- }

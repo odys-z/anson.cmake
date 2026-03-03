@@ -21,7 +21,7 @@ from tree_sitter import Language, Parser, Query, QueryCursor, Node
 
 from anson.io.odysz.anson import Anson
 from semanticshare.gen.cmake import CSettings
-from query_strings import fieldecl_funcdecl_funcdef, field_id_isfunc
+from del_query_strings import fieldecl_funcdecl_funcdef, field_id_isfunc
 
 
 @dataclass
@@ -185,7 +185,7 @@ def parse_anson(config: CSettings, namespace="anson"):
     return found_enums, found_classes
 
 if __name__ == "__main__":
-    settings: CSettings = cast(CSettings, Anson.from_file("anson.json"))
+    settings: CSettings = cast(CSettings, Anson.from_file("del_anson.json"))
     enums, classes = parse_anson(settings)
     for name, node in enums.items():
         print(name, node)

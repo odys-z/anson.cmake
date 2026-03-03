@@ -7,7 +7,7 @@ from typing import List, Dict, Tuple, cast, Final
 from anson.io.odysz.anson import Anson
 from semanticshare.gen.cmake import CSettings
 
-from anson_parser import parse_anson, MetaClass, MetaEnum, MetaTempl
+from del_anson_parser import parse_anson, MetaClass, MetaEnum, MetaTempl
 
 indent: Final[str] = "    "
 
@@ -103,7 +103,7 @@ def gen_entt_registry(founds: Tuple[Dict[str, MetaEnum],
     return output
 
 if __name__ == "__main__":
-    settings: CSettings = cast(CSettings, Anson.from_file("anson.json"))
+    settings: CSettings = cast(CSettings, Anson.from_file("del_anson.json"))
     enums, templs, classes = parse_anson(settings)
     for name, node in enums.items():
         print(name, node)

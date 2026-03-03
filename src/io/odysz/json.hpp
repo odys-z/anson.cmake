@@ -52,6 +52,7 @@ inline void register_meta() {
 
     entt::meta_factory<anson::EchoReq>()
         .type("EchoReq"_hs)
+        .base<anson::EchoReq>()
         .ctor<>()
         .ctor<string>()
         .data<&anson::EchoReq::echo>("echo"_hs, "echo")
@@ -70,14 +71,12 @@ inline void register_meta() {
         .data<&anson::AnsonResp::code>("code"_hs, "code")
         ;
 
-    entt::meta_factory<anson::AnsonMsg>()
-        .type("AnsonMsg"_hs)
+    entt::meta_factory<anson::AnsonMsg<EchoReq>>()
+        .type("AnsonMsgEchoReq"_hs)
         .ctor<Port>()
         .ctor<Port>()
-        .data<&anson::AnsonMsg::body>("body"_hs, "body")
-        .data<&anson::AnsonMsg::body>("body"_hs, "body")
-        .data<&anson::AnsonMsg::port>("port"_hs, "port")
-        .data<&anson::AnsonMsg::port>("port"_hs, "port")
+        .data<&anson::AnsonMsg<EchoReq>::body>("body"_hs, "body")
+        .data<&anson::AnsonMsg<EchoReq>::port>("port"_hs, "port")
         ;
 
     entt::meta_factory<anson::OnError>()

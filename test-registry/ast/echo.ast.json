@@ -1,0 +1,6 @@
+{ "type": "io.odysz.anson.AnsonMsgAst",
+  "msg" : "io.odysz.semantic.jprotocol.AnsonMsg",
+  "base": "io.odysz.semantic.jprotocol.AnsonBody",
+  "body": "io.odysz.semantic.jserv.echo.EchoReq",
+   "A": {"echo":  "echo", "inet":  "inet"}
+}

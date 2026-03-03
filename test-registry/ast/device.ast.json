@@ -1,0 +1,10 @@
+{ "type": "io.odysz.anson.AnsonAst",
+  "base": "io.odysz.anson.Anson",
+  "class": "io.odysz.semantic.tier.docs.Device",
+  "fields": {
+    "id": "String",
+    "synode0": "String",
+    "devname": "String",
+    "tofolder": "String"
+  }
+}

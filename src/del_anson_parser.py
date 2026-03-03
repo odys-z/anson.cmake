@@ -13,7 +13,7 @@ from semanticshare.gen.cmake import CSettings
 # requires tree_sitter 0.25.2 (Python 3.10?)
 from tree_sitter import Language, Parser, Query, QueryCursor, Node
 
-from src.query_strings import field_id_isfunc, qv, template_class_dag
+from src.del_query_strings import field_id_isfunc, qv, template_class_dag
 
 
 @dataclass
