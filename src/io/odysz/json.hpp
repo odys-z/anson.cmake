@@ -74,7 +74,7 @@ inline void register_meta() {
     entt::meta_factory<anson::AnsonMsg<EchoReq>>()
         .type("AnsonMsgEchoReq"_hs)
         .ctor<Port>()
-        .ctor<Port>()
+        // .ctor<Port>()
         .data<&anson::AnsonMsg<EchoReq>::body>("body"_hs, "body")
         .data<&anson::AnsonMsg<EchoReq>::port>("port"_hs, "port")
         ;
