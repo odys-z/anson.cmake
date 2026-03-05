@@ -1,0 +1,12 @@
+{ "type": "io.odysz.semantier.AnsonAst",
+  "isEnum": false,
+  "base"   : "io.odysz.anson.Anson",
+  "anclass": "io.odysz.transact.sql.PageInf",
+  "fields" : {
+    "page": "String",
+    "size": "String",
+    "total": "String",
+    "arrCondts": "List<String[]",
+    "mapCondts": "Map<String, ?"
+  }
+}

@@ -40,10 +40,23 @@ public:
     UserReq(string a) : AnsonBody(a, "io.odysz.jprotocol.UserReq") {}
 };
 
-enum class Port { query, update, echo,
-  /** document manage's semantic tier ("docs.tier") */
-  docstier,
+/**
+ * (In cpp, Port cannot be a enum type)
+ */
+class Port {
+    inline static const std::string query = "r.serv";
+    inline static const std::string update = "u.serv";
+    inline static const std::string insert = "c.serv";
+    inline static const std::string del = "d.serv";
+
+    inline static const std::string echo = "echo.less";
+
+    inline static const std::string file = "file.serv";
+
+    /** document manager's semantic tier ("docs.tier") */
+    inline static const std::string docstier = "docs.tier";
 };
+
 
 inline std::ostream& operator<<(std::ostream& os, const Port& p) {
     using namespace entt::literals;

@@ -1,7 +1,6 @@
-{ "type"   : "io.odysz.anson.AnsonAst",
-  "is_enum": false,
+{ "type": "io.odysz.semantier.AnsonAst",
   "base"   : "io.odysz.anson.Anson",
-  "class"  : "io.odysz.semantic.tier.docs.Device",
+  "anclass": "io.odysz.semantic.tier.docs.Device",
   "fields" : {
     "id": "String",
     "synode0": "String",

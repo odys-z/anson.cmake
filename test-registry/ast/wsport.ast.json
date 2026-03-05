@@ -1,0 +1,9 @@
+{ "type"   : "io.odysz.semantier.AnsonPortAst",
+  "isEnum" : true,
+  "anclass": "io.oz.anclient.ipcagent.WSPort",
+  "fields" : {
+    "doclient" : "doclient.ws",
+    "configIPC": "config.ws",
+    "echo"     : "echo.ws"
+  }
+}

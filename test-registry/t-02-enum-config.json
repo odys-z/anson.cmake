@@ -1,0 +1,7 @@
+{ "type"    : "io.odysz.semantier.PeerSettings",
+  "requests": [["ast/msgcode.ast.json", "2026-03-05 22:00:01"],
+               ["ast/port.ast.json", "2026-03-05 22:00:02"]],
+  "header"  : "gen/cpp/t02-enum.hpp",
+  "json_h"  : "gen/cpp/t02-json.hpp",
+  "py"      : "gen/py/t03-enum.py"
+}

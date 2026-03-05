@@ -1,0 +1,7 @@
+{ "type"    : "io.odysz.semantier.PeerSettings",
+  "requests": [["ast/port.ast.json", "2026-03-05 23:01:01"],
+               ["ast/wsport.ast.json", "2026-03-05 23:01:03"]],
+  "header"  : "gen/cpp/t04-docs.hpp",
+  "json_h"  : "gen/cpp/t04-json.hpp",
+  "py"      : "gen/py/t04-docs.py"
+}

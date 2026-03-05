@@ -1,6 +1,6 @@
-{ "type": "io.odysz.anson.AnsonMsgAst",
+{ "type": "io.odysz.semantier.AnsonMsgAst",
   "msg" : "io.odysz.semantic.jprotocol.AnsonMsg",
   "base": "io.odysz.semantic.jprotocol.AnsonBody",
-  "body": "io.odysz.semantic.jserv.echo.EchoReq",
+  "anclass": "io.odysz.semantic.jserv.echo.EchoReq",
    "A": {"echo":  "echo", "inet":  "inet"}
 }

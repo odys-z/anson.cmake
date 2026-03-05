@@ -1,0 +1,22 @@
+{ "type"   : "io.odysz.semantier.AnsonPortAst",
+  "anclass": "io.odysz.semantic.jprotocol.AnsonMsg.Port",
+  "fields" : {
+    "heartbeat": "ping.serv",
+    "session": "login.serv",
+    "query": "r.serv",
+    "update": "u.serv",
+    "insert": "c.serv",
+    "del": "d.serv",
+    "echo": "echo.less",
+    "file": "file.serv",
+    "user": "user.serv11",
+    "userstier": "users.tier",
+    "stree": "s-tree.serv",
+    "stree11": "s-tree.serv11",
+    "dataset": "ds.serv",
+    "dataset11": "ds.serv11",
+    "datasetier": "ds.tier",
+    "docstier": "docs.tier",
+    "syntier": "sync.tier"
+ }
+}

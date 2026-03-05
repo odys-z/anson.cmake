@@ -1,0 +1,9 @@
+{ "type"    : "io.odysz.semantier.PeerSettings",
+  "requests": [["ast/device.ast.json", "2026-03-02 23:00:00"],
+               ["ast/pageinf.ast.json", "2026-03-03 23:01:01"],
+               ["ast/pathspage.ast.json", "2026-03-05 23:03:03"],
+               ["ast/docsreq.ast.json", "2026-03-03 23:02:02"]],
+  "header"  : "gen/cpp/t03-docs.hpp",
+  "json_h"  : "gen/cpp/t03-json.hpp",
+  "py"      : "gen/py/t03-docs.py"
+}
