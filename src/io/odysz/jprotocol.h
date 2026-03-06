@@ -44,43 +44,48 @@ public:
  * (In cpp, Port cannot be a enum type)
  */
 class Port {
+public:
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
     inline static const std::string insert = "c.serv";
     inline static const std::string del = "d.serv";
-
     inline static const std::string echo = "echo.less";
-
     inline static const std::string file = "file.serv";
-
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
+
+    string p;
 };
 
+inline bool operator==(const Port& p, const Port& q) {
+    return p.p == q.p;
+}
 
-inline std::ostream& operator<<(std::ostream& os, const Port& p) {
+inline bool operator==(const anson::Port& p, const std::string& s) {
+    return p.p == s;
+}
+
+inline bool operator==(const std::string& s, const anson::Port& p) {
+    // return p == from_enum_string<Port>(s);
+    return p == s;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const anson::Port& p) {
     using namespace entt::literals;
 
-    auto type = entt::resolve<Port>();
+    auto type = entt::resolve<anson::Port>();
 
     if (type) {
         for (auto [id, data] : type.data()) {
-            if (data.get({}).cast<Port>() == p) {
-                // os << "Port::" << id;
+            if (data.get({}).cast<anson::Port>() == p.p) {
                 return os << "\"" << data.name() << "\"" ; //id;
             }
         }
     }
 
-    return os << static_cast<int>(p); // Fallback to numeric value
-    // return os << p.name();
+    cout << "WARNING UnknownPort " << p.p << ". (Type is not found)";
+    return os << p.p;
 }
-
-// template<std::derived_from<JavaEnum> E>
-// TODO try
-// template <typename T>
-// concept EnumType = std::is_enum_v<T>;
-// template<EnumType>
 
 template<typename E>
 std::optional<E> from_enum_string(const std::string& s) {
@@ -99,23 +104,11 @@ std::optional<E> from_enum_string(const std::string& s) {
     return std::nullopt;
 }
 
-inline bool operator==(const Port& p, const std::string& s) {
-    auto converted = from_enum_string<Port>(s);
-    return converted.has_value() && (converted.value() == p);
-}
-
-inline bool operator==(const std::string& s, const Port& p) {
-    return p == from_enum_string<Port>(s);
-}
-
 enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext };
 
 class AnsonResp : public AnsonBody{
 public:
     MsgCode code;
-
-    /** Java (server) exception. To be implemented */
-    // AnsonException   ex;
 
     AnsonResp() : AnsonBody("NA", "io.odysz.semantic.jprotocol.AnsonResp") {}
 
@@ -123,8 +116,8 @@ public:
 };
 
 // c20 template<std::derived_from<AnsonBody> T = AnsonBody>
-    // typename T //, typename = std::enable_if_t<std::is_base_of_v<AnsonBody, T>>
-    /// With anson::AnsonBoyd, any subclass of AnsonBody will be registered by specialize this templated class, AnsonMsg.
+// typename T //, typename = std::enable_if_t<std::is_base_of_v<AnsonBody, T>>
+/// With anson::AnsonBoyd, any subclass of AnsonBody will be registered by specialize this templated class, AnsonMsg.
 template <
     typename T //anson::AnsonBody
     >
@@ -137,6 +130,10 @@ public:
     Port port;
 
     AnsonMsg(Port port) : Anson(_type_), port(port) {}
+
+    AnsonMsg(Port port, const T& body) : Anson(_type_), port(port) {
+        this->Body(body);
+    }
 
     AnsonMsg<T>& Body(const T& body) {
         this->body.push_back(make_shared<T>(body));

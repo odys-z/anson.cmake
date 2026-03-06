@@ -18,8 +18,8 @@ public:
     string page;
     string size;
     string total;
-    List<String[] arrCondts;
-    Map<String, ? mapCondts;
+    List<String[]> arrCondts;
+    Map<String, ?> mapCondts;
 };
 
 public class PathsPage : public anson::Anson {
@@ -27,7 +27,7 @@ public:
     string device;
     long start;
     long end;
-    Map<String, String[] clientPaths;
+    Map<String, String[]> clientPaths;
 };
 
 public class DocsReq : public anson::AnsonBody {

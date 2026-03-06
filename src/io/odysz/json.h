@@ -1,98 +1,100 @@
+/**
+ * The eqivalent of gen.antlr.json + JSONAnsonListener
+ */
 #pragma once
 
-#include <string>
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <entt/meta/meta.hpp>
 #include <entt/entt.hpp>
-
-using namespace  std ;
+#include <entt/meta/container.hpp>
+#include <vector>
+#include <string>
+#include "anson.h"
+#include "jprotocol.h"
 
 namespace anson {
 
+using namespace entt::literals;
 
-class JsonOpt;// : public Anson { };
+inline void register_meta() {
+    using namespace entt::literals;
 
-class IJsonable {
+    // Register Anson Base
+    entt::meta_factory<anson::Anson>()
+        .type("Anson"_hs)
+        .ctor<>()
+        .ctor<const std::string&>()
+        .data<&anson::Anson::type>("type"_hs, "type");
 
-public:
-    virtual IJsonable* toBlock(ostream& os, JsonOpt& opts);
+    // Register SemanticObject
+    entt::meta_factory<anson::SemanticObject>()
+        .type("SemanticObject"_hs)
+        .ctor<>()
+        .base<anson::Anson>();
 
-    /** @see #toBlock(OutputStream, JsonOpt...) */
-    virtual string toBlock(JsonOpt& opt) {
-        // ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        // toBlock(bos, opt);
-        // return bos.toString(StandardCharsets.UTF_8.name());
-        std::ostringstream bos;
-        toBlock(bos, opt);
-        return bos.str();
-    }
+    // Register AnsonBody
+    entt::meta_factory<anson::AnsonBody>()
+        .type("AnsonBody"_hs)
+        .ctor<const std::string&>()
+        .ctor<const std::string&, const std::string&>()
+        .base<anson::Anson>()
+        .data<&anson::AnsonBody::a>("a"_hs, "a");
 
-    /**
-     * @param buf
-     * @return this
-     * @throws IOException
-     * @throws AnsonException
-     */
-    virtual IJsonable* toJson(string& buf);
+    // Register UserReq
+    entt::meta_factory<anson::UserReq>()
+        .type("UserReq"_hs)
+        .ctor<const std::string&>()
+        .base<anson::AnsonBody>()
+        .data<&anson::UserReq::data>("data"_hs, "data");
 
-    int tree_sitter_test() { return 0; }
-    char& s_test0;
-    char& s_test1;
-    char** s_test2;
-    char** s_test3;
-};
+    // Register EchoReq
+    entt::meta_factory<anson::EchoReq>()
+        .type("EchoReq"_hs)
+        .ctor<>()
+        .ctor<const std::string&>()
+        .base<anson::AnsonBody>()
+        .data<&anson::EchoReq::echo>("echo"_hs, "echo");
 
-template<typename T>
-class EnTTSaxParser;
+    // Register AnsonResp
+    entt::meta_factory<anson::AnsonResp>()
+        .type("AnsonResp"_hs)
+        .ctor<>()
+        .ctor<const std::string&>()
+        .base<anson::AnsonBody>();
 
-/**
- * @brief The Anson class
- * java type: io.odysz.anson.Anson
- */
-class Anson {
-public:
-    inline static const string _type_ = "io.odysz.anson.Anson";
-    std::string type;
+    // Register AnsonMsg template (example for EchoReq)
+    entt::meta_factory<anson::AnsonMsg<anson::EchoReq>>()
+        .type("AnsonMsgEcho"_hs)
+        .ctor<anson::Port>()
+        .base<anson::Anson>()
+        .data<&anson::AnsonMsg<anson::EchoReq>::port>("port"_hs, "port")
+        .data<&anson::AnsonMsg<anson::EchoReq>::body>("body"_hs, "body");
 
-    Anson() { cout << "defalut contructor" << endl ; }
-    Anson(string t) : type(t) { cout << "override constructor, type = " << t << endl ; }
-    
-    template <typename T>
-    static bool from_json(const string& json, T& an) {
-        EnTTSaxParser<T> handler{an};
-        return nlohmann::json::sax_parse(json, &handler);
-    }
+    // Register Port enum
+    entt::meta_factory<anson::Port>()
+        .type("Port"_hs)
+        .data<&anson::Port::p>("p"_hs, "p")
+        // .data<anson::Port::query>("query"_hs)
+        // .data<anson::Port::update>("update"_hs)
+        // .data<anson::Port::echo>("echo"_hs)
+        ;
 
-    void toBlock() {
-
-    }
-};
-
-class SemanticObject : public Anson {
-public:
-    map<string, any> data;
-};
-
-using namespace entt;
-
-inline ostream& serialize_enum(const meta_type type, const meta_any instance,
-               map<string, map<string, int>> &enum_serializers, std::ostream &os) {
-    // os << instance.get("");
-    string name = type.name();
-    for (auto [id, data] : type.data()) {
-        // serialize_recursive(data.get(instance), os);
-        if (enum_serializers.at(name).at(data.name()) == data.get(instance).cast<int>())
-            return os << '\"' << name << '\"';
-    }
-    return os;
+    // Register MsgCode enum
+    entt::meta_factory<anson::MsgCode>()
+        .type("MsgCode"_hs)
+        .data<anson::MsgCode::ok>("ok"_hs)
+        .data<anson::MsgCode::exSession>("exSession"_hs)
+        .data<anson::MsgCode::exSemantic>("exSemantic"_hs)
+        .data<anson::MsgCode::exIo>("exIo"_hs)
+        .data<anson::MsgCode::exTransct>("exTransct"_hs)
+        .data<anson::MsgCode::exDA>("exDA"_hs)
+        .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
+        .data<anson::MsgCode::ext>("ext"_hs);
 }
 
-inline ostream& serialize_recursive(const meta_any &instance, map<string, map<string, int>> &enumtypes, std::ostream &os);
+inline ostream& serialize_recursive(const entt::meta_any &instance, std::ostream &os);
 
-inline ostream& serialize_kvs(const meta_type &type, const meta_any &instance,
-                map<string, map<string, int>> &enumtypes, std::ostream &os, bool &first) {
-
+inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any &instance, std::ostream &os, bool &first) {
     // // 1. First, handle base classes (Recursive)
     // for (auto [id, base] : type.base()) {
     //     serialize_object_fields(base.type(), instance, os, first);
@@ -106,37 +108,35 @@ inline ostream& serialize_kvs(const meta_type &type, const meta_any &instance,
         os << "\"" << data.name() << "\": ";
 
         // Pass the instance to data.get() to extract the value
-        serialize_recursive(data.get(instance), enumtypes, os);
+        serialize_recursive(data.get(instance), os);
         first = false;
     }
     return os;
 }
 
-inline ostream& serialize_object(const meta_type &type, const meta_any &instance,
-                                 map<string, map<string, int>> &enumtypes, std::ostream &os) {
+inline ostream& serialize_object(const entt::meta_type &type, const entt::meta_any &instance, std::ostream &os) {
     // 1. First, handle base classes (Recursive)
     bool first{true};
     os << "{";
 
     for (auto [id, base] : type.base())
-        serialize_kvs(base, instance, enumtypes, os, first);
+        serialize_kvs(base, instance, os, first);
 
-    serialize_kvs(type, instance, enumtypes, os, first);
+    serialize_kvs(type, instance, os, first);
 
     os << "}";
     return os;
 }
 
-inline ostream& serialize_recursive(const meta_any &instance,
-                                    map<string, map<string, int>> &enumtypes, std::ostream &os) {
+inline ostream& serialize_recursive(const entt::meta_any &instance, std::ostream &os) {
     if (!instance) return os;
 
-    meta_type type = instance.type();
+    auto type = instance.type();
 
     // 1. Dereference pointers (shared_ptr<EchoReq> -> EchoReq)
     if (type.is_pointer() || type.is_pointer_like()) {
         auto deref = *instance;
-        serialize_recursive(deref, enumtypes, os);
+        serialize_recursive(deref, os);
         return os;
     }
 
@@ -148,8 +148,11 @@ inline ostream& serialize_recursive(const meta_any &instance,
 
     // 2. Enums
     if (type.is_enum()) {
-        // if (auto p = instance.try_cast<anson::Port>()) os << *p;
-        return serialize_enum(type, instance, enumtypes, os);
+        // This will use your overloaded operator<< for anson::Port
+
+        // How do I know that's a Port?
+        if (auto p = instance.try_cast<anson::Port>()) os << *p;
+        return os;
     }
 
     // 3. Sequence Containers (std::vector, etc.)
@@ -157,12 +160,12 @@ inline ostream& serialize_recursive(const meta_any &instance,
     if (type.is_sequence_container()) {
         auto view = instance.as_sequence_container();
         // If as_sequence() still fails here, use the explicit version:
-        // auto view = meta_sequence_view{instance};
+        // auto view = entt::meta_sequence_view{instance};
         os << "[";
         bool first = true;
         for (auto element : view) {
             if (!first) os << ", ";
-            serialize_recursive(element, enumtypes, os);
+            serialize_recursive(element, os);
             first = false;
         }
         os << "]";
@@ -176,9 +179,9 @@ inline ostream& serialize_recursive(const meta_any &instance,
         bool first = true;
         for (auto [key, value] : view) {
             if (!first) os << ", ";
-            serialize_recursive(key, enumtypes, os);
+            serialize_recursive(key, os);
             os << ": ";
-            serialize_recursive(value, enumtypes, os);
+            serialize_recursive(value, os);
             first = false;
         }
         os << "}";
@@ -189,21 +192,20 @@ inline ostream& serialize_recursive(const meta_any &instance,
     if (auto a = instance.try_cast<std::any>()) {
         // Check for shared_ptr<Anson> as requested
         if (a->has_value() && a->type() == typeid(std::shared_ptr<anson::Anson>)) {
-            serialize_object(type, instance, enumtypes, os);
+            serialize_object(type, instance, os);
         }
         return os;
     }
 
     // 6. General Objects (Reflection)
-    return serialize_object(type, instance, enumtypes, os);
+    return serialize_object(type, instance, os);
 }
 
-inline string serialize_json(const meta_any &instance,
-                             map<string, map<string, int>> &enumtypes) {
+inline string serialize_json(const entt::meta_any &instance) {
     if (!instance)  return string(nullptr);
 
     std::stringstream ss;
-    serialize_recursive(instance, enumtypes, ss);
+    serialize_recursive(instance, ss);
     return ss.str();
 }
 
@@ -211,8 +213,8 @@ inline string serialize_json(const meta_any &instance,
 template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
-    std::vector<meta_any> stack;
-    id_type active_key{0};
+    std::vector<entt::meta_any> stack;
+    entt::id_type active_key{0};
 
     // Helper to set values on the current object in the stack
     // template<typename T>
@@ -243,7 +245,7 @@ public:
     }
 
     bool key(string_t& val) override {
-        active_key = hashed_string{val.c_str()};
+        active_key = entt::hashed_string{val.c_str()};
         return true;
     }
 
@@ -283,7 +285,6 @@ public:
     bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
 
     // Root Management
-    void set_root(meta_any instance) { stack.push_back(instance); }
+    void set_root(entt::meta_any instance) { stack.push_back(instance); }
 };
 }
-

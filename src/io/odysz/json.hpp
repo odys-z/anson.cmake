@@ -10,14 +10,23 @@ using namespace entt::literals;
 
 namespace anson {
 inline void register_meta() {
-    // Register Port enum
+    // Register Port
     entt::meta_factory<anson::Port>()
         .type("Port"_hs)
+        .data<&anson::Port::p>("p"_hs, "p")
         ;
 
     // Register MsgCode enum
     entt::meta_factory<anson::MsgCode>()
         .type("MsgCode"_hs)
+        .data<anson::MsgCode::ok>("ok"_hs)
+        .data<anson::MsgCode::exSession>("exSession"_hs)
+        .data<anson::MsgCode::exSemantic>("exSemantic"_hs)
+        .data<anson::MsgCode::exIo>("exIo"_hs)
+        .data<anson::MsgCode::exTransct>("exTransct"_hs)
+        .data<anson::MsgCode::exDA>("exDA"_hs)
+        .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
+        .data<anson::MsgCode::ext>("ext"_hs)
         ;
 
     entt::meta_factory<anson::IJsonable>()
