@@ -4,8 +4,8 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
-#include <io/odysz/json.hpp>
-#include <io/odysz/serializer.h>
+#include <io/odysz/json.h>
+#include <io/odysz/anserializer.h>
 
 
 using namespace std;
@@ -14,7 +14,8 @@ using namespace anson;
 using namespace entt;
 
 TEST(Anson, Base) {
-    register_meta();
+    map<string, map<string, int>*> enums;
+    register_meta(enums);
 
     auto an_type = entt::resolve("Anson"_hs);
     // auto anptr = construct_typed<anson::Anson>(an_type);
@@ -32,7 +33,7 @@ TEST(Anson, Base) {
     std::string json_input = R"({"type": "input"})";
     // 1. dereferencing the shared_ptr, which results in a reference to the anson::Anson object
     // 2. Passing *ans to rttr::instance creates an instance that refers to the original object (shallow copy)
-    EnTTSaxParser  handler(anobj2);
+    EnTTSaxParser<Anson>  handler(anobj2);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
@@ -51,7 +52,7 @@ TEST(Anson, AnsonBody) {
     ASSERT_EQ("r/ds", anb->a);
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
-    EnTTSaxParser handler(*anb);
+    EnTTSaxParser<AnsonBody> handler(*anb);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);

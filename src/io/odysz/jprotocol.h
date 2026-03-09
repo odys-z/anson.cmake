@@ -36,14 +36,14 @@ public:
 
 class UserReq : public AnsonBody {
 public:
-    map<string, any> data;
+    map<string, entt::any> data;
     UserReq(string a) : AnsonBody(a, "io.odysz.jprotocol.UserReq") {}
 };
 
 /**
  * (In cpp, Port cannot be a enum type)
  */
-class Port {
+class Port : public JavaEnum {
 public:
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
@@ -54,15 +54,15 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    string p;
+    Port(string enum_val) : JavaEnum(enum_val) { }
 };
 
 inline bool operator==(const Port& p, const Port& q) {
-    return p.p == q.p;
+    return p.enm == q.enm;
 }
 
 inline bool operator==(const anson::Port& p, const std::string& s) {
-    return p.p == s;
+    return p.enm == s;
 }
 
 inline bool operator==(const std::string& s, const anson::Port& p) {
@@ -70,22 +70,43 @@ inline bool operator==(const std::string& s, const anson::Port& p) {
     return p == s;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const anson::Port& p) {
-    using namespace entt::literals;
+// inline std::ostream& operator<<(std::ostream& os, const anson::Port& port_instance) {
+//     using namespace entt::literals;
 
-    auto type = entt::resolve<anson::Port>();
+//     auto type = entt::resolve<anson::Port>();
 
-    if (type) {
-        for (auto [id, data] : type.data()) {
-            if (data.get({}).cast<anson::Port>() == p.p) {
-                return os << "\"" << data.name() << "\"" ; //id;
-            }
-        }
-    }
+//     if (type) {
+//         // 1. Get the meta data for the member variable 'p'
+//         // Assuming 'p' was registered with the id "p"_hs
+//         auto prop_p = type.data("enm"_hs);
 
-    cout << "WARNING UnknownPort " << p.p << ". (Type is not found)";
-    return os << p.p;
-}
+//         if (prop_p) {
+//             // Get the actual string value of 'p' from the instance
+//             auto value_any = prop_p.get(port_instance);
+//             if (auto* val_ptr = value_any.try_cast<std::string>()) {
+
+//                 // 2. Iterate through all registered meta data to find a match
+//                 for (auto [id, data] : type.data()) {
+//                     // We check if the meta data is a constant matching our value
+//                     // This allows you to map "e.less" back to the name "echo"
+//                     auto meta_val = data.get({}); // Get static/constant value
+
+//                     if (meta_val && meta_val.try_cast<std::string>() &&
+//                         *meta_val.try_cast<std::string>() == *val_ptr) {
+
+//                         // We found a field whose value matches port_instance.p
+//                         // Use data.id() or a custom property for the "field name"
+//                         return os << "[ data.name() ] " << data.name() << std::endl;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     // Fallback if no meta-match is found
+//     std::cerr << "WARNING Unknown Port " << port_instance.enm << " (No meta-match found)\n";
+//     return os << "\"" << port_instance.enm << "\"";
+// }
 
 template<typename E>
 std::optional<E> from_enum_string(const std::string& s) {
@@ -129,7 +150,9 @@ public:
 
     Port port;
 
-    AnsonMsg(Port port) : Anson(_type_), port(port) {}
+    AnsonMsg(Port port) : Anson(_type_), port(port) {
+        cout << port.enm;
+    }
 
     AnsonMsg(Port port, const T& body) : Anson(_type_), port(port) {
         this->Body(body);

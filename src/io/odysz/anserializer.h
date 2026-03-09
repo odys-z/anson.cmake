@@ -12,7 +12,8 @@ namespace anson {
 
 inline ostream& serialize_recursive(const entt::meta_any &instance, std::ostream &os);
 
-inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any &instance, std::ostream &os, bool &first) {
+inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any &instance,
+                              std::ostream &os, bool &first) {
     // // 1. First, handle base classes (Recursive)
     // for (auto [id, base] : type.base()) {
     //     serialize_object_fields(base.type(), instance, os, first);
@@ -33,7 +34,8 @@ inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any 
     return os;
 }
 
-inline ostream& serialize_object(const entt::meta_type &type, const entt::meta_any &instance, std::ostream &os) {
+inline ostream& serialize_obj(const entt::meta_type &type, const entt::meta_any &instance,
+                                 std::ostream &os) {
     // 1. First, handle base classes (Recursive)
     bool first{true};
     os << "{";
@@ -109,13 +111,13 @@ inline ostream& serialize_recursive(const entt::meta_any &instance, std::ostream
     if (auto a = instance.try_cast<std::any>()) {
         // Check for shared_ptr<Anson> as requested
         if (a->has_value() && a->type() == typeid(std::shared_ptr<anson::Anson>)) {
-            serialize_object(type, instance, os);
+            serialize_obj(type, instance, os);
         }
         return os;
     }
 
     // 6. General Objects (Reflection)
-    return serialize_object(type, instance, os);
+    return serialize_obj(type, instance, os);
 }
 
 inline string serialize_json(const entt::meta_any &instance) {
@@ -126,6 +128,7 @@ inline string serialize_json(const entt::meta_any &instance) {
     return ss.str();
 }
 
+/*
 template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
@@ -231,5 +234,5 @@ public:
     // Root Management
     void set_root(entt::meta_any instance) { stack.push_back(instance); }
 };
-
+*/
 }

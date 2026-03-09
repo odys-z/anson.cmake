@@ -61,7 +61,7 @@ inline void register_meta() {
 
     entt::meta_factory<anson::EchoReq>()
         .type("EchoReq"_hs)
-        .base<anson::EchoReq>()
+        .base<anson::AnsonBody>()
         .ctor<>()
         .ctor<string>()
         .data<&anson::EchoReq::echo>("echo"_hs, "echo")

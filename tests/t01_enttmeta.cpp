@@ -3,9 +3,10 @@
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
 #include <iostream>
-#include <io/odysz/jprotocol.h>
-#include <io/odysz/serializer.h>
-#include "io/odysz/json.hpp"
+
+// #include "io/odysz/anson.h"
+#include "io/odysz/jprotocol.h"
+#include "io/odysz/json.h"
 
 using json = nlohmann::json;
 using namespace anson;
@@ -41,22 +42,23 @@ json convert(entt::meta_any instance) {
 }
 
 TEST(HELLO, ENTT_META) {
-    register_meta();
+    map<string, map<string, int>*> enums;
+    register_meta(enums);
 
     AnsonMsg<EchoReq> msg{Port::echo};
 
-    cout << "Port: " << msg.port;
-    EchoReq echobd{"echo..."};
+    cout << "Port: " << msg.port << endl;
+    EchoReq echobd{"echo msg ..."};
     msg.Body(echobd);
 
     cout << "Echo: " << msg.body.back()->echo << endl;
 
-    cout << serialize_json(msg) << endl;
-    serialize_recursive(msg, cout) << endl;
+    cout << serialize_json(msg, enums) << endl;
+    serialize_recursive(msg, enums, cout) << endl;
 
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"
-              R"("port": "echo", "body": [{"a": "r/query", "echo": "echo..."}]})",
-              serialize_json(msg))
+              R"("port": "echo", "body": [{"a": "r/query", "echo": "echo msg ..."}]})",
+              serialize_json(msg, enums))
         << "static _type_ must be ignored, port name must used as the enum value...";
 
     // 1. Create EchoReq via reflection
@@ -72,7 +74,7 @@ TEST(HELLO, ENTT_META) {
     }
 
     // 2. Create AnsonMsg<EchoReq> via reflection
-    auto msg_rfl = entt::resolve("AnsonMsgEcho"_hs).construct(Port::echo);
+    auto msg_rfl = entt::resolve("AnsonMsgEcho"_hs).construct(Port(Port::echo));
 
     // Use this to check what EnTT actually thinks the type is:
     std::cout << "Actual Type Name: " << msg_rfl.type().info().name() << std::endl;

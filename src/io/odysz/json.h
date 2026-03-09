@@ -7,16 +7,16 @@
 #include <entt/meta/meta.hpp>
 #include <entt/entt.hpp>
 #include <entt/meta/container.hpp>
-#include <vector>
 #include <string>
 #include "anson.h"
 #include "jprotocol.h"
 
 namespace anson {
 
+using namespace entt;
 using namespace entt::literals;
 
-inline void register_meta() {
+inline void register_meta(map<string, map<string, int>*>& enum_vals) {
     using namespace entt::literals;
 
     // Register Anson Base
@@ -71,13 +71,37 @@ inline void register_meta() {
         .data<&anson::AnsonMsg<anson::EchoReq>::body>("body"_hs, "body");
 
     // Register Port enum
+    entt::meta_factory<anson::JavaEnum>()
+        .type("JavaEnum"_hs, "JavaEnum")
+        .data<&anson::JavaEnum::enm>("enm"_hs, "enm")
+        ;
+
     entt::meta_factory<anson::Port>()
-        .type("Port"_hs)
-        .data<&anson::Port::p>("p"_hs, "p")
+        .type("Port"_hs, "Port")
+        .base<anson::JavaEnum>()
+        // .data<&anson::Port::enm>("enm"_hs, "enm")
         // .data<anson::Port::query>("query"_hs)
         // .data<anson::Port::update>("update"_hs)
-        // .data<anson::Port::echo>("echo"_hs)
+        .data<&anson::Port::echo>("echo"_hs, "echo")
         ;
+
+    {
+    Port::decode["query"]   = "r.serv";
+    Port::decode["update"]  = "u.serv";
+    Port::decode["insert"]  = "c.serv";
+    Port::decode["del"]     = "d.serv";
+    Port::decode["echo"]    = "echo.less";
+    Port::decode["file"]    = "file.serv";
+    Port::decode["docstie"] = "docs.tier";
+
+    Port::encode["r.serv"]   = "query";
+    Port::encode["u.serv"]   = "update";
+    Port::encode["c.serv"]   = "insert";
+    Port::encode["d.serv"]   = "del";
+    Port::encode["echo.less"]= "echo";
+    Port::encode["file.serv"]= "file";
+    Port::encode["docs.tier"]= "docstie";
+    }
 
     // Register MsgCode enum
     entt::meta_factory<anson::MsgCode>()
@@ -90,8 +114,15 @@ inline void register_meta() {
         .data<anson::MsgCode::exDA>("exDA"_hs)
         .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
         .data<anson::MsgCode::ext>("ext"_hs);
+
+    map<string, int> *msgCodeMap = new map<string, int>{
+        {"ok", 0}, {"exSession", 1}, {"exSemantic", 2}, {"exIo", 3}, {"exTransct", 4}, {"exDA", 5}, {"exGeneral", 6}, {"ext", 7}
+    };
+
+    enum_vals["MsgCode"] = msgCodeMap;
 }
 
+/*
 inline ostream& serialize_recursive(const entt::meta_any &instance, std::ostream &os);
 
 inline ostream& serialize_kvs(const entt::meta_type &type, const entt::meta_any &instance, std::ostream &os, bool &first) {
@@ -287,4 +318,5 @@ public:
     // Root Management
     void set_root(entt::meta_any instance) { stack.push_back(instance); }
 };
+*/
 }
