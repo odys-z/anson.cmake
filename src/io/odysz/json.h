@@ -86,21 +86,21 @@ inline void register_meta(map<string, map<string, int>*>& enum_vals) {
         ;
 
     {
-    Port::decode["query"]   = "r.serv";
-    Port::decode["update"]  = "u.serv";
-    Port::decode["insert"]  = "c.serv";
-    Port::decode["del"]     = "d.serv";
-    Port::decode["echo"]    = "echo.less";
-    Port::decode["file"]    = "file.serv";
-    Port::decode["docstie"] = "docs.tier";
+        Port::decode["query"]   = "r.serv";
+        Port::decode["update"]  = "u.serv";
+        Port::decode["insert"]  = "c.serv";
+        Port::decode["del"]     = "d.serv";
+        Port::decode["echo"]    = "echo.less";
+        Port::decode["file"]    = "file.serv";
+        Port::decode["docstie"] = "docs.tier";
 
-    Port::encode["r.serv"]   = "query";
-    Port::encode["u.serv"]   = "update";
-    Port::encode["c.serv"]   = "insert";
-    Port::encode["d.serv"]   = "del";
-    Port::encode["echo.less"]= "echo";
-    Port::encode["file.serv"]= "file";
-    Port::encode["docs.tier"]= "docstie";
+        Port::encode["r.serv"]   = "query";
+        Port::encode["u.serv"]   = "update";
+        Port::encode["c.serv"]   = "insert";
+        Port::encode["d.serv"]   = "del";
+        Port::encode["echo.less"]= "echo";
+        Port::encode["file.serv"]= "file";
+        Port::encode["docs.tier"]= "docstie";
     }
 
     // Register MsgCode enum
