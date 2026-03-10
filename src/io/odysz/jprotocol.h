@@ -151,7 +151,7 @@ public:
     Port port;
 
     AnsonMsg(Port port) : Anson(_type_), port(port) {
-        cout << port.enm;
+        cout << "AnsosMsg to port " << port.enm << endl;
     }
 
     AnsonMsg(Port port, const T& body) : Anson(_type_), port(port) {
@@ -180,6 +180,10 @@ public:
     AnsonMsg<T>& Body(T&& body) {
         this->body.push_back(std::make_shared<T>(std::move(body)));
         return *this;
+    }
+
+    T& Body() {
+        return *body.at(0);
     }
 };
 

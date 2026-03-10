@@ -74,7 +74,7 @@ TEST(HELLO, ENTT_META) {
     }
 
     // 2. Create AnsonMsg<EchoReq> via reflection
-    auto msg_rfl = entt::resolve("AnsonMsgEcho"_hs).construct(Port(Port::echo));
+    auto msg_rfl = entt::resolve("AnsonMsgEchoReq"_hs).construct(Port(Port::echo));
 
     // Use this to check what EnTT actually thinks the type is:
     std::cout << "Actual Type Name: " << msg_rfl.type().info().name() << std::endl;

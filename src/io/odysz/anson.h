@@ -25,7 +25,7 @@ public:
         if (encode.contains(e))
             enm = encode[e];
         else
-            enm = "na:" + e;
+            enm = e;
     }
 
     // string encode() { return enm; }
@@ -177,6 +177,21 @@ inline ostream& serialize_obj(const meta_type &type, const meta_any &instance,
     return os;
 }
 
+inline bool is_javaenum(const meta_type &type) {
+    auto enum_base = entt::resolve<anson::JavaEnum>();
+
+    auto typname = type.name();
+    if (!typname) return false;
+    else if (string_view(typname) == "JavaEnum") return true;
+
+    for (auto&& [id, base] : type.base()) {
+        if (base == enum_base) {
+            return true;
+        }
+    }
+    return false;
+}
+
 inline ostream& serialize_recursive(const meta_any &instance,
                                     map<string, map<string, int>*> &enumtypes, std::ostream &os) {
     if (!instance) return os;
@@ -203,8 +218,9 @@ inline ostream& serialize_recursive(const meta_any &instance,
     }
     // 2.2. Port
     // if (type == entt::resolve<anson::Port>())
-    auto portname = type.name();
-    if (portname && string_view(portname) == "Port") {
+    auto typname = type.name();
+    // auto t_javaenum = entt::resolve<anson::JavaEnum>();
+    if (is_javaenum(type)) {
         // return os << "\"" << instance.try_cast<JavaEnum>()->enm << "\"";
         // return os << instance.try_cast<JavaEnum>();
         if (auto* ptr = instance.try_cast<JavaEnum>()) {
@@ -267,7 +283,6 @@ inline string serialize_json(const meta_any &instance,
     return ss.str();
 }
 
-
 template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
@@ -277,17 +292,25 @@ private:
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
+        // bool dbg = !stack.empty() && active_key != 0;
         if (!stack.empty() && active_key != 0) {
             auto data = stack.back().type().data(active_key);
             if (data) {
-                data.set(stack.back(), std::forward<V>(val));
+                if (is_javaenum(data.type())) {
+                    auto v = data.type().construct(val);
+                    // JavaEnum e = v.try_cast<JavaEnum>();
+                    data.set(stack.back(), v);
+                }
+                else
+                    data.set(stack.back(), std::forward<V>(val));
             }
         }
     }
 
 public:
-    EnTTSaxParser(Anson& obj) {
-        set_top(obj);
+    EnTTSaxParser(T& obj) {
+        // set_top(obj);
+        stack.push_back(forward_as_meta(obj));
     }
 
     bool start_object(std::size_t size) override {
@@ -297,7 +320,7 @@ public:
                 stack.push_back(data.get(stack.back()));
             }
         } else if (stack.empty()) {
-            // This is the root object, we assume the caller set it up
+            // This is the root object.
             return true;
         }
         return true;
@@ -326,6 +349,15 @@ public:
     }
 
     bool string(string_t& val) override {
+        // if (!stack.empty() && is_javaenum(stack.back().type()))
+        //     set_value(stack.back().type().construct(val));
+
+        // if (!stack.empty()) {
+        //     is_javaenum(stack.back().type()))
+        //     set_value(stack.back().type().construct(val));
+        //     return true;
+        // }
+
         set_value(val);
         return true;
     }
@@ -349,7 +381,7 @@ public:
     bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
 
     // Root Management
-    void set_top(meta_any instance) { stack.push_back(instance); }
+    // void set_top(meta_any instance) { stack.push_back(instance); }
 };
 }
 

@@ -13,33 +13,29 @@ using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
+map<string, map<string, int>*> enums;
+
 TEST(Anson, Base) {
-    map<string, map<string, int>*> enums;
     register_meta(enums);
 
     auto an_type = entt::resolve("Anson"_hs);
-    // auto anptr = construct_typed<anson::Anson>(an_type);
     meta_any anptr = an_type.construct();
     Anson& anobj = anptr.cast<anson::Anson&>();
     cout << "Actual Type Name: " << anobj.type << endl;
     ASSERT_EQ("", anobj.type);
 
-    // anptr = an_type.construct("io.odysz.anson.Anson");
     anptr = an_type.construct(Anson::_type_);
     Anson& anobj2 = anptr.cast<anson::Anson&>();
-    // ASSERT_EQ("io.odysz.anson.Anson", anobj2.type);
-    ASSERT_EQ(Anson::_type_, anobj2.type);
+    ASSERT_EQ(Anson::_type_, anobj2.type) << "1. anobj2.type";
 
     std::string json_input = R"({"type": "input"})";
-    // 1. dereferencing the shared_ptr, which results in a reference to the anson::Anson object
-    // 2. Passing *ans to rttr::instance creates an instance that refers to the original object (shallow copy)
     EnTTSaxParser<Anson>  handler(anobj2);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anobj2.type);
+    ASSERT_EQ("input", anobj2.type) << "Errors on parssing {type: input}.";
 }
 
 TEST(Anson, AnsonBody) {
@@ -49,7 +45,7 @@ TEST(Anson, AnsonBody) {
     AnsonBody* anb = v.try_cast<AnsonBody>();
     cout << "[1] anb.type: " << anb->type << endl;
     ASSERT_EQ(AnsonBody::_type_, anb->type);
-    ASSERT_EQ("r/ds", anb->a);
+    ASSERT_EQ("r/ds", anb->a) << "[1.0]";
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
     EnTTSaxParser<AnsonBody> handler(*anb);
@@ -58,68 +54,65 @@ TEST(Anson, AnsonBody) {
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     cout << "[3] ok: " << result << ", type: " << anb->type << ", a: " << anb->a << endl;
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anb->type);
-    ASSERT_EQ("r/query", anb->a);
+    ASSERT_EQ("input", anb->type) << "[3.1]";
+    ASSERT_EQ("r/query", anb->a) << "[3.2]";
 
     AnsonBody anc;
     result = Anson::from_json<AnsonBody>(json_input, anc);
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anc.type) << "[4.1]";
-    ASSERT_EQ("r/query", anc.a) << "[4.2]";
+    ASSERT_EQ("input", anc.type) << "[3.3]";
+    ASSERT_EQ("r/query", anc.a) << "[3.4]";
 }
 
-// TEST(Anson, AnsonMsg) {
-//     using Req = AnsonMsg<EchoReq>;
+TEST(Anson, AnsonMsg) {
+    using Req = AnsonMsg<EchoReq>;
 
-//     type m = type::get<anson::AnsonMsg<EchoReq>>();
-//     // rttr::variant v = m.create({std::string("echo")});
-//     rttr::variant v = m.create({Port::echo});
-//     shared_ptr<Req> msg = v.convert<shared_ptr<Req>>();
+    auto mt = entt::resolve("AnsonMsgEchoReq"_hs);
 
-//     // create an instance and return the pointer
-//     msg->body.push_back(std::make_shared<EchoReq>("Hello"));
+    auto mv = mt.construct(Port(Port::echo));
+    AnsonMsg<EchoReq>* msg = mv.try_cast<AnsonMsg<EchoReq>>();
+    EchoReq body{"Hello"};
+    msg->Body(body);
 
-//     cout << "[1] msg.port: " << msg->port << endl;
-//     ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->type);
-//     ASSERT_EQ("echo", msg->port);
-//     ASSERT_EQ("r/query", msg->body.at(0)->a);
-//     ASSERT_EQ("Hello", msg->body.at(0)->echo);
+    cout << "[1] msg.port: " << msg->port << endl;
+    ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->type);
+    ASSERT_EQ("echo", msg->port);
+    ASSERT_EQ("r/query", msg->body.at(0)->a);
+    ASSERT_EQ("Hello", msg->body.at(0)->echo);
 
-//     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
-//     RttrSaxHandler handler(*msg);
-//     cout << "[2] " << json_input << endl;
-//     bool result = nlohmann::json::sax_parse(json_input, &handler);
-//     cout << "[3] ok: " << result << ", type: " << msg->type << ", port: " << msg->port << endl;
+    std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
-//     ASSERT_TRUE(result);
-//     ASSERT_EQ("input", msg->type);
-//     EXPECT_EQ("query", msg->port) << "TODO: How SAX for enum deserialization is to be learnt...";
+    EnTTSaxParser<AnsonMsg<EchoReq>> handler(*msg);
 
-//     EchoReq* reqbd = msg->body.at(0).get();
+    cout << "[2] " << json_input << endl;
+    bool result = nlohmann::json::sax_parse(json_input, &handler);
+    cout << "[3] ok: " << result << ", type: " << msg->type << ", port: " << msg->port << endl;
 
-//     cout << "[4] body: " << msg->body.size() << ", type: " << reqbd->type << ", a: " << reqbd->a << endl;
-//     EXPECT_EQ("io.odysz.jprotocol.QueryReq", reqbd->type) << "TODO: nested parser is not for HelloWorld.";
-//     EXPECT_EQ("r", reqbd->a);
-// }
+    ASSERT_TRUE(result);
+    ASSERT_EQ("input", msg->type);
+    EXPECT_EQ("query", msg->port) << "TODO: ever breaked at operator overloads?";
 
-// TEST(Anson, Servialize) {
+    EchoReq& reqbd = msg->Body();
 
-//     // ... inside your main or worker function ...
+    cout << "[4] body: " << msg->body.size() << ", type: " << reqbd.type << ", a: " << reqbd.a << endl;
+    EXPECT_EQ("io.odysz.jprotocol.EchoReq", reqbd.type) << "TODO: No way to check type?";
+    EXPECT_EQ("r/query", reqbd.a) << "[4: a = r/query]";
+}
 
-//     // 1. Create your message
-//     using Req = AnsonMsg<EchoReq>;
-//     auto msg = std::make_shared<Req>(Port::query);
-//     msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
+TEST(Anson, Servialize_Msg) {
 
-//     // 2. Use a stringstream as the buffer
-//     std::ostringstream oss;
+    using Req = AnsonMsg<EchoReq>;
+    auto msg = std::make_shared<Req>(Port::query);
+    msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
 
-//     // 3. Call the helper (it writes directly into the oss buffer)
-//     serialize_anson(oss, msg);
+    std::ostringstream oss;
 
-//     // 4. Get the result
-//     std::string json_result = oss.str();
+    serialize_recursive(msg, enums, oss);
 
-//     std::cout << "Serialized JSON: " << json_result << std::endl;
-//     ASSERT_EQ(R"({"type":"io.odysz.jprotocol.AnsonMsg","port":"query"})", json_result);
-// }
+    std::string json_result = oss.str();
+
+    std::cout << "Serialized JSON: " << json_result << std::endl;
+    ASSERT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", "port": "query", )"
+              R"("body": [{"a": "r/query", "echo": "Hello World"}]})",
+              json_result);
+}
