@@ -13,7 +13,39 @@ namespace anson {
 
 class JsonOpt;// : public Anson { };
 
-class JavaEnum {
+class IJsonable {
+
+public:
+    virtual IJsonable* toBlock(ostream& os, JsonOpt& opts) = 0;
+
+    /** @see #toBlock(OutputStream, JsonOpt...) */
+    virtual string toBlock(JsonOpt& opt) {
+        // ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        // toBlock(bos, opt);
+        // return bos.toString(StandardCharsets.UTF_8.name());
+        std::ostringstream bos;
+        toBlock(bos, opt);
+        return bos.str();
+    }
+
+    /**
+     * @param buf
+     * @return this
+     * @throws IOException
+     * @throws AnsonException
+     */
+    virtual IJsonable* toJson(string& buf) = 0;
+
+    // int tree_sitter_test() { return 0; }
+    // char& s_test0;
+    // char& s_test1;
+    // char** s_test2;
+    // char** s_test3;
+
+    virtual ~IJsonable() {}
+};
+
+class JavaEnum : public IJsonable {
 
 public:
     // std::function<string(JavaEnum)> decoder;
@@ -46,43 +78,24 @@ public:
 
         return stub;
     }
+
+    IJsonable* toBlock(ostream& stream, JsonOpt& opts) override {
+        // stream.put('\"');
+        // stream.write(name().c_str(), name().size());
+        // stream.put('\"');
+        stream << this;
+        return this;
+    }
+
+    IJsonable* toJson(string& buf) override {
+        buf += '\"' + enm + '\"';
+        return this;
+    }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
     return os << '\"' << enm.enm << '\"';
 }
-
-class IJsonable {
-
-public:
-    virtual IJsonable* toBlock(ostream& os, JsonOpt& opts) = 0;
-
-    /** @see #toBlock(OutputStream, JsonOpt...) */
-    virtual string toBlock(JsonOpt& opt) {
-        // ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        // toBlock(bos, opt);
-        // return bos.toString(StandardCharsets.UTF_8.name());
-        std::ostringstream bos;
-        toBlock(bos, opt);
-        return bos.str();
-    }
-
-    /**
-     * @param buf
-     * @return this
-     * @throws IOException
-     * @throws AnsonException
-     */
-    virtual IJsonable* toJson(string& buf) = 0;
-
-    // int tree_sitter_test() { return 0; }
-    // char& s_test0;
-    // char& s_test1;
-    // char** s_test2;
-    // char** s_test3;
-
-    virtual ~IJsonable() {}
-};
 
 template<typename T>
 class EnTTSaxParser;
@@ -292,7 +305,6 @@ private:
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
-        // bool dbg = !stack.empty() && active_key != 0;
         if (!stack.empty() && active_key != 0) {
             auto data = stack.back().type().data(active_key);
             if (data) {
