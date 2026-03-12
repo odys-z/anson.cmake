@@ -12,18 +12,19 @@ include(GoogleTest)
 
 add_executable(unit_tests
   semantier.h
+  t01_common.cpp
   t01_enttmeta.cpp
   t02_deserialize.cpp
 )
-
 
 find_package(nlohmann_json CONFIG REQUIRED)
 
 target_link_libraries(unit_tests 
     PRIVATE 
-        anson
-        nlohmann_json::nlohmann_json
         gtest_main
+        Boost::url
+        nlohmann_json::nlohmann_json
+        anson
 )
 
 add_dependencies(unit_tests anson)

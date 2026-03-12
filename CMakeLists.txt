@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.30)
 
 # in my/github/vcpkg
-# ./vcpkg install entt:x64-windows --x-install-root="../anclient/examples/example.qml/vcpkg_packages"
+# See README
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
+# ./vcpkg install entt:x64-windows --x-install-root="../anclient/examples/example.qml/vcpkg_packages"
+# set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
+set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed" CACHE PATH "vcpkg install dir")
 
 project(anson.cmake LANGUAGES CXX)
 
@@ -23,6 +25,9 @@ add_compile_options(/utf-8)
 if(NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
+
+# vcpkg install boost-url
+find_package(Boost CONFIG REQUIRED COMPONENTS url)
 
 find_package(EnTT CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

@@ -118,8 +118,8 @@ public:
         return nlohmann::json::sax_parse(json, &handler);
     }
 
-    void toBlock() {
-
+    Anson& toBlock() {
+        return *this;
     }
 
     IJsonable* toBlock(ostream& os, JsonOpt& opts) override {

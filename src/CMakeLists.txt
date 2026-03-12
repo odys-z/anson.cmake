@@ -36,6 +36,7 @@ target_include_directories(anson INTERFACE
 
 
 target_link_libraries(anson INTERFACE
+    Boost::url
     EnTT::EnTT
     nlohmann_json::nlohmann_json
 )
