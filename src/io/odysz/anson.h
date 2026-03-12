@@ -361,15 +361,6 @@ public:
     }
 
     bool string(string_t& val) override {
-        // if (!stack.empty() && is_javaenum(stack.back().type()))
-        //     set_value(stack.back().type().construct(val));
-
-        // if (!stack.empty()) {
-        //     is_javaenum(stack.back().type()))
-        //     set_value(stack.back().type().construct(val));
-        //     return true;
-        // }
-
         set_value(val);
         return true;
     }

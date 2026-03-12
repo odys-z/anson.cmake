@@ -64,7 +64,7 @@ inline void register_meta(map<string, map<string, int>*>& enum_vals) {
 
     // Register AnsonMsg template (example for EchoReq)
     entt::meta_factory<anson::AnsonMsg<anson::EchoReq>>()
-        .type("AnsonMsgEchoReq"_hs)
+        .type("AnsonMsgEcho"_hs)
         .ctor<anson::Port>()
         .base<anson::Anson>()
         .data<&anson::AnsonMsg<anson::EchoReq>::port>("port"_hs, "port")
@@ -83,7 +83,7 @@ inline void register_meta(map<string, map<string, int>*>& enum_vals) {
         // .data<&anson::Port::enm>("enm"_hs, "enm")
         // .data<anson::Port::query>("query"_hs)
         // .data<anson::Port::update>("update"_hs)
-        // .data<&anson::Port::echo>("echo"_hs, "echo")
+        .data<&anson::Port::echo>("echo"_hs, "echo")
         ;
 
     {
