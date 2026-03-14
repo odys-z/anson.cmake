@@ -151,7 +151,7 @@ public:
     Port port;
 
     AnsonMsg(Port port) : Anson(_type_), port(port) {
-        cout << "AnsosMsg to port " << port.enm << endl;
+        cout << port.enm;
     }
 
     AnsonMsg(Port port, const T& body) : Anson(_type_), port(port) {

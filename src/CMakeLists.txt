@@ -45,6 +45,7 @@ target_link_libraries(anson INTERFACE
 # set(ANSON_ENABLE_LOGGING ON)
 # set(ANSON_LOG_LEVEL 5) # Set to VERBOSE
 # default 2 (warn)
+# 5 to enable andebug(), 4 anlog(), 3 aninfo(), 2 anwarn(), 1 anerror().
 option(ANSON_ENABLE_LOGGING "Enable Anson library verbose logging" ON)
 
 if(ANSON_ENABLE_LOGGING)
