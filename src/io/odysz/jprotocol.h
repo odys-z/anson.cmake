@@ -3,6 +3,7 @@
 #include <entt/meta/factory.hpp>
 #include <entt/meta/meta.hpp>
 #include "anson.h"
+#include "common.h"
 
 namespace anson {
 
@@ -190,6 +191,24 @@ public:
 class OnError {
     // virtual void err(MsgCode c, string& e, string... args);
     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
+};
+
+class JServUrl : public HttpParts {
+public:
+    // static UrlValidator urlValidator;
+
+    JServUrl(string url) : HttpParts() {
+        HttpParts parts;
+        Regex::getHttpParts(url, parts);
+
+        this->https = parts.https;
+        this->port = parts.port;
+        this->scheme = std::move(parts.scheme);
+        this->host = std::move(parts.host);
+        this->paths = std::move(parts.paths);
+        this->query = std::move(parts.query);
+        this->fragment = std::move(parts.fragment);
+    }
 };
 }
 
