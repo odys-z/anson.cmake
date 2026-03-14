@@ -212,12 +212,6 @@ do{ \
 #define anlog(...)     anprint(LOG_LOG,    __VA_ARGS__)
 #define andebug(...)   anprint(LOG_DEBUG,  __VA_ARGS__)
 
-// #define anerror(...)    ((void)0)
-// #define anwarn(...)     ((void)0)
-// #define aninfo(...)     ((void)0)
-// #define anlog(...)      ((void)0)
-// #define andebug(...)    ((void)0)
-
 /**
  * Structure to hold decomposed URL parts
  */
