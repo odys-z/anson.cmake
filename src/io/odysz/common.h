@@ -1,15 +1,18 @@
 #pragma once
 
+#include <exception>
 #include <algorithm>
 #include <string>
 #include <regex>
 #include <map>
-#include <string_view>
 #include <unordered_set>
 #include <boost/url/parse.hpp>
 #include <boost/url/url_view.hpp>
 #include <boost/url.hpp>
 #include <iostream>
+#include <sstream>
+#include <vector>
+#include <format>
 
 namespace anson {
 using namespace std;
@@ -30,45 +33,190 @@ public:
     virtual const T& name() { return nmp[v]; }
 };
 
-namespace urls = boost::urls;
+class LangExt {
 
-class Regex {
 public:
-    inline static const std::regex isenvl{R"('?\{\s*["']type["']:)"};
-
     /**
-     * Checks if the scheme is https.
-     * Boost.URL handles case-insensitivity automatically.
+     * @brief split
+     * @param str
+     * @param delim
+     * @return string_views to the str. IMPORTANT this is a NRV (Named Return Value), so
+     * don't return it further beyond will str exists.
+     * auto bad() {
+     *
+     *   std::string temp = "hello,world";
+     *
+     *   return split_view(temp, ',');          // ← DANGER! dangling views!
+     *
+     * }
+     *
+     * but, e.g.
+     *
+     * long_live.vec = vector<string>(ssview.begin(), ssview.end());
+     *
      */
-    inline static bool isHttps(const std::string& s) {
-        auto r = urls::parse_uri(s);
-        if (!r) return false;
-        return r->scheme_id() == urls::scheme::https;
+    inline static vector<string_view> split(string_view str, char delim = ' ') {
+        vector<std::string_view> result;
+
+        size_t start = 0;
+        while (start < str.size()) {
+            auto end = str.find(delim, start);
+            if (end == std::string_view::npos) {
+                result.push_back(str.substr(start));
+                break;
+            }
+            if (end > start) {
+                result.push_back(str.substr(start, end - start));
+            }
+            start = end + 1;
+        }
+
+        return result;
+    }
+
+    template <typename Range>
+    inline static string join(const Range& range, const string& sep = ",", const string& front = "", const string& back = "") {
+        std::ostringstream oss;
+        auto it = std::begin(range);
+        auto end = std::end(range);
+
+        oss << front;
+
+        if (it != end) {
+            oss << *it++;
+            while (it != end) {
+                oss << sep << *it++;
+            }
+        }
+        oss << back;
+        return oss.str();
+    }
+
+    // template <typename Range>
+    // inline static string join(const Range& range, const string& sep = ",") {
+    //     return LangExt::join(range, sep, "", "");
+    // }
+
+    // template <typename Range>
+    // inline static string join(const Range& range) {
+    //     return join(range, ",", "", "");
+    // }
+
+    inline static bool isblank(const string s) {
+        return s.length() == 0;
+    }
+
+    inline static bool isblank(const string s, const string &blank) {
+        return s.length() == 0 || s == blank;
+    }
+
+    inline static bool isblank(const string s, const string &blank0, const string &blank1) {
+        return s.length() == 0 || s == blank0 || s == blank1;
+    }
+
+    inline static bool isblank(const string s, const vector<string> &asblank) {
+        if (s.length() == 0)
+            return true;
+        else for (string as : asblank)
+                if (s == as) return true;
+        return false;
     }
 
     /**
-     * Checks if the scheme is http or https.
-     * Boost.URL handles case-insensitivity automatically.
+     * @brief ifnull
+     * @return string_view for hard copying
      */
-    inline static bool isHttp(const std::string& s) {
-        auto r = urls::parse_uri(s);
-        if (!r) return false;
-        return r->scheme_id() == urls::scheme::http ||
-           r->scheme_id() == urls::scheme::https;
-    }
-
-    /**
-     * Checks if the host part of the URL is a valid IPv6 address.
-     */
-    inline static bool isIPv6(const std::string& s) {
-        auto r = urls::parse_uri(s);
-        return r && r->host_type() == urls::host_type::ipv6;
-    }
-
-    inline static bool startEnvelope(const string& envl) {
-        return regex_search(envl, isenvl);
+    inline static string_view ifnull(string_view s, string_view null) {
+        if (s.length() == 0)
+            return null;
+        else return s;
     }
 };
+
+struct PrintFormat {
+    string head = "";
+    string_view sep  = ",";
+    string foot = "\n";
+    bool breakline = false;
+    function<string(int index)> pre_item = nullptr;
+};
+
+class Utils {
+public:
+    template <typename Range>
+    inline static ostream& print(ostream& oss, Range list, string head = "", string sep = ",", string foot = "") {
+        return print(oss, list, {.head = head, .sep = sep, .foot = foot});
+    }
+
+    template <typename Range>
+    inline static ostream& print(ostream& oss, Range list, const PrintFormat& f = {}) {
+        auto it = std::begin(list);
+        auto end = std::end(list);
+
+        oss << f.head;
+
+        int x = 0;
+        // if (it != end) {
+        //     // oss << *it++;
+            while (it != end) {
+                if (f.pre_item != nullptr) oss << f.pre_item(x++);
+
+                oss << *it++;
+
+                if (it != end) oss << f.sep;
+
+                if (f.breakline) oss << endl;
+            }
+        // }
+        oss << f.foot;
+        return oss;
+    }
+
+    template <typename Range>
+    inline static void print(Range list, string head = "", string sep = ",", string foot = "") {
+        print(cout, list, head, sep, foot);
+    }
+
+    template <typename Range>
+    inline static void print(Range list, const PrintFormat& f) {
+        print(cout, list, f);
+    }
+};
+
+#define LOG_ERROR   1
+#define LOG_WARN    2
+#define LOG_INFO    3
+#define LOG_LOG     4
+#define LOG_DEBUG   5
+
+#ifdef ANSON_VERBOSE
+#ifdef anprint
+#undef anprint
+#endif
+
+#define anprint(v, ...) \
+do{ \
+    if ((v) < ANSON_VERBOSE) { \
+        std::cout << "<verbose " << v << '/' << ANSON_VERBOSE << ' ' << __FILE__ << ':' << __LINE__ << "> " << endl; \
+        anson::Utils::print(__VA_ARGS__); \
+  } \
+} while(0)
+
+#else
+#define anprint(v, ...) ((void)0)
+#endif
+
+#define anerror(...)   anprint(LOG_ERROR,  __VA_ARGS__)
+#define anwarn(...)    anprint(LOG_WARN,   __VA_ARGS__)
+#define aninfo(...)    anprint(LOG_INFO,   __VA_ARGS__)
+#define anlog(...)     anprint(LOG_LOG,    __VA_ARGS__)
+#define andebug(...)   anprint(LOG_DEBUG,  __VA_ARGS__)
+
+// #define anerror(...)    ((void)0)
+// #define anwarn(...)     ((void)0)
+// #define aninfo(...)     ((void)0)
+// #define anlog(...)      ((void)0)
+// #define andebug(...)    ((void)0)
 
 /**
  * Structure to hold decomposed URL parts
@@ -78,7 +226,243 @@ struct HttpParts {
     int port;
     string scheme;
     string host;
-    std::vector<std::string> paths;
+    vector<string> paths;
+    string query;
+    string fragment;
+
+    HttpParts& Paths(vector<string_view> ssview) {
+        paths = vector<string>(ssview.begin(), ssview.end());
+        return *this;
+    }
+};
+
+class Regex {
+public:
+    inline static const std::regex isenvl{R"('?\{\s*["']type["']:)"};
+
+    inline static std::regex httpregx{R"(^https?://)"};
+
+    inline static std::regex httpsregx{R"(^https://)"};
+
+    /**
+     * Checks if the scheme is https.
+     * Boost.URL handles case-insensitivity automatically.
+     */
+    inline static bool isHttps(const std::string& s) {
+        // auto r = urls::parse_uri(s);
+        // if (!r) return false;
+        // return r->scheme_id() == urls::scheme::https;
+        return regex_search(s, httpsregx);
+    }
+
+    /**
+     * Checks if the scheme is http or https.
+     * Boost.URL handles case-insensitivity automatically.
+     */
+    inline static bool isHttp(const std::string& s) {
+        // auto r = urls::parse_uri(s);
+        // if (!r) return false;
+        // return r->scheme_id() == urls::scheme::http ||
+        //    r->scheme_id() == urls::scheme::https;
+        return regex_search(s, httpregx);
+    }
+
+    inline static bool startEnvelope(const string& envl) {
+        return regex_search(envl, isenvl);
+    }
+
+    inline static std::regex reg_isIPv6{R"(^(([^:/?#]+):)?(//)?\[(::[0-9A-Fa-f]{1,4})|([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){7})\](:\d{1,8})?([/?#])?)"};
+
+    inline static std::regex reg_hostportv6{R"(\[((::[0-9A-Fa-f]{1,4})|([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){7}))\](:(\d+))?)"};
+
+    /**
+     * Is the IP include a valid IP v6 address?
+     *
+     * @param ip
+     * @return true if a valid ip
+     */
+    inline static bool isIPv6(string ip) {
+        // smatch matches;
+        return regex_search(ip, reg_isIPv6);
+    }
+
+    /**
+     * groups[3]: ip[:port]
+     * groups[4]: path
+     * https://www.rfc-editor.org/rfc/rfc3986#appendix-B
+     */
+    inline static std::regex reg3986{R"(^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)"};
+
+    /**
+     * Regex for RFC3986 Schema
+     */
+    inline static std::regex schemePrefix{R"(^(\w+:)?//)"};
+
+    inline static std::regex reg_host_v6_lr{R"((^\[)|(\]$))"};
+
+    inline static std::regex reg_start_slash{R"(^/*)"};
+
+    /**
+     * @param semiJserv
+     * @return nomalized jserv url (all url parts, in RFC3986, are present)
+     */
+    inline static string asJserv(string semiJserv) {
+        HttpParts parts;
+        getHttpParts(semiJserv, parts);
+        return format("{}://{}{}{}{}{}", // schema, host, :port, /sub-paths, ?query, #fragment
+                 parts.https ? "https" : "http",
+                 parts.host,
+                 80 == parts.port || 443 == parts.port ? "" : ":" + to_string(parts.port),
+                 "/" + LangExt::join(parts.paths, "/"),
+                 LangExt::isblank(parts.query) ? "" : "?" + parts.query,
+                 LangExt::isblank(parts.fragment) ? "" : "#" + parts.fragment);
+    }
+
+    /**
+     *
+     * @param url
+     * @return<pre>
+     * [0] is ip v6 address
+     * [1] scheme true: https, false: possibly http
+     * [2] authority host
+     * [3] authority port
+     * [4] sub-paths, String[]
+     * [5] query
+     * [6] fragment</pre>
+     * @since 0.9.130
+     */
+    inline static HttpParts& getHttpParts(string url, HttpParts &parts) {
+
+        if (Regex::isIPv6(url)) {
+            getHttpsPartsv6(url, parts);
+        }
+        else getHttpsPartsv4(url, parts);
+
+        return parts;
+    }
+
+    /**
+     * Parse parts in a URl with valid IP v6 address.
+     * Return of invalid IP v6 address is unspecified.
+     * @param url
+     * @return<pre>
+     * [0] scheme true: https, false: possibly http
+     * [1] authority host
+     * [2] authority port
+     * [3] sub-paths, String[]
+     * [4] query
+     * [5] fragment</pre>
+     * @since 0.9.130
+     */
+    static HttpParts& getHttpsPartsv6(string url, HttpParts& parts) {
+        if (!regex_search(url, schemePrefix))
+            url = "http://" + url;
+
+        // ArrayList<String> grps = reg3986.findGroups(url);
+        smatch grps;
+        regex_match(url, grps, reg3986);
+        if (LangExt::isblank(grps[4]))
+            return parts;
+
+        // Utils::print(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+
+        bool https = "https" == grps[2];
+        bool http  = "http" == grps[2] || LangExt::isblank(grps[2]);
+        int port = https ? 443 : http? 80 : 0;
+
+        string host = grps[4];
+        smatch iportss;
+        regex_match(host, iportss, reg_hostportv6);
+
+        // Utils::print(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        aninfo(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+
+        if (iportss.size() == 7) {
+            // Debug Notes: Don't change host before iportss matchs are no-longer accessed.
+            // The matched groups are references to the original string.
+            string p = iportss[6];
+            host = iportss[1];
+            try { port = stoi(p); }
+            catch (exception& e) {
+                cerr << p << ' ' << e.what();
+            }
+        }
+
+        parts.https = https;
+        parts.host = "[" + regex_replace(host, reg_host_v6_lr, "") + "]";
+        parts.port = port;
+        if (!LangExt::isblank(grps[5], "/+"))
+            parts.Paths(LangExt::split(regex_replace(string(grps[5]), reg_start_slash, ""), '/'));
+        parts.query = grps[7];
+        parts.fragment = grps[9];
+
+        return parts;
+        // new Object[] { https, "[" + host.replaceAll("(^\\[)|(\\]$)", "") + "]", port,
+        //         isblank(grps.get(4), "/+") ? null : grps.get(4).replaceAll("^/*", "").split("/"),
+        //         grps.get(6), grps.get(8)};
+    }
+
+    /**
+     * Get URL parts.
+     * See <a href='https://www.rfc-editor.org/rfc/rfc3986#section-3'>Section 3, RFC 3986</a>.
+     * <pre>
+     * foo://example.com:8042/over/there?name=ferret#nose
+     * \_/   \______________/\_________/ \_________/ \__/
+     * |           |            |            |        |
+     * scheme     authority       path        query   fragment
+     * </pre>
+     * @param url
+     * @return<pre>
+     * [0] scheme true: https, false: possibly http
+     * [1] authority host
+     * [2] authority port
+     * [3] sub-paths, String[]
+     * [4] query
+     * [5] fragment</pre>
+     */
+    static HttpParts& getHttpsPartsv4(string url, HttpParts& parts) {
+        if (!regex_search(url, schemePrefix))
+            url = "http://" + url;
+
+        // ArrayList<String> grps = reg3986.findGroups(url);
+        smatch grps;
+        regex_match(url, grps, reg3986);
+
+        if (LangExt::isblank(grps[4]))
+            return parts;
+
+        // Utils::print(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+
+        bool https = "https" == grps[2];
+        std::string_view vhttp(grps[2].first, grps[2].second); // Only a MSVC problem?
+        bool http  = "http" == LangExt::ifnull(vhttp, "http");
+        int port = https ? 443 : http? 80 : 0;
+
+        string host = grps[4];
+        vector<string_view> iportss = LangExt::split(host, ':'); // host.split(":");
+
+        if (iportss.size() == 2) {
+            host = iportss[0];
+            try { port = stoi(string(iportss[1])); }
+            catch (exception e) {}
+        }
+
+        // return new Object[] { https, host, port,
+        //         isblank(grps.get(4), "/+") ? null : grps.get(4).replaceAll("^/*", "").split("/"),
+        //         grps.get(6), grps.get(8)};
+
+        parts.https = https;
+        parts.host = host;
+        parts.port = port;
+        if (!LangExt::isblank(grps[5], "/"))
+            parts.Paths(LangExt::split(regex_replace(string(grps[5]), reg_start_slash, ""), '/'));
+        parts.query = grps[7];
+        parts.fragment = grps[9];
+
+        return parts;
+    }
 };
 
 inline static int default_port(const string &scheme) {
@@ -98,15 +482,21 @@ inline static int default_port(const string &scheme) {
         ;
 }
 
+/**
+ *  This is a short cut to the java Regex.asJserv(...).
+inline static string asJserv(const string& url) {
+    string s = url.starts_with("//") ? "http://" + url.substr(2) : url;
+    cout << s << endl;
+    return url.starts_with("//") ? "http://" + url.substr(2) : url;
+}
+
 inline static bool getHttpParts(string const& input, HttpParts& parts) {
     namespace urls = boost::urls;
 
     auto result = urls::parse_uri(input);   // or parse_uri_reference if relative URIs allowed
 
-    if (!result &&
-        // This is a short cut to the java Regex.asJserv(...).
-        !getHttpParts("http://" + (input.starts_with("//") ? input.substr(2) : input), parts)) {
-        std::cerr << "Invalid URI: " << result.error().message() << input << "\n";
+    if (!result) {
+        std::cerr << "Invalid URI: " << result.error().message() << ' ' << input << "\n";
         return false;
     }
 
@@ -126,6 +516,7 @@ inline static bool getHttpParts(string const& input, HttpParts& parts) {
 
     return true;
 }
+ */
 
 /**
  * Validates if the port is within an allowed list/range.

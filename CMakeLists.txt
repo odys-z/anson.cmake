@@ -39,3 +39,14 @@ if (ANSON_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+
+# In the user project:
+# set(ANSON_ENABLE_LOGGING ON)
+# set(ANSON_LOG_LEVEL 5) # Set to VERBOSE
+# default 2 (warn)
+option(ANSON_ENABLE_LOGGING "Enable Anson library verbose logging" ON)
+
+if(ANSON_ENABLE_LOGGING)
+    set(ANSON_LOG_LEVEL 2 CACHE STRING "Set Anson log verbosity level (1-5)")
+    target_compile_definitions(anson INTERFACE ANSON_VERBOSE=${ANSON_LOG_LEVEL})
+endif()

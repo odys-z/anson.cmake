@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "io/odysz/common.h"
 
@@ -30,6 +29,17 @@ TEST(RegexTest, TestIsHttps) {
     EXPECT_TRUE(Regex::isHttps("https://odys-z.github.io"));
     EXPECT_TRUE(Regex::isHttp("http://odys-z.github.io"));
     EXPECT_FALSE(Regex::isHttps("http://odys-z.github.io"));
+
+}
+
+TEST(RegexTest, TestUrlIlligalChar) {
+    UrlValidator v;
+    EXPECT_FALSE(v.isValid("http://odys-z.github.io/notes /"));
+    EXPECT_TRUE(v.isValid("http://odys-z.github.io/notes%20/"));
+
+    // In java, this is a invalid authority by Apache UrlValidator;
+    // in cpp, authority validation is ignored by boots.url.
+    EXPECT_TRUE(v.isValid(Regex::asJserv("//odys-z.github.io%20")));
 }
 
 TEST(RegexTest, TestValidJserv) {
@@ -42,10 +52,13 @@ TEST(RegexTest, TestValidJserv) {
         {true,  "//odys-z.github.io/notes%20/",                               false, {80, 1024},   {"notes%20"}, false},
         {false, "//odys-z.github.io/notes /",                                 false, {80, 1024},   {"notes "}, false},
         {true,  "//odys-z.github.io/notes%20",                                false, {80, 1024},   {"notes%20"}, false},
+
         {true,  "//odys-z.github.io/",                                        false, {80, 1024},   {}, false},
         {true,  "//odys-z.github.io",                                         false, {80, 1024},   {}, false},
-        {false, "//odys-z.github.io%20",                                      false, {80, 1024},   {}, false},
-        {false, "//odys-z.github.io%20/notes%20",                             false, {80, 1024},   {"notes%20"}, false},
+        {true,  // false in java, see TestUrlIlligalChar
+                "//odys-z.github.io%20",                                      false, {80, 1024},   {}, false},
+        {true,  // false in java, see TestUrlIlligalChar
+                "//odys-z.github.io%20/notes%20",                             false, {80, 1024},   {"notes%20"}, false},
         {true,  "odys-z.github.io/notes/index.html#rave?v=1&w=2",             false, {80, 1024},   {"notes", "index.html"}, false},
         {false, "odys-z.github.io/notes/index.html#rave?v=1&w=2",             false, {81, 1024},   {"notes", "index.html"}, false},
         {true,  "https://odys-z.github.io/notes/index.html",                  true,  {443, 1024},  {"notes", "index.html"}, false},
@@ -66,12 +79,16 @@ TEST(RegexTest, TestValidJserv) {
         EXPECT_EQ(entry.ipv6, Regex::isIPv6(entry.url)) << "Failed IPv6 test for: " << entry.url;
     }
 
-    // Main Test Loop
+    UrlValidator urlValidator;
+
+    // Validation Loop
     for (const JservTestCase& test : urls) {
         HttpParts parts;
-        getHttpParts(test.url, parts);
+        string jserv_test = Regex::asJserv(test.url);
+        Regex::getHttpParts(jserv_test, parts);
 
-        bool isValid = Regex::isHttps(test.url) == test.https &&
+        bool isValid = urlValidator.isValid(jserv_test) &&
+                       Regex::isHttps(test.url) == test.https &&
                        validUrlPort(parts.port, test.portRange) &&
                        validPaths(test.paths, parts.paths);
 

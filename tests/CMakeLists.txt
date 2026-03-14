@@ -19,8 +19,8 @@ add_executable(unit_tests
 
 find_package(nlohmann_json CONFIG REQUIRED)
 
-target_link_libraries(unit_tests 
-    PRIVATE 
+target_link_libraries(unit_tests
+    PRIVATE
         gtest_main
         Boost::url
         nlohmann_json::nlohmann_json
