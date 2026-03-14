@@ -25,8 +25,8 @@ target_sources(anson INTERFACE
         io/odysz/jprotocol.h
         io/odysz/json.h
         # io/odysz/json.hpp
+        io/odysz/utils.h
         io/odysz/common.h
-        # io/odysz/serializer.h
 )
 
 target_include_directories(anson INTERFACE

@@ -29,4 +29,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=2)
+add_compile_definitions(ANSON_VERBOSE=3)

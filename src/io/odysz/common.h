@@ -14,6 +14,8 @@
 #include <vector>
 #include <format>
 
+#include "utils.h"
+
 namespace anson {
 using namespace std;
 
@@ -132,85 +134,6 @@ public:
         else return s;
     }
 };
-
-struct PrintFormat {
-    string head = "";
-    string_view sep  = ",";
-    string foot = "\n";
-    bool breakline = false;
-    function<string(int index)> pre_item = nullptr;
-};
-
-class Utils {
-public:
-    template <typename Range>
-    inline static ostream& print(ostream& oss, Range list, string head = "", string sep = ",", string foot = "") {
-        return print(oss, list, {.head = head, .sep = sep, .foot = foot});
-    }
-
-    template <typename Range>
-    inline static ostream& print(ostream& oss, Range list, const PrintFormat& f = {}) {
-        auto it = std::begin(list);
-        auto end = std::end(list);
-
-        oss << f.head;
-
-        int x = 0;
-        // if (it != end) {
-        //     // oss << *it++;
-            while (it != end) {
-                if (f.pre_item != nullptr) oss << f.pre_item(x++);
-
-                oss << *it++;
-
-                if (it != end) oss << f.sep;
-
-                if (f.breakline) oss << endl;
-            }
-        // }
-        oss << f.foot;
-        return oss;
-    }
-
-    template <typename Range>
-    inline static void print(Range list, string head = "", string sep = ",", string foot = "") {
-        print(cout, list, head, sep, foot);
-    }
-
-    template <typename Range>
-    inline static void print(Range list, const PrintFormat& f) {
-        print(cout, list, f);
-    }
-};
-
-#define LOG_ERROR   1
-#define LOG_WARN    2
-#define LOG_INFO    3
-#define LOG_LOG     4
-#define LOG_DEBUG   5
-
-#ifdef ANSON_VERBOSE
-#ifdef anprint
-#undef anprint
-#endif
-
-#define anprint(v, ...) \
-do{ \
-    if ((v) < ANSON_VERBOSE) { \
-        std::cout << "<verbose " << v << '/' << ANSON_VERBOSE << ' ' << __FILE__ << ':' << __LINE__ << "> " << endl; \
-        anson::Utils::print(__VA_ARGS__); \
-  } \
-} while(0)
-
-#else
-#define anprint(v, ...) ((void)0)
-#endif
-
-#define anerror(...)   anprint(LOG_ERROR,  __VA_ARGS__)
-#define anwarn(...)    anprint(LOG_WARN,   __VA_ARGS__)
-#define aninfo(...)    anprint(LOG_INFO,   __VA_ARGS__)
-#define anlog(...)     anprint(LOG_LOG,    __VA_ARGS__)
-#define andebug(...)   anprint(LOG_DEBUG,  __VA_ARGS__)
 
 /**
  * Structure to hold decomposed URL parts
