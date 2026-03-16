@@ -1,4 +1,4 @@
-/** 015357da41ff0c1d780bf94251b8d56b1757a0ba */
+/** a114f464843147edbcb8d4d4bdd3d7610a98bb10 */
 #pragma once
 
 #include <string>
@@ -12,7 +12,7 @@ using namespace  std ;
 namespace anson {
 
 
-class JsonOpt;// : public Anson { };
+class JsonOpt;
 
 class IJsonable {
 
@@ -46,13 +46,19 @@ public:
     virtual ~IJsonable() {}
 };
 
-class JavaEnum : public IJsonable {
+class IJavaEnum : public IJsonable {
+public:
+    string enm;
+    IJavaEnum() {}
+};
+
+template<typename Drv>
+class JavaEnum : public IJavaEnum {
 
 public:
     // std::function<string(JavaEnum)> decoder;
 
     /** This is invisible in java. */
-    string enm;
 
     JavaEnum(string e) {
         if (encode.contains(e))
@@ -94,7 +100,7 @@ public:
     }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
+inline std::ostream& operator<<(std::ostream& os, const IJavaEnum& enm) {
     return os << '\"' << enm.enm << '\"';
 }
 
@@ -132,6 +138,13 @@ public:
         // ...
         return this;
     }
+};
+
+class JsonOpt: public Anson {
+public:
+    bool escape4DB;
+    string doubleFormat;
+    string indent;
 };
 
 class SemanticObject : public Anson {
@@ -191,20 +204,25 @@ inline ostream& serialize_obj(const meta_type &type, const meta_any &instance,
     return os;
 }
 
-inline bool is_javaenum(const meta_type &type) {
-    auto enum_base = entt::resolve<anson::JavaEnum>();
-
-    auto typname = type.name();
-    if (!typname) return false;
-    else if (string_view(typname) == "JavaEnum") return true;
-
-    for (auto&& [id, base] : type.base()) {
-        if (base == enum_base) {
-            return true;
-        }
-    }
-    return false;
+inline bool is_javaenum(const meta_type &field_type) {
+    auto enum_base = entt::resolve<anson::IJavaEnum>();
+    return field_type.can_cast(enum_base);
 }
+
+// inline bool is_javaenum(const meta_type &type) {
+//     auto enum_base = entt::resolve<anson::JavaEnum>();
+
+//     auto typname = type.name();
+//     if (!typname) return false;
+//     else if (string_view(typname) == "JavaEnum") return true;
+
+//     for (auto&& [id, base] : type.base()) { // Only the 1st generation?
+//         if (base == enum_base) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
 
 inline ostream& serialize_recursive(const meta_any &instance,
                                     map<string, map<string, int>*> &enumtypes, std::ostream &os) {
@@ -231,15 +249,16 @@ inline ostream& serialize_recursive(const meta_any &instance,
         return serialize_enum(type, instance, enumtypes, os);
     }
     // 2.2. Port
-    // if (type == entt::resolve<anson::Port>())
     auto typname = type.name();
-    // auto t_javaenum = entt::resolve<anson::JavaEnum>();
-    if (is_javaenum(type)) {
+    // if (is_javaenum(type)) {
+    if (auto* ptr = instance.try_cast<IJavaEnum>()) {
         // return os << "\"" << instance.try_cast<JavaEnum>()->enm << "\"";
         // return os << instance.try_cast<JavaEnum>();
-        if (auto* ptr = instance.try_cast<JavaEnum>()) {
-            return os << *ptr;
-        }
+
+        // if (auto* ptr = instance.try_cast<JavaEnum>()) {
+        //     return os << *ptr;
+        // }
+        return os << *ptr;
     }
 
     // 3. Sequence Containers (std::vector, etc.)
@@ -294,7 +313,7 @@ inline string serialize_json(const meta_any &instance,
 
     std::stringstream ss;
     serialize_recursive(instance, enumtypes, ss);
-    return ss.str();
+    return std::move(ss).str();
 }
 
 template<typename T>
@@ -311,7 +330,6 @@ private:
             if (data) {
                 if (is_javaenum(data.type())) {
                     auto v = data.type().construct(val);
-                    // JavaEnum e = v.try_cast<JavaEnum>();
                     data.set(stack.back(), v);
                 }
                 else

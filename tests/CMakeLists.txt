@@ -13,8 +13,11 @@ include(GoogleTest)
 add_executable(unit_tests
   semantier.h
   t01_common.cpp
-  t01_enttmeta.cpp
-  t02_deserialize.cpp
+  t02_enttmeta.cpp
+  t03_deserialize.cpp
+  t04_java_enum.cpp
+  t04_java_enum.h
+  t05_ansonresp.cpp
 )
 
 find_package(nlohmann_json CONFIG REQUIRED)

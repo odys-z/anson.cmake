@@ -7,6 +7,16 @@
 
 namespace anson {
 
+class AnResultset : public Anson {
+    struct Column {
+        int colx;
+        string col_id;
+    };
+
+    vector<vector<vector<string>>> rows;
+    map<string, Column> colmuns;
+};
+
 /**
  * @brief The AnsonBody class
  * java type: io.odysz.semantic.jprotocol
@@ -44,7 +54,7 @@ public:
 /**
  * (In cpp, Port cannot be a enum type)
  */
-class Port : public JavaEnum {
+class Port : public JavaEnum<Port> {
 public:
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
@@ -71,44 +81,6 @@ inline bool operator==(const std::string& s, const anson::Port& p) {
     return p == s;
 }
 
-// inline std::ostream& operator<<(std::ostream& os, const anson::Port& port_instance) {
-//     using namespace entt::literals;
-
-//     auto type = entt::resolve<anson::Port>();
-
-//     if (type) {
-//         // 1. Get the meta data for the member variable 'p'
-//         // Assuming 'p' was registered with the id "p"_hs
-//         auto prop_p = type.data("enm"_hs);
-
-//         if (prop_p) {
-//             // Get the actual string value of 'p' from the instance
-//             auto value_any = prop_p.get(port_instance);
-//             if (auto* val_ptr = value_any.try_cast<std::string>()) {
-
-//                 // 2. Iterate through all registered meta data to find a match
-//                 for (auto [id, data] : type.data()) {
-//                     // We check if the meta data is a constant matching our value
-//                     // This allows you to map "e.less" back to the name "echo"
-//                     auto meta_val = data.get({}); // Get static/constant value
-
-//                     if (meta_val && meta_val.try_cast<std::string>() &&
-//                         *meta_val.try_cast<std::string>() == *val_ptr) {
-
-//                         // We found a field whose value matches port_instance.p
-//                         // Use data.id() or a custom property for the "field name"
-//                         return os << "[ data.name() ] " << data.name() << std::endl;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     // Fallback if no meta-match is found
-//     std::cerr << "WARNING Unknown Port " << port_instance.enm << " (No meta-match found)\n";
-//     return os << "\"" << port_instance.enm << "\"";
-// }
-
 template<typename E>
 std::optional<E> from_enum_string(const std::string& s) {
     using namespace entt::literals;
@@ -131,10 +103,23 @@ enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral
 class AnsonResp : public AnsonBody{
 public:
     MsgCode code;
+    string m;
+    vector<AnResultset> rs;
+    map<string, Anson> map;
 
     AnsonResp() : AnsonBody("NA", "io.odysz.semantic.jprotocol.AnsonResp") {}
 
     AnsonResp(string a) : AnsonBody(a, "io.odysz.semantic.jprotocol.AnsonResp") {}
+
+    AnsonResp& Code(MsgCode c) {
+        code = c;
+        return *this;
+    }
+
+    AnsonResp* msg(string_view m) {
+        this->m = std::move(m);
+        return this;
+    }
 };
 
 // c20 template<std::derived_from<AnsonBody> T = AnsonBody>
@@ -188,14 +173,10 @@ public:
     }
 };
 
-class OnError {
-    // virtual void err(MsgCode c, string& e, string... args);
-    virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
-};
-
 class JServUrl : public HttpParts {
 public:
     // static UrlValidator urlValidator;
+    string protocolroot;
 
     JServUrl(string url) : HttpParts() {
         HttpParts parts;
@@ -209,6 +190,31 @@ public:
         this->query = std::move(parts.query);
         this->fragment = std::move(parts.fragment);
     }
+
+    string jserv() {
+        return format("{}://{}:{}/{}", this->scheme, this->host, this->port, this->protocolroot);
+    }
+};
+
+class OnOk {
+    virtual void ok(const AnsonResp &resp);
+};
+
+// class OnError {
+//     // virtual void err(MsgCode c, string& e, string... args);
+//     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
+// };
+using OnError = std::function<void(MsgCode code, std::string_view msg, vector<std::string_view> &args)>;
+
+class OnProgress {
+    // using OnProgress = std::function<void(const string& path, std::string status)>;
+    virtual void progess(const string& path, std::string status);
+};
+
+class JProtocol {
+public:
+
+    string protocolpath;
 };
 }
 

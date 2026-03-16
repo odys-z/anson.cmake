@@ -109,7 +109,9 @@ TEST(Anson, Servialize_Msg) {
 
     serialize_recursive(msg, enums, oss);
 
-    std::string json_result = oss.str();
+    // Why move()? Gemini: instead of copying, stringstream is allowed to transfer
+    // ownership of its internal memory directly to the returned std::string.
+    std::string json_result = std::move(oss).str();
 
     std::cout << "Serialized JSON: " << json_result << std::endl;
     ASSERT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", "port": "query", )"
