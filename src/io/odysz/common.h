@@ -281,8 +281,7 @@ public:
         if (LangExt::isblank(grps[4]))
             return parts;
 
-        // Utils::print(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
-        aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        // aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
 
         bool https = "https" == grps[2];
         bool http  = "http" == grps[2] || LangExt::isblank(grps[2]);
@@ -292,8 +291,7 @@ public:
         smatch iportss;
         regex_match(host, iportss, reg_hostportv6);
 
-        // Utils::print(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
-        aninfo(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        // aninfo(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
 
         if (iportss.size() == 7) {
             // Debug Notes: Don't change host before iportss matchs are no-longer accessed.
@@ -315,9 +313,6 @@ public:
         parts.fragment = grps[9];
 
         return parts;
-        // new Object[] { https, "[" + host.replaceAll("(^\\[)|(\\]$)", "") + "]", port,
-        //         isblank(grps.get(4), "/+") ? null : grps.get(4).replaceAll("^/*", "").split("/"),
-        //         grps.get(6), grps.get(8)};
     }
 
     /**
@@ -349,8 +344,7 @@ public:
         if (LangExt::isblank(grps[4]))
             return parts;
 
-        // Utils::print(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
-        aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        // aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
 
         bool https = "https" == grps[2];
         std::string_view vhttp(grps[2].first, grps[2].second); // Only a MSVC problem?
@@ -365,10 +359,6 @@ public:
             try { port = stoi(string(iportss[1])); }
             catch (exception e) {}
         }
-
-        // return new Object[] { https, host, port,
-        //         isblank(grps.get(4), "/+") ? null : grps.get(4).replaceAll("^/*", "").split("/"),
-        //         grps.get(6), grps.get(8)};
 
         parts.https = https;
         parts.host = host;

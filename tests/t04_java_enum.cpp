@@ -9,36 +9,37 @@
 
 #include "t04_java_enum.h"
 
+namespace {
 
 using namespace std;
 using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-map<string, map<string, int>*> enums;
+map<string, AnsonAst> enums;
 
-void register_testport(map<string, map<string, int>*> &enums) {
-    entt::meta_factory<anson::JavaEnum<TestPort>>()
-        .type("JavaEnumTestPort"_hs, "JavaEnumTestPort")
-        .base<IJsonable>()
-        .data<&anson::JavaEnum<TestPort>::enm>("enm"_hs, "enm")
-        ;
+void register_testport(map<string, AnsonAst> &enums) {
+    // entt::meta_factory<anson::JavaEnum>()
+    //     .type("JavaEnumTestPort"_hs, "JavaEnumTestPort")
+    //     .base<IJsonable>()
+    //     .data<&anson::JavaEnum::enm>("enm"_hs, "enm")
+    //     ;
 
     entt::meta_factory<anson::TestPort>()
         .type("TestPort"_hs, "TestPort")
-        .base<anson::JavaEnum<TestPort>>()
+        .base<anson::JavaEnum>()
         .ctor<std::string>()
         ;
 
-    {
-        TestPort::decode["echo"]     = "echo.test";
-        TestPort::decode["t_query"]  = "r.test";
-        TestPort::decode["t_update"] = "u.test";
+    // {
+    //     TestPort::decode["echo"]     = "echo.test";
+    //     TestPort::decode["t_query"]  = "r.test";
+    //     TestPort::decode["t_update"] = "u.test";
 
-        TestPort::encode["echo.test"]= "echo";
-        TestPort::encode["r.test"]   = "t_query";
-        TestPort::encode["u.test"]   = "t_update";
-    }
+    //     TestPort::encode["echo.test"]= "echo";
+    //     TestPort::encode["r.test"]   = "t_query";
+    //     TestPort::encode["u.test"]   = "t_update";
+    // }
 }
 
 TEST(JAVAENUM, PORT) {
@@ -67,9 +68,11 @@ TEST(JAVAENUM, PORT) {
     EnTTSaxParser<AnsonMsg<UserReq>>  handler(usreq);
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<UserReq>::_type_, usreq.type) << "expecting msg {type: " << AnsonMsg<UserReq>::_type_;
+    ASSERT_EQ(AnsonMsg<UserReq>::_type_, usreq.anclass) << "expecting msg {type: " << AnsonMsg<UserReq>::_type_;
     ASSERT_EQ(Port::echo, usreq.port)  << "expecting msg port: " << Port::echo;
 }
 
 // TEST(JAVAENUM, TEST_PORT) {
 // }
+
+}

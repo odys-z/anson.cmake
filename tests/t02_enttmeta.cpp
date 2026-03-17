@@ -41,7 +41,7 @@ json convert(entt::meta_any instance) {
 }
 
 TEST(HELLO, ENTT_META) {
-    map<string, map<string, int>*> enums;
+    map<string, AnsonAst> enums;
     register_meta(enums);
 
     AnsonMsg<EchoReq> msg{Port::echo};
@@ -80,7 +80,7 @@ TEST(HELLO, ENTT_META) {
 
     // Try to get the reference first, then take the address
     if (auto* msg_rpt = msg_rfl.try_cast<AnsonMsg<EchoReq>>()) {
-        string t = msg_rpt->type;
+        string t = msg_rpt->anclass;
         ASSERT_EQ(AnsonMsg<EchoReq>::_type_, t);
     } else {
         // If that fails, msg_rfl might be holding a pointer.
@@ -88,7 +88,7 @@ TEST(HELLO, ENTT_META) {
         auto** ptr_to_ptr = msg_rfl.try_cast<AnsonMsg<EchoReq>*>();
         if (ptr_to_ptr) {
             AnsonMsg<EchoReq>* msg_rpt_actual = *ptr_to_ptr;
-            ASSERT_EQ(AnsonMsg<EchoReq>::_type_, msg_rpt_actual->type);
+            ASSERT_EQ(AnsonMsg<EchoReq>::_type_, msg_rpt_actual->anclass);
         } else {
             FAIL() << "Could not cast meta_any to AnsonMsg<EchoReq>";
         }

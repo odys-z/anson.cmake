@@ -8,12 +8,14 @@
 #include <io/odysz/anserializer.h>
 
 
+namespace {
+
 using namespace std;
 using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-map<string, map<string, int>*> enums;
+map<string, AnsonAst> enums;
 
 TEST(Anson, Base) {
     register_meta(enums);
@@ -21,12 +23,12 @@ TEST(Anson, Base) {
     auto an_type = entt::resolve("Anson"_hs);
     meta_any anptr = an_type.construct();
     Anson& anobj = anptr.cast<anson::Anson&>();
-    cout << "Actual Type Name: " << anobj.type << endl;
-    ASSERT_EQ("", anobj.type);
+    cout << "Actual Type Name: " << anobj.anclass << endl;
+    ASSERT_EQ("", anobj.anclass);
 
     anptr = an_type.construct(Anson::_type_);
     Anson& anobj2 = anptr.cast<anson::Anson&>();
-    ASSERT_EQ(Anson::_type_, anobj2.type) << "1. anobj2.type";
+    ASSERT_EQ(Anson::_type_, anobj2.anclass) << "1. anobj2.type";
 
     std::string json_input = R"({"type": "input"})";
     EnTTSaxParser<Anson>  handler(anobj2);
@@ -35,7 +37,7 @@ TEST(Anson, Base) {
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anobj2.type) << "Errors on parssing {type: input}.";
+    ASSERT_EQ("input", anobj2.anclass) << "Errors on parssing {type: input}.";
 }
 
 TEST(Anson, AnsonBody) {
@@ -43,8 +45,8 @@ TEST(Anson, AnsonBody) {
     auto b = entt::resolve("AnsonBody"_hs);
     auto v = b.construct(std::string("r/ds"));
     AnsonBody* anb = v.try_cast<AnsonBody>();
-    cout << "[1] anb.type: " << anb->type << endl;
-    ASSERT_EQ(AnsonBody::_type_, anb->type);
+    cout << "[1] anb.type: " << anb->anclass << endl;
+    ASSERT_EQ(AnsonBody::_type_, anb->anclass);
     ASSERT_EQ("r/ds", anb->a) << "[1.0]";
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
@@ -52,15 +54,15 @@ TEST(Anson, AnsonBody) {
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
-    cout << "[3] ok: " << result << ", type: " << anb->type << ", a: " << anb->a << endl;
+    cout << "[3] ok: " << result << ", type: " << anb->anclass << ", a: " << anb->a << endl;
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anb->type) << "[3.1]";
+    ASSERT_EQ("input", anb->anclass) << "[3.1]";
     ASSERT_EQ("r/query", anb->a) << "[3.2]";
 
     AnsonBody anc;
     result = Anson::from_json<AnsonBody>(json_input, anc);
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anc.type) << "[3.3]";
+    ASSERT_EQ("input", anc.anclass) << "[3.3]";
     ASSERT_EQ("r/query", anc.a) << "[3.4]";
 }
 
@@ -75,7 +77,7 @@ TEST(Anson, AnsonMsg) {
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
-    ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->type);
+    ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->anclass);
     ASSERT_EQ("echo", msg->port);
     ASSERT_EQ("r/query", msg->body.at(0)->a);
     ASSERT_EQ("Hello", msg->body.at(0)->echo);
@@ -86,16 +88,16 @@ TEST(Anson, AnsonMsg) {
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
-    cout << "[3] ok: " << result << ", type: " << msg->type << ", port: " << msg->port << endl;
+    cout << "[3] ok: " << result << ", type: " << msg->anclass << ", port: " << msg->port << endl;
 
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", msg->type);
+    ASSERT_EQ("input", msg->anclass);
     EXPECT_EQ("query", msg->port) << "TODO: ever breaked at operator overloads?";
 
     EchoReq& reqbd = msg->Body();
 
-    cout << "[4] body: " << msg->body.size() << ", type: " << reqbd.type << ", a: " << reqbd.a << endl;
-    EXPECT_EQ("io.odysz.jprotocol.EchoReq", reqbd.type) << "TODO: No way to check type?";
+    cout << "[4] body: " << msg->body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
+    EXPECT_EQ("io.odysz.jprotocol.EchoReq", reqbd.anclass) << "TODO: No way to check type?";
     EXPECT_EQ("r/query", reqbd.a) << "[4: a = r/query]";
 }
 
@@ -117,4 +119,6 @@ TEST(Anson, Servialize_Msg) {
     ASSERT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", "port": "query", )"
               R"("body": [{"a": "r/query", "echo": "Hello World"}]})",
               json_result);
+}
+
 }

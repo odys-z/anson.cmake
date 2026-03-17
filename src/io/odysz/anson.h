@@ -1,22 +1,30 @@
 /** 9bbe3a552ef8b154454af904eeaa1f1af8f60fc3 */
 #pragma once
 
+
 #include <string>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <entt/meta/meta.hpp>
 #include <entt/entt.hpp>
+#include <entt/meta/meta.hpp>
 
-using namespace  std ;
+#include "common.h"
+
+using namespace std ;
+using namespace entt;
 
 namespace anson {
-
 
 class JsonOpt;
 
 class IJsonable {
 
 public:
+    /** Return of java getClass().getName(). */
+    string anclass;
+
+    IJsonable(string type) : anclass(type) {}
+
     virtual IJsonable* toBlock(ostream& os, JsonOpt& opts) = 0;
 
     /** @see #toBlock(OutputStream, JsonOpt...) */
@@ -46,42 +54,45 @@ public:
     virtual ~IJsonable() {}
 };
 
-class IJavaEnum : public IJsonable {
-public:
-    string enm;
-    IJavaEnum() {}
-};
-
-template<typename Drv>
-class JavaEnum : public IJavaEnum {
+// template<typename Drv>
+class JavaEnum : public IJsonable {
 
 public:
+    inline static const string _type_ = "io.odysz.anson.JavaEnum";
+
     // std::function<string(JavaEnum)> decoder;
+    string enm;
 
     /** This is invisible in java. */
 
-    JavaEnum(string e) {
-        if (encode.contains(e))
-            enm = encode[e];
-        else
-            enm = e;
+    JavaEnum(string e) : enm(std::move(e)), IJsonable(_type_) {
+        // if (encode.contains(e))
+        //     enm = encode[e];
+        // else
+            // enm = e;
     }
+
+    JavaEnum(const JavaEnum&) = default;
+    JavaEnum(JavaEnum&&) noexcept = default;
+
+    JavaEnum& operator=(const JavaEnum&) = default;
+    JavaEnum& operator=(JavaEnum&&) noexcept = default;
 
     // string encode() { return enm; }
 
 
     /** Registered by json.h */
-    inline static map<string, string> decode;
-    inline static map<string, string> encode;
+    // inline static map<string, string> decode;
+    // inline static map<string, string> encode;
 
     static string url(string enm) {
-        return decode[enm];
+        return enm; // decode[enm];
     }
 
     static JavaEnum& valof(string s, JavaEnum& stub) {
-        if (decode.contains(s))
-            stub.enm = s;
-        else stub.enm = "na";
+        // if (decode.contains(s))
+        //     stub.enm = s;
+        // else stub.enm = "na";
 
         return stub;
     }
@@ -100,7 +111,7 @@ public:
     }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const IJavaEnum& enm) {
+inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
     return os << '\"' << enm.enm << '\"';
 }
 
@@ -114,10 +125,9 @@ class EnTTSaxParser;
 class Anson : public IJsonable {
 public:
     inline static const string _type_ = "io.odysz.anson.Anson";
-    std::string type;
 
-    Anson() : IJsonable() { cout << "defalut contructor" << endl ; }
-    Anson(string t) : type(t) { cout << "override constructor, type = " << t << endl ; }
+    Anson() : IJsonable(_type_) { cout << "defalut contructor" << endl ; }
+    Anson(string t) : IJsonable(t) { cout << "override constructor, type = " << t << endl ; }
     
     template <typename T>
     static bool from_json(const string& json, T& an) {
@@ -149,116 +159,177 @@ public:
 
 class SemanticObject : public Anson {
 public:
-    map<string, any> data;
+    map<string, std::any> data;
 };
 
-using namespace entt;
+class AnstField {
+public:
+    string datatype;
+    int length;
+    string fieldname;
 
-inline ostream& serialize_enum(const meta_type type, const meta_any instance,
-               map<string, map<string, int>*> &enum_vals, std::ostream &os) {
-    string name = type.name();
-    for (auto [id, data] : type.data()) {
-        if (enum_vals.at(name)->at(data.name()) == data.get(instance).cast<int>())
-            return os << '\"' << name << '\"';
+    /**
+     * @brief static_val
+     * MsgCode.ok = 0, ...
+     */
+    string static_val;
+};
+
+/**
+ * @brief The AnsonAst class
+ *
+ *  isEnum: bool
+ *  base: Union[str, None]
+ *  anclass: str
+ *  fields: dict
+ *  enums: Union[dict, None]
+ *  ctors: List[List[str]]
+ */
+class AnsonAst {
+public:
+    inline static bool valid_type(const string& typ) {
+        return !LangExt::isblank(typ);
+    }
+
+    bool isEnum;
+    bool isJavaEnum;
+    string base;
+    string anclass;
+    map<string, AnstField> fields;
+    map<string, int> enums;
+    vector<vector<string>> ctors;
+
+    meta_type meta_type;
+
+    AnsonAst() : isEnum(false), anclass("") { }
+
+    AnsonAst(string type, bool isEnum = false) : isEnum(isEnum), anclass(type) { }
+};
+
+// inline bool operator!(const IJsonable& an) {
+//     return AnsonAst::valid_type("an.type ???");
+// }
+
+
+template <typename E>
+concept JsonEnum = std::is_enum_v<E>;
+
+// inline ostream& serialize_enum(const JsonEnum auto &e,
+                                // AnsonAst &ast, std::ostream &os) {
+
+    // return os << static_cast<std::underlying_type_t<decltype(e)>>(e);
+    // return  os << '\"' << javaenum.enm << '\"';
+// }
+inline ostream& serialize_enum(const meta_any &instance, meta_type &type,
+                                AnsonAst &ast, std::ostream &os) {
+    if (ast.isEnum) {
+        if (auto value = instance.try_cast<int>(); value) {
+            os << *value;
+        } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
+            os << *u_value;
+        } else {
+            // Fallback: try to convert via the meta system to a type we can print
+            // This works if the enum is registered as a meta type
+            os << instance.cast<int>();
+        }
     }
     return os;
 }
 
-inline ostream& serialize_recursive(const meta_any &instance,
-                                    map<string, map<string, int>*> &enumtypes, std::ostream &os);
+inline ostream& serialize_recursive(const meta_any &instance, map<string, AnsonAst> &asts, std::ostream &os);
 
-inline ostream& serialize_kvs(const meta_type &type, const meta_any &instance,
-                map<string, map<string, int>*> &enumtypes, std::ostream &os, bool &first) {
+inline ostream& serialize_kvs(const meta_any &instance,
+                map<string, AnsonAst> &asts, std::ostream &os, bool &first) {
 
-    // // 1. First, handle base classes (Recursive)
-    // for (auto [id, base] : type.base()) {
-    //     serialize_object_fields(base.type(), instance, os, first);
-    // }
+    meta_type type = instance.type();
+    const AnsonAst &ast = asts.at(type.name());
 
-    // 2. Then, handle fields of the current class
-    for (auto [id, data] : type.data()) {
-        if (!first) os << ", ";
+    for (auto [id, feild] : ast.fields) {
+        if (!first) {
+            first = false;
+            os << ", ";
+        }
 
-        // Use .name() from your meta_factory registration
-        os << "\"" << data.name() << "\": ";
+        os << "\"" << feild.fieldname << "\": ";
 
-        // Pass the instance to data.get() to extract the value
-        serialize_recursive(data.get(instance), enumtypes, os);
-        first = false;
+        // if (ast.isEnum) {
+        //     // serialize_enum(data, ast, os);
+        //     // return os << entt::any_cast<int>(instance.as_ref());
+        //     // return os << static_cast<std::underlying_type_t<decltype(instance)>>(instance);
+        //     if (auto value = instance.try_cast<int>(); value) {
+        //         os << *value;
+        //     } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
+        //         os << *u_value;
+        //     } else {
+        //         // Fallback: try to convert via the meta system to a type we can print
+        //         // This works if the enum is registered as a meta type
+        //         os << instance.cast<int>();
+        //     }
+        // }
+        // else {
+        //     // meta_type type = instance.type();
+        //     // auto id = entt::hashed_string{type.name()}.value();
+        //     serialize_recursive(instance, asts, os);
+        // }
+
+        serialize_recursive(instance, asts, os);
     }
     return os;
 }
 
 inline ostream& serialize_obj(const meta_type &type, const meta_any &instance,
-                              map<string, map<string, int>*> &enumtypes, std::ostream &os) {
+                              map<string, AnsonAst> &asts, std::ostream &os) {
     // 1. First, handle base classes (Recursive)
     bool first{true};
     os << "{";
 
-    for (auto [id, base] : type.base())
-        serialize_kvs(base, instance, enumtypes, os, first);
+    // meta_type type = instance.type();
 
-    serialize_kvs(type, instance, enumtypes, os, first);
+    for (auto [id, base] : type.base())
+        serialize_kvs(instance, asts, os, first);
+
+    serialize_kvs(instance, asts, os, first);
 
     os << "}";
     return os;
 }
 
-inline bool is_javaenum(const meta_type &field_type) {
-    auto enum_base = entt::resolve<anson::IJavaEnum>();
-    return field_type.can_cast(enum_base);
-}
-
-// inline bool is_javaenum(const meta_type &type) {
-//     auto enum_base = entt::resolve<anson::JavaEnum>();
-
-//     auto typname = type.name();
-//     if (!typname) return false;
-//     else if (string_view(typname) == "JavaEnum") return true;
-
-//     for (auto&& [id, base] : type.base()) { // Only the 1st generation?
-//         if (base == enum_base) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
 inline ostream& serialize_recursive(const meta_any &instance,
-                                    map<string, map<string, int>*> &enumtypes, std::ostream &os) {
-    if (!instance) return os;
+                                    map<string, AnsonAst> &asts, std::ostream &os) {
+    // if (!instance) return os;
 
     meta_type type = instance.type();
+    AnsonAst &ast = asts.at(type.name());
 
     // 1. Dereference pointers (shared_ptr<EchoReq> -> EchoReq)
     if (type.is_pointer() || type.is_pointer_like()) {
         auto deref = *instance;
-        serialize_recursive(deref, enumtypes, os);
+        serialize_recursive(deref, asts, os);
         return os;
     }
 
-    // 1. Strings (Specific check before sequence)
+    // 2. Strings (Specific check before sequence)
     if (auto s = instance.try_cast<std::string>()) {
         os << "\"" << *s << "\"";
         return os;
     }
 
     // 2.1. Enums
-    if (type.is_enum()) {
+    if (ast.isEnum) {
         // if (auto p = instance.try_cast<anson::Port>()) os << *p;
-        return serialize_enum(type, instance, enumtypes, os);
+        return serialize_enum(instance, type, ast, os);
     }
+
     // 2.2. Port
-    auto typname = type.name();
-    // if (is_javaenum(type)) {
-    if (auto* ptr = instance.try_cast<IJavaEnum>()) {
+    if (ast.isJavaEnum) {
         // return os << "\"" << instance.try_cast<JavaEnum>()->enm << "\"";
         // return os << instance.try_cast<JavaEnum>();
 
         // if (auto* ptr = instance.try_cast<JavaEnum>()) {
         //     return os << *ptr;
         // }
-        return os << *ptr;
+
+        return os << instance.try_cast<JavaEnum>();
     }
 
     // 3. Sequence Containers (std::vector, etc.)
@@ -271,7 +342,7 @@ inline ostream& serialize_recursive(const meta_any &instance,
         bool first = true;
         for (auto element : view) {
             if (!first) os << ", ";
-            serialize_recursive(element, enumtypes, os);
+            serialize_recursive(element, asts, os);
             first = false;
         }
         os << "]";
@@ -285,9 +356,9 @@ inline ostream& serialize_recursive(const meta_any &instance,
         bool first = true;
         for (auto [key, value] : view) {
             if (!first) os << ", ";
-            serialize_recursive(key, enumtypes, os);
+            serialize_recursive(key, asts, os);
             os << ": ";
-            serialize_recursive(value, enumtypes, os);
+            serialize_recursive(value, asts, os);
             first = false;
         }
         os << "}";
@@ -298,22 +369,46 @@ inline ostream& serialize_recursive(const meta_any &instance,
     if (auto a = instance.try_cast<std::any>()) {
         // Check for shared_ptr<Anson> as requested
         if (a->has_value() && a->type() == typeid(std::shared_ptr<anson::Anson>)) {
-            serialize_obj(type, instance, enumtypes, os);
+            serialize_obj(type, instance, asts, os);
         }
         return os;
     }
 
     // 6. General Objects (Reflection)
-    return serialize_obj(type, instance, enumtypes, os);
+    return serialize_obj(type, instance, asts, os);
 }
 
-inline string serialize_json(const meta_any &instance,
-                             map<string, map<string, int>*> &enumtypes) {
+inline string serialize_json(const IJsonable &jsonable,
+                             map<string, AnsonAst> &asts) {
+    AnsonAst ast = asts.at(jsonable.anclass);
+    const meta_type &type = ast.meta_type;
+
+    entt::meta_any instance{entt::forward_as_any(jsonable)};
     if (!instance)  return string(nullptr);
 
     std::stringstream ss;
-    serialize_recursive(instance, enumtypes, ss);
+    serialize_recursive(instance, asts, ss);
     return std::move(ss).str();
+}
+
+// inline bool is_javaenum(const meta_type &type) {
+//     auto enum_base = entt::resolve<anson::JavaEnum>();
+
+//     auto typname = type.name();
+//     if (!typname) return false;
+//     else if (string_view(typname) == "JavaEnum") return true;
+
+//     for (auto&& [id, base] : type.base()) {
+//         if (base == enum_base) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+
+inline bool is_javaenum(const meta_type &field_type) {
+    auto enum_base = entt::resolve<anson::JavaEnum>();
+    return field_type.can_cast(enum_base);
 }
 
 template<typename T>

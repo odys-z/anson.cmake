@@ -54,7 +54,7 @@ public:
 /**
  * (In cpp, Port cannot be a enum type)
  */
-class Port : public JavaEnum<Port> {
+class Port : public JavaEnum {
 public:
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
