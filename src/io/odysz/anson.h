@@ -15,7 +15,21 @@ using namespace entt;
 
 namespace anson {
 
-class JsonOpt;
+
+class AnsonAst;
+class AnstField;
+
+class JsonOpt {
+public:
+    bool escape4DB;
+    string doubleFormat;
+    string indent;
+
+
+    const map<string, AnsonAst> *asts;
+    const map<string, meta_type> *types;
+    JsonOpt(const map<string, AnsonAst> *asts, const map<string, meta_type> *types) : asts(asts), types(types) { }
+};
 
 class IJsonable {
 
@@ -34,7 +48,7 @@ public:
 
     IJsonable(string type) : anclass(type) {}
 
-    virtual IJsonable* toBlock(ostream& os, JsonOpt& opts) = 0;
+    virtual IJsonable* toBlock(ostream& os, const JsonOpt& opts) = 0;
 
     /** @see #toBlock(OutputStream, JsonOpt...) */
     virtual string toBlock(JsonOpt& opt) {
@@ -53,12 +67,6 @@ public:
      * @throws AnsonException
      */
     virtual IJsonable* toJson(string& buf) = 0;
-
-    // int tree_sitter_test() { return 0; }
-    // char& s_test0;
-    // char& s_test1;
-    // char** s_test2;
-    // char** s_test3;
 
     virtual ~IJsonable() {}
 };
@@ -106,7 +114,7 @@ public:
         return stub;
     }
 
-    IJsonable* toBlock(ostream& stream, JsonOpt& opts) override {
+    IJsonable* toBlock(ostream& stream, const JsonOpt& opts) override {
         // stream.put('\"');
         // stream.write(name().c_str(), name().size());
         // stream.put('\"');
@@ -124,8 +132,12 @@ inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
     return os << '\"' << enm.enm << '\"';
 }
 
-template<typename T>
+// template<typename T>
 class EnTTSaxParser;
+class Anson;
+
+ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts);
+bool parse(const string& json, IJsonable& an, const JsonOpt &opts);
 
 /**
  * @brief The Anson class
@@ -155,43 +167,32 @@ public:
     }
 
     template <typename T>
-    static bool from_json(const string& json, T& an) {
-        EnTTSaxParser<T> handler{an};
-        return nlohmann::json::sax_parse(json, &handler);
+    static bool from_json(const string& json, IJsonable& an, const JsonOpt &opts) {
+        return parse(json, an, opts);
     }
 
-    Anson& toBlock() {
-        return *this;
+    string toBlock(const JsonOpt &jsopt) {
+        std::stringstream ss;
+        toBlock(ss, jsopt);
+        return std::move(ss).str();
     }
 
-    IJsonable* toBlock(ostream& os, JsonOpt& opts) override {
-        // ...
+    IJsonable* toBlock(ostream& os, const JsonOpt& opts) override {
+        serialize_envelope(os, this, opts);
         return this;
     }
 
     IJsonable* toJson(string& buf) override {
-        // ...
+        anerror("Don't call this in cpp");
         return this;
     }
 };
 
-class JsonOpt: public Anson {
-public:
-    bool escape4DB;
-    string doubleFormat;
-    string indent;
-};
-
-class SemanticObject : public Anson {
-public:
-    map<string, std::any> data;
-};
-
 class AnstField {
 public:
-    string fieldname;
     string datatype;
-    meta_type enttype;
+    string fieldname;
+    // meta_type enttype;
     int length;
 
     /**
@@ -201,7 +202,10 @@ public:
     string static_val;
 
     //////////////////////// v 0.2.0
+    /** "" for string, int, double or null */
     string astid;
+
+    /** ""_hs for string, int, double or null */
     hashed_string enttypeid;
 };
 
@@ -215,13 +219,19 @@ public:
  *  enums: Union[dict, None]
  *  ctors: List[List[str]]
  */
-class AnsonAst {
+class AnsonAst : public Anson {
 public:
     inline static bool valid_type(const string& typ) {
         return !LangExt::isblank(typ);
     }
 
+    bool isInt;
+    bool isDouble;
     bool isEnum;
+    bool isList;
+    bool isMap;
+    bool istring;
+    bool isJsonable;
     bool isJavaEnum;
     string base;
     string anclass;
@@ -238,21 +248,7 @@ public:
 
 };
 
-// inline bool operator!(const IJsonable& an) {
-//     return AnsonAst::valid_type("an.type ???");
-// }
-
-
-template <typename E>
-concept JsonEnum = std::is_enum_v<E>;
-
-// inline ostream& serialize_enum(const JsonEnum auto &e,
-                                // AnsonAst &ast, std::ostream &os) {
-
-    // return os << static_cast<std::underlying_type_t<decltype(e)>>(e);
-    // return  os << '\"' << javaenum.enm << '\"';
-// }
-inline ostream& serialize_enum(const meta_any &instance, meta_type &type,
+inline static ostream& serialize_enum(const meta_any &instance, meta_type &type,
                                 AnsonAst &ast, std::ostream &os) {
     if (ast.isEnum) {
         if (auto value = instance.try_cast<int>(); value) {
@@ -268,6 +264,71 @@ inline ostream& serialize_enum(const meta_any &instance, meta_type &type,
     return os;
 }
 
+inline static ostream& serialize_list(ostream& os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+    return os;
+}
+
+inline static ostream& serialize_map(ostream& os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+    return os;
+}
+
+inline static ostream& serialize_instance(ostream &os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+    if (fd_ast.isList)
+        serialize_list(os, val, fd_ast, fd_type, opts);
+    else if (fd_ast.isMap)
+        serialize_map(os, val, fd_ast, fd_type, opts);
+    else if (fd_ast.isEnum)
+        serialize_enum(val, fd_type, fd_ast, os);
+    else if (fd_ast.isJavaEnum)
+        os << val.try_cast<JavaEnum>();
+    else if (fd_ast.istring) {
+        auto s = val.try_cast<std::string>();
+        os << '\"' << *s << '\"';
+    }
+    else if (fd_ast.isJsonable)
+        os << val.try_cast<JavaEnum>();
+    else if (fd_ast.isInt) {
+        auto s = val.try_cast<int>();
+        os << '\"' << s << '\"';
+    }
+    else if (fd_ast.isDouble) {
+        auto s = val.try_cast<std::double_t>();
+        os << '\"' << s << '\"';
+    }
+    else  os << R"("Cannot handle value of )" << fd_ast.anclass << '\"';
+    return os;
+}
+
+inline static ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts) {
+    os << "type: " + anson->type;
+
+    auto fields = opts.asts->at(anson->anclass).fields;
+
+    if (fields.size() > 0)
+        os << '\n';
+
+    meta_type enttype = opts.types->at(anson->anclass);
+    entt::meta_any instance{entt::forward_as_any(anson)};
+
+    bool first = true;
+    for (auto[fn, f] : fields) {
+        if (first) first = false;
+        else os << ",";
+
+        os << '\"' << fn << R"(": ")";
+
+        AnsonAst fd_ast = opts.asts->at(f.astid);
+        meta_type fd_type = opts.types->at(fn);
+
+        auto data = enttype.data(hashed_string(fn.c_str()));
+        meta_any val = data.get(instance);
+
+        serialize_instance(os, val, fd_ast, fd_type, opts);
+    }
+    return  os << '}';
+}
+
+/**
 inline ostream& serialize_recursive(const meta_any &instance, AnsonAst &ast, map<string, AnsonAst> &asts, std::ostream &os);
 
 inline ostream& serialize_kvs(const meta_any &instance,
@@ -412,52 +473,75 @@ inline ostream& serialize_recursive(const meta_any &instance, AnsonAst &ast,
     return serialize_obj(type, instance, asts, os);
 }
 
-inline string serialize_json(const IJsonable &jsonable,
-                             map<string, AnsonAst> &asts) {
+inline ostream &serialize_jsonable(ostream &os, IJsonable &jsonable,
+                            AnsonAst &ast, const map<string, AnsonAst> &asts, const map<string, meta_type> &types) {
+
+    // 2.1. Enums
+    if (ast.isEnum) {
+        anerror("shouldn't be here as enum it self cannot be reprecented as a json string. "
+                + jsonable.anclass + " " + ast.anclass);
+        return os;
+    }
+
+    // 2.2. Port
+    if (ast.isJavaEnum) {
+        return os << static_cast<const JavaEnum&>(jsonable);
+    }
+
+    jsonable.toBlock(os, JsonOpt{asts, types});
+
+    return os;
+}
+
+inline string serialize_json(IJsonable &jsonable,
+                             const map<string, AnsonAst> &asts,
+                             const map<string, meta_type> &types) {
     AnsonAst ast = asts.at(jsonable.anclass);
     const meta_type &type = resolve(ast.enttypeid);
 
-    entt::meta_any instance{entt::forward_as_any(jsonable)};
-    if (!instance)  return string(nullptr);
-
     std::stringstream ss;
-    serialize_recursive(instance, ast, asts, ss);
+    jsonable.toBlock(ss, JsonOpt{&asts, &types});
     return std::move(ss).str();
 }
-
-// inline bool is_javaenum(const meta_type &type) {
-//     auto enum_base = entt::resolve<anson::JavaEnum>();
-
-//     auto typname = type.name();
-//     if (!typname) return false;
-//     else if (string_view(typname) == "JavaEnum") return true;
-
-//     for (auto&& [id, base] : type.base()) {
-//         if (base == enum_base) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
 
 inline bool is_javaenum(const meta_type &field_type) {
     auto enum_base = entt::resolve<anson::JavaEnum>();
     return field_type.can_cast(enum_base);
 }
+*/
 
-template<typename T>
+class SemanticObject : public Anson {
+public:
+    map<string, std::any> data;
+};
+
+struct ParseNode {
+    meta_any instance;
+    string astid;
+};
+
+// template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
-    std::vector<meta_any> stack;
+    // map<std::string, AnsonAst> &asts;
+    // map<std::string, meta_any> &enttyps;
+    const JsonOpt &contxt;
+
+    // std::vector<meta_any> stack;
+    std::vector<ParseNode> stack;
+
     id_type active_key{0};
 
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
         if (!stack.empty() && active_key != 0) {
-            auto data = stack.back().type().data(active_key);
+            auto data = stack.back().instance.type().data(active_key);
+            AnsonAst ast = contxt.asts->at(stack.back().astid);
+
             if (data) {
-                if (is_javaenum(data.type())) {
+                // if (is_javaenum(data.type())) {
+                if (ast.isJavaEnum) {
                     auto v = data.type().construct(val);
                     data.set(stack.back(), v);
                 }
@@ -468,16 +552,17 @@ private:
     }
 
 public:
-    EnTTSaxParser(T& obj) {
-        // set_top(obj);
-        stack.push_back(forward_as_meta(obj));
+    EnTTSaxParser(IJsonable& obj, const JsonOpt &opts) : contxt(opts) {
+        stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass});
     }
 
     bool start_object(std::size_t size) override {
         if (active_key != 0 && !stack.empty()) {
-            auto data = stack.back().type().data(active_key);
+            auto data = stack.back().instance.type().data(active_key);
             if (data) {
-                stack.push_back(data.get(stack.back()));
+                AnsonAst ast = contxt.asts->at("");
+                std::string fd_astid = ast.fields.at(data.name()).astid;
+                stack.push_back({.instance = data.get(stack.back()), .astid=fd_astid});
             }
         } else if (stack.empty()) {
             // This is the root object.
@@ -522,7 +607,6 @@ public:
 
     bool number_unsigned(number_unsigned_t val) override {
         set_value(static_cast<uint64_t>(val));
-        // set_value(val);
         return true;
     }
 
@@ -534,5 +618,10 @@ public:
     // Root Management
     // void set_top(meta_any instance) { stack.push_back(instance); }
 };
+
+inline static bool parse(const string& json, IJsonable & an, const JsonOpt & opts) {
+    EnTTSaxParser handler{an, opts};
+    return nlohmann::json::sax_parse(json, &handler);
+}
 }
 

@@ -16,9 +16,11 @@ using namespace anson;
 using namespace entt;
 
 map<string, AnsonAst> enums;
+map<string, meta_type> types;
 
 TEST(Anson, Base) {
-    register_meta(enums);
+    register_meta(enums, types);
+    JsonOpt contxt{&enums, &types};
 
     auto an_type = entt::resolve("Anson"_hs);
     meta_any anptr = an_type.construct();
@@ -31,7 +33,8 @@ TEST(Anson, Base) {
     ASSERT_EQ(Anson::_type_, anobj2.anclass) << "1. anobj2.type";
 
     std::string json_input = R"({"type": "input"})";
-    EnTTSaxParser<Anson>  handler(anobj2);
+    // EnTTSaxParser<Anson>  handler(anobj2, contxt);
+    EnTTSaxParser handler(anobj2, contxt);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
@@ -41,6 +44,7 @@ TEST(Anson, Base) {
 }
 
 TEST(Anson, AnsonBody) {
+    JsonOpt contxt{&enums, &types};
 
     auto b = entt::resolve("AnsonBody"_hs);
     auto v = b.construct(std::string("r/ds"));
@@ -50,7 +54,8 @@ TEST(Anson, AnsonBody) {
     ASSERT_EQ("r/ds", anb->a) << "[1.0]";
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
-    EnTTSaxParser<AnsonBody> handler(*anb);
+    // EnTTSaxParser<AnsonBody> handler(*anb, contxt);
+    EnTTSaxParser handler(*anb, contxt);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
@@ -60,13 +65,15 @@ TEST(Anson, AnsonBody) {
     ASSERT_EQ("r/query", anb->a) << "[3.2]";
 
     AnsonBody anc;
-    result = Anson::from_json<AnsonBody>(json_input, anc);
+    result = Anson::from_json<AnsonBody>(json_input, anc, contxt);
     ASSERT_TRUE(result);
     ASSERT_EQ("input", anc.anclass) << "[3.3]";
     ASSERT_EQ("r/query", anc.a) << "[3.4]";
 }
 
 TEST(Anson, AnsonMsg) {
+    JsonOpt contxt{&enums, &types};
+
     using Req = AnsonMsg<EchoReq>;
 
     auto mt = entt::resolve("AnsonMsgEchoReq"_hs);
@@ -84,7 +91,7 @@ TEST(Anson, AnsonMsg) {
 
     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
-    EnTTSaxParser<AnsonMsg<EchoReq>> handler(*msg);
+    EnTTSaxParser handler(*msg, contxt);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
@@ -109,7 +116,9 @@ TEST(Anson, Servialize_Msg) {
 
     std::ostringstream oss;
 
-    serialize_recursive(msg, enums, oss);
+    // serialize_recursive(msg, enums, oss);
+    JsonOpt opts{&enums, &types};
+    msg->toBlock(oss, opts);
 
     // Why move()? Gemini: instead of copying, stringstream is allowed to transfer
     // ownership of its internal memory directly to the returned std::string.

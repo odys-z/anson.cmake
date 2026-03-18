@@ -16,7 +16,7 @@ namespace anson {
 using namespace entt;
 using namespace entt::literals;
 
-inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> meta_types) {
+inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &meta_types) {
     using namespace entt::literals;
 
     // entt::meta_factory<anson::IJsonable>()

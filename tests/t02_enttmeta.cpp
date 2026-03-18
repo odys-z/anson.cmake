@@ -42,7 +42,9 @@ json convert(entt::meta_any instance) {
 
 TEST(HELLO, ENTT_META) {
     map<string, AnsonAst> enums;
-    register_meta(enums);
+    map<string, meta_type> types;
+    register_meta(enums, types);
+    JsonOpt jsonopts{&enums, &types};
 
     AnsonMsg<EchoReq> msg{Port::echo};
 
@@ -52,12 +54,15 @@ TEST(HELLO, ENTT_META) {
 
     cout << "Echo: " << msg.body.back()->echo << endl;
 
-    cout << serialize_json(msg, enums) << endl;
-    serialize_recursive(msg, enums, cout) << endl;
+    // cout << serialize_json(msg, enums) << endl;
+    msg.toBlock(cout, jsonopts);
+
+    // serialize_recursive(msg, enums, cout) << endl;
+    msg.toBlock(cout, jsonopts);
 
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"
               R"("port": "echo", "body": [{"a": "r/query", "echo": "echo msg ..."}]})",
-              serialize_json(msg, enums))
+              msg.toBlock(jsonopts))
         << "static _type_ must be ignored, port name must used as the enum value...";
 
     // 1. Create EchoReq via reflection
