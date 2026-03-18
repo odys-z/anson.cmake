@@ -19,7 +19,7 @@ struct PrintFormat {
 class Utils {
 public:
     template <typename Range>
-    inline static ostream& print(ostream& oss, Range list, const PrintFormat& f = {}) {
+    inline static ostream& _print(ostream& oss, Range list, const PrintFormat& f = {}) {
         auto it = std::begin(list);
         auto end = std::end(list);
 
@@ -41,7 +41,7 @@ public:
 
     template <typename Range>
     inline static ostream& print(ostream& oss, Range list, string head = "", string sep = ",", string foot = "") {
-        return print(oss, list, {.head = head, .sep = sep, .foot = foot});
+        return _print(oss, list, {.head = head, .sep = sep, .foot = foot});
     }
 
     template <typename Range>
@@ -51,7 +51,15 @@ public:
 
     template <typename Range>
     inline static void print(Range list, const PrintFormat& f) {
-        print(cout, list, f);
+        _print(cout, list, f);
+    }
+
+    inline static void print(string_view msg, const PrintFormat& f = {}) {
+        _print(cout, msg, f);
+    }
+
+    inline static void print(const char* s, const PrintFormat& f = {}) {
+        _print(cout, std::string_view(s), f);
     }
 };
 

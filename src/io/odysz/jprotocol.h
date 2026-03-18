@@ -24,6 +24,7 @@ class AnResultset : public Anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.jprotocol.AnsonBody";
+    virtual string _type_special(string msgtype) { return msgtype + "<AnsonBody>"; }
 
     string a;
 
@@ -37,6 +38,7 @@ public:
 class EchoReq: public AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.jprotocol.EchoReq";
+    string _type_special(string msgtype) { return msgtype + "<EchoReq>"; }
 
     string echo;
 
@@ -47,8 +49,10 @@ public:
 
 class UserReq : public AnsonBody {
 public:
+    inline static const string _type_ = "io.odysz.jprotocol.UserReq";
     map<string, entt::any> data;
-    UserReq(string a) : AnsonBody(a, "io.odysz.jprotocol.UserReq") {}
+    UserReq() : UserReq("null") {}
+    UserReq(string a) : AnsonBody(a, _type_) {}
 };
 
 /**
@@ -122,8 +126,7 @@ public:
     }
 };
 
-// c20 template<std::derived_from<AnsonBody> T = AnsonBody>
-// typename T //, typename = std::enable_if_t<std::is_base_of_v<AnsonBody, T>>
+/// TODO? c20 template<std::derived_from<AnsonBody> T = AnsonBody>
 /// With anson::AnsonBoyd, any subclass of AnsonBody will be registered by specialize this templated class, AnsonMsg.
 template <
     typename T //anson::AnsonBody
@@ -136,11 +139,18 @@ public:
 
     Port port;
 
-    AnsonMsg(Port port) : Anson(_type_), port(port) {
+    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") {
+        // anclass = T()._type_special(_type_);
+    }
+
+    // AnsonMsg(Port port) : Anson(_type_ + std::string(typeid(T).name())), port(port) {
+    AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port) {
+        // anclass = T()._type_special(_type_);
         cout << port.enm;
     }
 
-    AnsonMsg(Port port, const T& body) : Anson(_type_), port(port) {
+    AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port) {
+        // anclass = T()._type_special(_type_);
         this->Body(body);
     }
 

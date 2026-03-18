@@ -11,6 +11,7 @@ add_library(anson INTERFACE
     io/odysz/jprotocol.h
     io/odysz/json.h
     io/odysz/common.h
+    io/odysz/utils.h
     # io/odysz/anserializer.h
 )
 
