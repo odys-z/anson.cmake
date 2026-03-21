@@ -46,7 +46,7 @@ public:
      */
     string anclass;
 
-    IJsonable(string type) : anclass(type) {}
+    IJsonable(string anclass) : anclass(anclass) {}
 
     virtual IJsonable* toBlock(ostream& os, const JsonOpt& opts) = 0;
 
@@ -132,11 +132,12 @@ inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
     return os << '\"' << enm.enm << '\"';
 }
 
-// template<typename T>
+template<typename T>
 class EnTTSaxParser;
 class Anson;
 
-ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts);
+inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts);
+// ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts);
 bool parse(const string& json, IJsonable& an, const JsonOpt &opts);
 
 /**
@@ -162,8 +163,8 @@ public:
      * @param t
      * @param astid can be different if is a template specialized.
      */
-    Anson(string t, string astid) : IJsonable(astid), type(t) {
-        andebug("override constructor, astid = " + astid);
+    Anson(string t, string anclass) : IJsonable(anclass), type(t) {
+        andebug("override constructor, anclass = " + anclass);
     }
 
     template <typename T>
@@ -178,7 +179,7 @@ public:
     }
 
     IJsonable* toBlock(ostream& os, const JsonOpt& opts) override {
-        serialize_envelope(os, this, opts);
+        serialize_envelope(os, *this, opts);
         return this;
     }
 
@@ -188,7 +189,50 @@ public:
     }
 };
 
-class AnstField {
+/**
+ * @brief The AnsonAst class
+ *
+ *  isEnum: bool
+ *  base: Union[str, None]
+ *  anclass: str
+ *  fields: dict
+ *  enums: Union[dict, None]
+ *  ctors: List[List[str]]
+ */
+class AnsonAst : public Anson {
+    inline static const string _type_ = "io.odysz.anson.AnsonAst";
+
+public:
+    inline static bool valid_type(const string& typ) {
+        return !LangExt::isblank(typ);
+    }
+
+    bool isInt = false;
+    bool isDouble = false;
+    bool isEnum = false;
+    bool isList = false;
+    bool isMap = false;
+    bool istring = false;
+    bool isJsonable = false;
+    bool isJavaEnum = false;
+    string base = "io.odysz.anson.Anson";
+    /** The target's anson type or data type, e.g. string */
+    string antype;
+    map<string, AnstField> fields;
+    map<string, int> enums;
+    // vector<vector<string>> ctors;
+
+    // meta_type meta_type;
+    hashed_string enttypeid = hashed_string{_type_.c_str()};
+
+    AnsonAst() : isEnum(false), Anson(_type_) { }
+
+    AnsonAst(string anclass, bool isEnum = false) : isEnum(isEnum), Anson(_type_, anclass) { }
+};
+
+class AnstField : public AnsonAst {
+    inline static const string _type_ = "io.odysz.anson.AnstField";
+
 public:
     string datatype;
     string fieldname;
@@ -204,52 +248,32 @@ public:
     //////////////////////// v 0.2.0
     /** "" for string, int, double or null */
     string astid;
+    AnstField& ast_id(hashed_string &id) {
+        astid = std::move(id);
+        return *this;
+    }
 
     /** ""_hs for string, int, double or null */
     hashed_string enttypeid;
-};
-
-/**
- * @brief The AnsonAst class
- *
- *  isEnum: bool
- *  base: Union[str, None]
- *  anclass: str
- *  fields: dict
- *  enums: Union[dict, None]
- *  ctors: List[List[str]]
- */
-class AnsonAst : public Anson {
-public:
-    inline static bool valid_type(const string& typ) {
-        return !LangExt::isblank(typ);
+    AnstField& enttype_id(hashed_string &id) {
+        enttypeid = std::move(id);
+        return *this;
     }
 
-    bool isInt;
-    bool isDouble;
-    bool isEnum;
-    bool isList;
-    bool isMap;
-    bool istring;
-    bool isJsonable;
-    bool isJavaEnum;
-    string base;
-    string anclass;
-    map<string, AnstField> fields;
-    map<string, int> enums;
-    vector<vector<string>> ctors;
-
-    // meta_type meta_type;
-    hashed_string enttypeid;
-
-    AnsonAst() : isEnum(false), anclass("") { }
-
-    AnsonAst(string type, bool isEnum = false) : isEnum(isEnum), anclass(type) { }
-
+    AnstField() : AnsonAst(_type_) {}
 };
 
-inline static ostream& serialize_enum(const meta_any &instance, meta_type &type,
-                                AnsonAst &ast, std::ostream &os) {
+
+/**
+ * @brief serialize_enum
+ * @param instance any type as enum in cpp has no base class
+ * @param type
+ * @param ast
+ * @param os
+ * @return os
+ */
+inline static ostream& serialize_enum(const meta_any &instance, const meta_type &type,
+              const AnsonAst &ast, std::ostream &os) {
     if (ast.isEnum) {
         if (auto value = instance.try_cast<int>(); value) {
             os << *value;
@@ -264,15 +288,21 @@ inline static ostream& serialize_enum(const meta_any &instance, meta_type &type,
     return os;
 }
 
-inline static ostream& serialize_list(ostream& os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+inline static ostream& serialize_list(ostream& os, const meta_any &val,
+              const AnsonAst &fd_ast, const meta_type &fd_type, const JsonOpt &opts) {
     return os;
 }
 
-inline static ostream& serialize_map(ostream& os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+inline static ostream& serialize_map(ostream& os, const meta_any &val,
+              const AnsonAst &fd_ast, const meta_type &fd_type, const JsonOpt &opts) {
     return os;
 }
 
-inline static ostream& serialize_instance(ostream &os, meta_any &val, AnsonAst &fd_ast, meta_type &fd_type, const JsonOpt &opts) {
+inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
+              const AnsonAst &fd_ast, const meta_type &fd_type, const JsonOpt &opts) {
+
+    entt::meta_any val{entt::forward_as_any(jsonable)};
+
     if (fd_ast.isList)
         serialize_list(os, val, fd_ast, fd_type, opts);
     else if (fd_ast.isMap)
@@ -286,7 +316,8 @@ inline static ostream& serialize_instance(ostream &os, meta_any &val, AnsonAst &
         os << '\"' << *s << '\"';
     }
     else if (fd_ast.isJsonable)
-        os << val.try_cast<JavaEnum>();
+        // serialize_jsonable(os, val, fd_ast, fd_type, opts);
+        jsonable.toBlock(os, opts);
     else if (fd_ast.isInt) {
         auto s = val.try_cast<int>();
         os << '\"' << s << '\"';
@@ -299,19 +330,13 @@ inline static ostream& serialize_instance(ostream &os, meta_any &val, AnsonAst &
     return os;
 }
 
-inline static ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts) {
-    os << "type: " + anson->type;
+inline static ostream& serialize_fields(ostream &os, auto fields, IJsonable& anson, const JsonOpt &opts) {
+     if (fields.size() > 0) {
+        meta_type enttype = opts.types->at(anson.anclass);
+        entt::meta_any instance{entt::forward_as_any(anson)};
 
-    auto fields = opts.asts->at(anson->anclass).fields;
-
-    if (fields.size() > 0)
-        os << '\n';
-
-    meta_type enttype = opts.types->at(anson->anclass);
-    entt::meta_any instance{entt::forward_as_any(anson)};
-
-    bool first = true;
-    for (auto[fn, f] : fields) {
+        bool first = true;
+        for (auto[fn, f] : fields) {
         if (first) first = false;
         else os << ",";
 
@@ -320,11 +345,70 @@ inline static ostream& serialize_envelope(ostream &os, Anson* anson, const JsonO
         AnsonAst fd_ast = opts.asts->at(f.astid);
         meta_type fd_type = opts.types->at(fn);
 
-        auto data = enttype.data(hashed_string(fn.c_str()));
-        meta_any val = data.get(instance);
-
-        serialize_instance(os, val, fd_ast, fd_type, opts);
+        serialize_field(os, anson, fd_ast, fd_type, opts);
+        }
     }
+    return os;
+}
+
+inline static ostream& serialize_kvs(ostream &os, IJsonable& anson, const JsonOpt &opts) {
+
+    // Java class can has only on base class
+    AnsonAst ast = opts.asts->at(anson.anclass);
+    if (opts.asts->find(ast.base) != opts.asts->end()) {
+        auto base_fields = opts.asts->at(ast.base).fields;
+        serialize_fields(os, base_fields, anson, opts);
+    }
+
+    auto fields = opts.asts->at(anson.anclass).fields;
+
+    // if (fields.size() > 0) {
+    //     meta_type enttype = opts.types->at(anson.anclass);
+    //     entt::meta_any instance{entt::forward_as_any(anson)};
+
+    //     bool first = true;
+    //     for (auto[fn, f] : fields) {
+    //     if (first) first = false;
+    //     else os << ",";
+
+    //     os << '\"' << fn << R"(": ")";
+
+    //     AnsonAst fd_ast = opts.asts->at(f.astid);
+    //     meta_type fd_type = opts.types->at(fn);
+
+    //     serialize_field(os, anson, fd_ast, fd_type, opts);
+    //     }
+    // }
+    // return os;
+    return serialize_fields(os, fields, anson, opts);
+}
+
+inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts) {
+    os << "type: " + anson.type;
+
+    serialize_kvs(os, anson, opts);
+    // auto fields = opts.asts->at(anson->anclass).fields;
+
+    // if (fields.size() > 0) {
+    //     meta_type enttype = opts.types->at(anson->anclass);
+    //     entt::meta_any instance{entt::forward_as_any(anson)};
+
+    //     bool first = true;
+    //     for (auto[fn, f] : fields) {
+    //     if (first) first = false;
+    //     else os << ",";
+
+    //     os << '\"' << fn << R"(": ")";
+
+    //     AnsonAst fd_ast = opts.asts->at(f.astid);
+    //     meta_type fd_type = opts.types->at(fn);
+
+    //     auto data = enttype.data(hashed_string(fn.c_str()));
+    //     meta_any val = data.get(instance);
+
+    //     serialize_instance(os, val, fd_ast, fd_type, opts);
+    //     }
+    // }
     return  os << '}';
 }
 
@@ -520,7 +604,7 @@ struct ParseNode {
     string astid;
 };
 
-// template<typename T>
+template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
     // map<std::string, AnsonAst> &asts;
@@ -537,22 +621,23 @@ private:
     void set_value(V&& val) {
         if (!stack.empty() && active_key != 0) {
             auto data = stack.back().instance.type().data(active_key);
+            // aninfo("setting "s + data.name());
             AnsonAst ast = contxt.asts->at(stack.back().astid);
 
             if (data) {
                 // if (is_javaenum(data.type())) {
                 if (ast.isJavaEnum) {
                     auto v = data.type().construct(val);
-                    data.set(stack.back(), v);
+                    data.set(stack.back().instance, v);
                 }
                 else
-                    data.set(stack.back(), std::forward<V>(val));
+                    data.set(stack.back().instance, std::forward<V>(val));
             }
         }
     }
 
 public:
-    EnTTSaxParser(IJsonable& obj, const JsonOpt &opts) : contxt(opts) {
+    EnTTSaxParser(T& obj, const JsonOpt &opts) : contxt(opts) {
         stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass});
     }
 
@@ -560,7 +645,7 @@ public:
         if (active_key != 0 && !stack.empty()) {
             auto data = stack.back().instance.type().data(active_key);
             if (data) {
-                AnsonAst ast = contxt.asts->at("");
+                AnsonAst ast = contxt.asts->at(data.name());
                 std::string fd_astid = ast.fields.at(data.name()).astid;
                 stack.push_back({.instance = data.get(stack.back()), .astid=fd_astid});
             }
@@ -573,6 +658,9 @@ public:
 
     bool key(string_t& val) override {
         active_key = hashed_string{val.c_str()};
+
+        // hashed_string k = "ansonMsg"_hs;
+
         return true;
     }
 
@@ -615,8 +703,9 @@ public:
     bool end_array() override { return true; }
     bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
 
-    // Root Management
-    // void set_top(meta_any instance) { stack.push_back(instance); }
+    // void set_top(const IJsonable &obj) {
+    //     stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass});
+    // }
 };
 
 inline static bool parse(const string& json, IJsonable & an, const JsonOpt & opts) {

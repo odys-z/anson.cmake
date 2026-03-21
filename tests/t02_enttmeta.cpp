@@ -15,7 +15,8 @@ void load_json(const std::string& raw_json, T& out_obj) {
     EnTTSaxParser handler(out_obj);
 
     // Wrap our existing C++ instance so the parser can fill it
-    handler.set_root(entt::forward_as_meta(out_obj));
+    // handler.set_top(entt::forward_as_meta(out_obj));
+    handler.set_top(out_obj);
 
     // Execute SAX parse
     if (nlohmann::json::sax_parse(raw_json, &handler)) {
@@ -52,7 +53,7 @@ TEST(HELLO, ENTT_META) {
     EchoReq echobd{"echo msg ..."};
     msg.Body(echobd);
 
-    cout << "Echo: " << msg.body.back()->echo << endl;
+    cout << "Echo: " << msg.Body().echo << endl;
 
     // cout << serialize_json(msg, enums) << endl;
     msg.toBlock(cout, jsonopts);

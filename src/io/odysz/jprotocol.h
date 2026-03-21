@@ -23,7 +23,7 @@ class AnResultset : public Anson {
  */
 class AnsonBody : public anson::Anson {
 public:
-    inline static const string _type_ = "io.odysz.jprotocol.AnsonBody";
+    inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
     virtual string _type_special(string msgtype) { return msgtype + "<AnsonBody>"; }
 
     string a;
@@ -133,7 +133,7 @@ template <
     >
 class AnsonMsg: public Anson {
 public:
-    inline static const std::string _type_ = "io.odysz.jprotocol.AnsonMsg";
+    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
     vector<shared_ptr<T>> body;
 

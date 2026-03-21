@@ -40,26 +40,27 @@ public:
     }
 
     template <typename Range>
-    inline static ostream& print(ostream& oss, Range list, string head = "", string sep = ",", string foot = "") {
+    inline static ostream& print(ostream& oss, const Range list,
+                  const string head = "", const string sep = ",", const string foot = "") {
         return _print(oss, list, {.head = head, .sep = sep, .foot = foot});
     }
 
     template <typename Range>
-    inline static void print(Range list, string head = "", string sep = ",", string foot = "") {
+    inline static void print(const Range list, string head = "", string sep = ",", string foot = "") {
         print(cout, list, head, sep, foot);
     }
 
     template <typename Range>
-    inline static void print(Range list, const PrintFormat& f) {
+    inline static void print(const Range list, const PrintFormat& f) {
         _print(cout, list, f);
     }
 
     inline static void print(string_view msg, const PrintFormat& f = {}) {
-        _print(cout, msg, f);
+        _print(cout, vector<string_view>{msg}, f);
     }
 
     inline static void print(const char* s, const PrintFormat& f = {}) {
-        _print(cout, std::string_view(s), f);
+        print(std::string_view(s), f);
     }
 };
 

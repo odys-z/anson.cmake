@@ -25,15 +25,17 @@ inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &m
     //     ;
 
     // Register Anson Base
+
     entt::meta_factory<anson::Anson>()
-        .type("Anson"_hs)
+        // .type("Anson"_hs)
+        .type(hashed_string{Anson::_type_.c_str()})
         .base<IJsonable>()
         .ctor<>()
         .ctor<const std::string&>()
         ; // .data<&anson::Anson::type>("type"_hs, "type");
 
-    AnsonAst ast = asts["Anson"] = AnsonAst("Anson", true);
-    ast.base = "IJsonable";
+    AnsonAst ast = asts[Anson::_type_]; // already loaded = AnsonAst{true};
+    // ast.base = "IJsonable";
 
     // Register SemanticObject
     entt::meta_factory<anson::SemanticObject>()
@@ -93,13 +95,15 @@ inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &m
 
     hashed_string astid;
     astid = hashed_string{Port::_type_.c_str()};
-    ast.fields["port"] = AnstField{.fieldname = "port", .astid = Port::_type_, .enttypeid = astid};
+    // ast.fields["port"] = AnstField{.fieldname = "port", .astid = Port::_type_, .enttypeid = astid};
+    ast.fields["port"].enttype_id(astid);
 
     // if is template, generate somthing like:
     // EchoReq req{};
     // astid = req.anclass;
     astid = hashed_string{EchoReq::_type_.c_str()};
-    ast.fields["body"] = AnstField{.fieldname="body", .astid=EchoReq::_type_, .enttypeid=astid};
+    // ast.fields["body"] = AnstField{.fieldname="body", .astid=EchoReq::_type_, .enttypeid=astid};
+    ast.fields["body"].enttype_id(astid);
 
 
 
@@ -157,6 +161,7 @@ inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &m
     // AnsonAst port_ast{"MsgCode", true};
     ast.anclass = "MsgCode";
     ast.isEnum = true;
+    /*
     ast.fields["ok"] = AnstField{.datatype="int", .fieldname = "ok", .static_val="0"};
     ast.fields["exSession"] = AnstField{.datatype="int", .fieldname = "exSession", .static_val="1"};
     ast.fields["exSemantic"] = AnstField{.datatype="int", .fieldname = "exSemantic", .static_val="2"};
@@ -165,6 +170,7 @@ inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &m
     ast.fields["exDA"] = AnstField{.datatype="int", .fieldname = "exDA", .static_val="5"};
     ast.fields["exGeneral"] = AnstField{.datatype="int", .fieldname = "exGeneral", .static_val="6"};
     ast.fields["ext"] = AnstField{.datatype="int", .fieldname = "ext", .static_val="7"};
+    */
 }
 
 inline void register_meta(map<string, map<string, int>*>& enum_vals) {

@@ -1,0 +1,10 @@
+{ "type"      : "io.odysz.semantier.PeerSettings",
+  "ansons"    : [],
+  "scopeEnums": ["io.odysz.semantic.jprotocol.MsgCode"],
+  "javaEnums" : ["io.odysz.semantic.jprotocol.Port"],
+  "ansonMsg"  : "io.odysz.semantic.jprotocol.AnsonMsg",
+  "ansonBody" : "io.odysz.semantic.jprotocol.AnsonBody",
+  "anReuests" : ["io.odysz.semantic.jprotocol.EchoReq", "io.odysz.semantic.jprotocol.SessionReq",
+                "io.odysz.semantic.jprotocol.QueryReq", "io.odysz.semantic.jprotocol.UpdateReq", "io.odysz.semantic.jprotocol.DeleteReq",
+                "io.odysz.semantic.jprotocol.UsersReq"]
+}
