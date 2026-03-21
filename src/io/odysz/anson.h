@@ -602,6 +602,9 @@ public:
 struct ParseNode {
     meta_any instance;
     string astid;
+    bool is_list;
+    bool is_map;
+    id_type activekey;
 };
 
 template<typename T>
@@ -619,13 +622,26 @@ private:
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
-        if (!stack.empty() && active_key != 0) {
+        if (stack.empty()){
+            anerror("setting val to empty object");
+            return;
+        }
+
+        auto& top = stack.back();
+
+        if (top.is_list) {
+            auto view = top.instance.as_sequence_container();
+            if (view) {
+                view.insert(view.end(), std::forward<V>(val));
+            }
+        }
+        // else if (!stack.empty() && active_key != 0) {
+        else if (active_key != 0) {
             auto data = stack.back().instance.type().data(active_key);
-            // aninfo("setting "s + data.name());
             AnsonAst ast = contxt.asts->at(stack.back().astid);
 
             if (data) {
-                // if (is_javaenum(data.type())) {
+                aninfo(string_view("setting "s + data.name() + " "));
                 if (ast.isJavaEnum) {
                     auto v = data.type().construct(val);
                     data.set(stack.back().instance, v);
@@ -638,7 +654,7 @@ private:
 
 public:
     EnTTSaxParser(T& obj, const JsonOpt &opts) : contxt(opts) {
-        stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass});
+        push(obj);
     }
 
     bool start_object(std::size_t size) override {
@@ -699,12 +715,64 @@ public:
     }
 
     bool binary(binary_t&) override { return true; }
-    bool start_array(std::size_t) override { return true; }
-    bool end_array() override { return true; }
+    bool start_array(std::size_t) override {
+        if (active_key != 0 && !stack.empty()) {
+            auto data = stack.back().instance.type().data(active_key);
+            if (data) {
+                auto sequence_instance = data.get(stack.back().instance);
+                push_list(sequence_instance, active_key);
+                // Reset active_key so elements inside the array don't try to use it
+                active_key = 0;
+            }
+        }
+        return true;
+    }
+    bool end_array() override {
+        // if (!stack.empty() && stack.back().is_list) {
+        //     active_key = pop();
+        // }
+
+        // active_key = 0; // Ensure we don't accidentally reuse the old key
+
+        if (!stack.empty() && stack.back().is_list) {
+            auto finished_list = stack.back().instance;
+            id_type key_to_update = stack.back().activekey;
+
+            stack.pop_back(); // Remove the list from stack
+
+            // Now, WRITE the finished list back to the parent object
+            if (!stack.empty() && key_to_update != 0) {
+                auto data = stack.back().instance.type().data(key_to_update);
+                if (data) {
+                    data.set(stack.back().instance, finished_list);
+                }
+            }
+        }
+        active_key = 0;
+        return true;
+    }
+
+
+    /////////////////////////////////////////////////////////////////
     bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
 
-    // void set_top(const IJsonable &obj) {
-    //     stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass});
+    void push(T &obj) {
+        stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass, .is_list=false, .is_map=false, .activekey=0});
+    }
+
+    void push_list(auto &instance, id_type active_key) {
+        stack.push_back({.instance = instance, .astid="LIST", .is_list=true, .is_map=false, .activekey=active_key});
+    }
+
+    void push_map(auto &instance, id_type active_key) {
+        stack.push_back({.instance = instance, .astid="MAP", .is_list=false, .is_map=true, .activekey=active_key});
+    }
+
+    // const id_type pop() {
+    //     auto last_element = stack.back();
+    //     stack.pop_back();
+    //     // return ; // last_element.instance.try_cast<T&>();
+    //     return last_element.activekey;
     // }
 };
 

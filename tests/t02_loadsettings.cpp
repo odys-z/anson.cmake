@@ -76,4 +76,19 @@ TEST(PeerSettings, Load) {
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing settings.json.";
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, settings.ansonMsg) << "expecting " << AnsonMsg<EchoReq>::_type_;
     ASSERT_EQ(AnsonBody::_type_, settings.ansonBody) << "expecting " << AnsonBody::_type_;
+
+    aninfo(settings.javaEnums);
+    aninfo(settings.scopeEnums);
+    aninfo(settings.anRequests);
+
+    ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.Port"}, settings.javaEnums);
+    ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.MsgCode"}, settings.scopeEnums) << "expecting [MsgCode]";
+
+    ASSERT_EQ((vector<string>{"io.odysz.semantic.jprotocol.EchoReq",
+                             "io.odysz.semantic.jprotocol.SessionReq",
+                             "io.odysz.semantic.jprotocol.QueryReq",
+                             "io.odysz.semantic.jprotocol.UpdateReq",
+                             "io.odysz.semantic.jprotocol.DeleteReq",
+                             "io.odysz.semantic.jprotocol.UsersReq"}),
+              settings.anRequests); // << "expecting [EchoReq, SessionReq, ...]";
 }
