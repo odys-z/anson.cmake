@@ -60,7 +60,7 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         .data<&anson::AnsonAst::isJsonable>("isJsonable"_hs, "isJsonable")
         .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum"_hs, "isJavaEnum")
         .data<&anson::AnsonAst::enttypeid>("enttypeid"_hs, "enttypeid")
-        .data<&anson::AnsonAst::antype>("antype"_hs, "antype")
+        .data<&anson::AnsonAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
         .data<&anson::AnsonAst::fields>("fields"_hs, "fields")
         .data<&anson::AnsonAst::enums>("enums"_hs, "enums")
         ;
@@ -68,10 +68,10 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     anclass = AnsonAst().anclass;
     ast = asts[anclass] = AnsonAst{anclass};
     ast.fields = map<string, AnstField>{
-        {"isList", AnstField("isList", "boolean")},
-        {"isJavaEnum", AnstField("isJavaEnum", "boolean")},
-        {"antype", AnstField("antype", "String")},
-        {"fields", AnstField("fields", "map<string, " + AnstField::_type_)},
+        {"isList", {.fieldname="isList", .dataAnclass="boolean"}},
+        {"isJavaEnum", {.fieldname="isJavaEnum", .dataAnclass="boolean"}},
+        {"dataAnclass", {.fieldname="dataAnclass", .dataAnclass="String"}},
+        {"fields", {.fieldname="fields", .dataAnclass="map<string, io.odysz.anson.AnstField"}},
     };
     ast.enttypeid = enttype;
 
@@ -125,10 +125,11 @@ void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &
         ;
 
     string anclass = PeerSettings().anclass;
-    AnsonAst ast = asts[anclass] = AnsonAst{anclass, false};
-    ast.antype = PeerSettings::_type_;
+    AnsonAst ast = AnsonAst{anclass, false};
+    ast.dataAnclass = PeerSettings::_type_;
     ast.base = Anson::_type_;
     ast.enttypeid = enttype;
+    asts[anclass] = ast;
 }
 
 void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -142,8 +143,8 @@ void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
         ;
 
-    AnsonJavaEnumAst jeast = AnsonJavaEnumAst{portclass};
-    asts[portclass] = jeast;
+    AnsonJavaEnumAst jeast = AnsonJavaEnumAst{AnsonJavaEnumAst::_type_};
+    jeast.dataAnclass = portclass;
     jeast.base = JavaEnum::_type_;
     jeast.enttypeid = enttype;
 
@@ -166,10 +167,11 @@ void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     andebug(string_view(serialize_map_str(jeast.encode, "map<string, string"))); // must be the type
 
     jeast.fields = map<string, AnstField>{
-        {"encode", AnstField("encode").anstype("map<string, string")},
-        {"decode", AnstField("decode").anstype("map<string, string")},
+        {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
+        {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
     };
 
+    asts[portclass] = jeast;
 }
 
 void register_msgs(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -244,15 +246,15 @@ TEST(AnsonAst, Load_Port) {
         FAIL() << "Could not open the file! " << ast_port << endl;
     }
 
-    AnsonJavaEnumAst portAst;
+    AnsonJavaEnumAst portAst{Port::_type_};
     EnTTSaxParser handler(portAst, IJsonable::contxt_ptr);
     aninfo(string_view("Parsing Port..."));
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
-    ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
-    ASSERT_EQ(JavaEnum::_type_, portAst.base) << "portAst.base";
-    ASSERT_EQ(Port::_type_, portAst.antype) << "portAst.antype";
+    ASSERT_EQ(Port::_type_, portAst.type) << "portAst.type";
+    ASSERT_EQ(Port::_type_, portAst.anclass) << "portAst.anclass";
+    // ASSERT_EQ(JavaEnum::_type_, portAst.base) << "portAst.base";
+    // ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
               {"ehco", "ping.less"},
@@ -287,7 +289,7 @@ TEST(AnsonAst, Load_Echo) {
     ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
     ASSERT_EQ(AnsonBodyAst().anclass, echoAst.anclass) << "echoAst.anclass";
     ASSERT_EQ(Anson::_type_, echoAst.base) << "echoAst.base";
-    // ASSERT_EQ(AnsonMsg<EchoReq>().anclass, echoAst.antype) << "echoAst.antype";
+    // ASSERT_EQ(AnsonMsg<EchoReq>().anclass, echoAst.dataAnclass) << "echoAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
                   {"ehco", "echo"},

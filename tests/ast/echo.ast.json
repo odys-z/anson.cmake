@@ -3,6 +3,6 @@
   "A": {"echo":  "echo", "inet":  "inet"},
   "antype": "io.odysz.semantic.jserv.echo.EchoReq",
   "fields" : {
-    "echo": {"antype": "String"}
+    "echo": {"anclass": "String"}
   }
 }

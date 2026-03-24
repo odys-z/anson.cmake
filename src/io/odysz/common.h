@@ -42,8 +42,13 @@ public:
      * @brief split
      * @param str
      * @param delim
-     * @return string_views to the str. IMPORTANT this is a NRV (Named Return Value), so
-     * don't return it further beyond will str exists.
+     * @return string_views to the str.
+     *
+     * IMPORTANT
+     *
+     * this is a NRV (Named Return Value), so
+     * don't return it further beyond where the str exists.
+     *
      * auto bad() {
      *
      *   std::string temp = "hello,world";
@@ -74,6 +79,22 @@ public:
         }
 
         return result;
+    }
+
+    inline static std::string trim(std::string_view sv) {
+        // Skip leading whitespace
+        size_t start = 0;
+        while (start < sv.size() && std::isspace(static_cast<unsigned char>(sv[start]))) {
+            ++start;
+        }
+
+        // Skip trailing whitespace
+        size_t end = sv.size();
+        while (end > start && std::isspace(static_cast<unsigned char>(sv[end - 1]))) {
+            --end;
+        }
+
+        return std::string(sv.substr(start, end - start));
     }
 
     template <typename Range>
