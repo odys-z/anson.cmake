@@ -60,6 +60,8 @@ public:
  */
 class Port : public JavaEnum {
 public:
+    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.Port";
+
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
     inline static const std::string insert = "c.serv";
@@ -69,7 +71,8 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    Port(string enum_val) : JavaEnum(enum_val) { }
+    Port(): JavaEnum(_type_, "") {}
+    Port(string enum_val) : JavaEnum(_type_, enum_val) { }
 };
 
 inline bool operator==(const Port& p, const Port& q) {
@@ -144,12 +147,12 @@ public:
     }
 
     // AnsonMsg(Port port) : Anson(_type_ + std::string(typeid(T).name())), port(port) {
-    AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port) {
+    AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
         // anclass = T()._type_special(_type_);
         cout << port.enm;
     }
 
-    AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port) {
+    AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
         // anclass = T()._type_special(_type_);
         this->Body(body);
     }

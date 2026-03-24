@@ -25,6 +25,11 @@ add_custom_command(TARGET unit_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/t02-settings.json"
         "$<TARGET_FILE_DIR:unit_tests>/t02-settings.json"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/ast"
+        "$<TARGET_FILE_DIR:unit_tests>/ast"
+
     COMMENT "Copying JSON settings to build directory"
 )
 
@@ -40,4 +45,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=3)
+add_compile_definitions(ANSON_VERBOSE=5)

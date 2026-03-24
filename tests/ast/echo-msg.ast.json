@@ -1,0 +1,5 @@
+{ "type": "io.odysz.semantier.AnsonMsgAst",
+  "antype" : "io.odysz.semantic.jprotocol.AnsonMsg<EchoReq>",
+  "bodyType": "io.odysz.semantic.jserv.echo.EchoReq",
+  "portType": "io.odysz.semantic.jprotocol.Port"
+}

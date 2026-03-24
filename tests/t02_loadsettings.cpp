@@ -11,8 +11,23 @@
 using json = nlohmann::json;
 using namespace anson;
 
-void register_settings(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+
+void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
     hashed_string enttype;
+    string anclass;
+    //
+    enttype = hashed_string{"io.odysz.anson.IJasonable"};
+    entt::meta_factory<anson::Anson>()
+        .type(enttype)
+        .base<IJsonable>()
+        .ctor<>()
+        .ctor<const std::string&>()
+        .data<&anson::IJsonable::anclass>("anclass"_hs, "anclass")
+        ;
+
+    AnsonAst ast = asts["io.odysz.anson.IJasonable"] = AnsonAst{"io.odysz.anson.IJsonable", false};
+    ast.enttypeid = enttype;
+
     //
     enttype = hashed_string{Anson::_type_.c_str()};
     entt::meta_factory<anson::Anson>()
@@ -20,14 +35,83 @@ void register_settings(map<string, AnsonAst> &asts, map<string, meta_type> &entt
         .base<IJsonable>()
         .ctor<>()
         .ctor<const std::string&>()
+        .data<&anson::Anson::type>("type"_hs, "type")
         ;
 
-    AnsonAst ast = asts[Anson::_type_] = AnsonAst{Anson::_type_, false};
+    anclass = Anson().anclass;
+    ast = asts[anclass] = AnsonAst{anclass, false};
     ast.base = "io.odysz.anson.IJsonable";
     ast.enttypeid = enttype;
 
     //
-    enttype = hashed_string{PeerSettings::_type_.c_str()};
+    enttype = hashed_string{AnsonAst::_type_.c_str()};
+    entt::meta_factory<anson::AnsonAst>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        .ctor<string, bool>()
+        .ctor<string, string>()
+        .data<&anson::AnsonAst::isInt>("isInt"_hs, "isInt")
+        .data<&anson::AnsonAst::isDouble>("isDouble"_hs, "isDouble")
+        .data<&anson::AnsonAst::isEnum>("isEnum"_hs, "isEnum")
+        .data<&anson::AnsonAst::isList>("isList"_hs, "isList")
+        .data<&anson::AnsonAst::isMap>("isMap"_hs, "isMap")
+        .data<&anson::AnsonAst::istring>("istring"_hs, "istring")
+        .data<&anson::AnsonAst::isJsonable>("isJsonable"_hs, "isJsonable")
+        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum"_hs, "isJavaEnum")
+        .data<&anson::AnsonAst::enttypeid>("enttypeid"_hs, "enttypeid")
+        .data<&anson::AnsonAst::antype>("antype"_hs, "antype")
+        .data<&anson::AnsonAst::fields>("fields"_hs, "fields")
+        .data<&anson::AnsonAst::enums>("enums"_hs, "enums")
+        ;
+
+    anclass = AnsonAst().anclass;
+    ast = asts[anclass] = AnsonAst{anclass};
+    ast.fields = map<string, AnstField>{
+        {"isList", AnstField("isList", "boolean")},
+        {"isJavaEnum", AnstField("isJavaEnum", "boolean")},
+        {"antype", AnstField("antype", "String")},
+        {"fields", AnstField("fields", "map<string, " + AnstField::_type_)},
+    };
+    ast.enttypeid = enttype;
+
+    //
+    enttype = hashed_string{AnsonJavaEnumAst::_type_.c_str()};
+    entt::meta_factory<anson::AnsonJavaEnumAst>()
+        .type(enttype)
+        .base<AnsonAst>()
+        .ctor<string>()
+        .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
+        .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
+        ;
+
+    anclass = AnsonJavaEnumAst::_type_; // AnsonJavaEnumAst().anclass;
+    AnsonJavaEnumAst jeast = AnsonJavaEnumAst{AnsonJavaEnumAst::_type_};
+    asts[anclass] = jeast;
+    jeast.base = AnsonAst::_type_;
+    jeast.enttypeid = enttype;
+
+    //
+    enttype = hashed_string{AnsonBodyAst::_type_.c_str()};
+    entt::meta_factory<anson::AnsonBodyAst>()
+        .type(enttype)
+        .base<AnsonAst>()
+        .ctor<string>()
+        .data<&anson::AnsonBodyAst::A>("A"_hs, "A")
+        ;
+
+    anclass = AnsonBodyAst().anclass;
+    AnsonBodyAst bdast = AnsonBodyAst{anclass};
+    asts[anclass] = bdast;
+    bdast.base = AnsonAst::_type_;
+    bdast.enttypeid = enttype;
+
+
+}
+
+void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+    //
+    hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
     entt::meta_factory<anson::PeerSettings>()
         .type(enttype)
         .base<IJsonable>()
@@ -37,13 +121,59 @@ void register_settings(map<string, AnsonAst> &asts, map<string, meta_type> &entt
         .data<&anson::PeerSettings::javaEnums>("javaEnums"_hs, "javaEnums")
         .data<&anson::PeerSettings::ansonMsg>("ansonMsg"_hs, "ansonMsg")
         .data<&anson::PeerSettings::ansonBody>("ansonBody"_hs, "ansonBody")
-        .data<&anson::PeerSettings::anRequests>("anRequests"_hs, "anRequests");
+        .data<&anson::PeerSettings::anRequests>("anRequests"_hs, "anRequests")
         ;
 
-    ast = asts[PeerSettings::_type_] = AnsonAst{AnsonAst().anclass, false};
+    string anclass = PeerSettings().anclass;
+    AnsonAst ast = asts[anclass] = AnsonAst{anclass, false};
     ast.antype = PeerSettings::_type_;
     ast.base = Anson::_type_;
     ast.enttypeid = enttype;
+}
+
+void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+    string portclass = Port().anclass;
+    hashed_string enttype = hashed_string{portclass.c_str()};
+    entt::meta_factory<anson::AnsonJavaEnumAst>()
+        .type(enttype)
+        .base<AnsonAst>()
+        .ctor<string>()
+        .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
+        .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
+        ;
+
+    AnsonJavaEnumAst jeast = AnsonJavaEnumAst{portclass};
+    asts[portclass] = jeast;
+    jeast.base = JavaEnum::_type_;
+    jeast.enttypeid = enttype;
+
+    jeast.encode = map<string, string>{
+        {"ping.serv", "heartbeat"},
+        {"echo.less", "echo"},
+        {"d.serv", "del"}
+    };
+
+    jeast.decode = map<string, string>{
+        {"heartbeat", "ping.serv"},
+        {"echo", "echo.less"},
+        {"del", "d.serv"}
+    };
+
+    andebug(string_view("===========" + jeast.anclass + ".decode === "));
+    string s_decodes = serialize_map_str(jeast.decode, "map<string, string"s);
+    andebug(string_view(s_decodes)); // must be the type
+    andebug(string_view("===========" + jeast.anclass + ".encode === "));
+    andebug(string_view(serialize_map_str(jeast.encode, "map<string, string"))); // must be the type
+
+    jeast.fields = map<string, AnstField>{
+        {"encode", AnstField("encode").anstype("map<string, string")},
+        {"decode", AnstField("decode").anstype("map<string, string")},
+    };
+
+}
+
+void register_msgs(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+
 }
 
 TEST(PeerSettings, Load) {
@@ -51,20 +181,22 @@ TEST(PeerSettings, Load) {
 
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
-    register_settings(asts, enttypes);
     JsonOpt contxt{&asts, &enttypes};
+    IJsonable::contxt_ptr = &contxt;
+
+    register_asts(asts, enttypes);
+    register_peersettings(asts, enttypes);
 
 
     PeerSettings settings;
     std::string json_input = std::format(R"({{"type": "{}"}})", PeerSettings::_type_);
-    EnTTSaxParser handler(settings, contxt);
+    EnTTSaxParser handler(settings, IJsonable::contxt_ptr);
 
     cout << "[0] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
-
 
     string t02_json = "t02-settings.json";
     std::ifstream ifstream(t02_json);
@@ -73,9 +205,12 @@ TEST(PeerSettings, Load) {
     }
     result = nlohmann::json::sax_parse(ifstream, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing settings.json.";
-    ASSERT_EQ(AnsonMsg<EchoReq>::_type_, settings.ansonMsg) << "expecting " << AnsonMsg<EchoReq>::_type_;
-    ASSERT_EQ(AnsonBody::_type_, settings.ansonBody) << "expecting " << AnsonBody::_type_;
+    ASSERT_EQ(PeerSettings::_type_, settings.anclass)
+        << "Errors on parssing settings.json.";
+    ASSERT_EQ(AnsonMsg<EchoReq>::_type_, settings.ansonMsg)
+        << "expecting " << AnsonMsg<EchoReq>::_type_;
+    ASSERT_EQ(AnsonBody::_type_, settings.ansonBody)
+        << "expecting " << AnsonBody::_type_;
 
     aninfo(settings.javaEnums);
     aninfo(settings.scopeEnums);
@@ -90,5 +225,75 @@ TEST(PeerSettings, Load) {
                              "io.odysz.semantic.jprotocol.UpdateReq",
                              "io.odysz.semantic.jprotocol.DeleteReq",
                              "io.odysz.semantic.jprotocol.UsersReq"}),
-              settings.anRequests); // << "expecting [EchoReq, SessionReq, ...]";
+              settings.anRequests) << "settings.anRequests";
+    aninfo(string_view(""));
+}
+
+TEST(AnsonAst, Load_Port) {
+    map<string, AnsonAst> asts;
+    map<string, meta_type> enttypes;
+    JsonOpt contxt{&asts, &enttypes};
+    IJsonable::contxt_ptr = &contxt;
+
+    register_asts(asts, enttypes);
+    register_port(asts, enttypes);
+
+    string ast_port = "ast/port.ast.json";
+    std::ifstream ifstream(ast_port);
+    if (!ifstream.is_open()) {
+        FAIL() << "Could not open the file! " << ast_port << endl;
+    }
+
+    AnsonJavaEnumAst portAst;
+    EnTTSaxParser handler(portAst, IJsonable::contxt_ptr);
+    aninfo(string_view("Parsing Port..."));
+    bool result = nlohmann::json::sax_parse(ifstream, &handler);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
+    ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
+    ASSERT_EQ(JavaEnum::_type_, portAst.base) << "portAst.base";
+    ASSERT_EQ(Port::_type_, portAst.antype) << "portAst.antype";
+
+    ASSERT_EQ((map<string, string>{
+              {"ehco", "ping.less"},
+              }), portAst.encode) << "echoAst.encode";
+
+    ASSERT_EQ((map<string, string>{
+              {"ping.less", "echo"},
+              }), portAst.decode) << "echoAst.decode";
+}
+
+TEST(AnsonAst, Load_Echo) {
+
+    map<string, AnsonAst> asts;
+    map<string, meta_type> enttypes;
+    JsonOpt contxt{&asts, &enttypes};
+    IJsonable::contxt_ptr = &contxt;
+
+    register_asts(asts, enttypes);
+    register_port(asts, enttypes);
+    register_msgs(asts, enttypes);
+
+    string ast_echo = "ast/echo.ast.json";
+    std::ifstream ifstream(ast_echo);
+    if (!ifstream.is_open()) {
+        FAIL() << "Could not open the file! " << ast_echo << endl;
+    }
+
+    AnsonBodyAst echoAst;
+    EnTTSaxParser handler(echoAst, IJsonable::contxt_ptr);
+    bool result = nlohmann::json::sax_parse(ifstream, &handler);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
+    ASSERT_EQ(AnsonBodyAst().anclass, echoAst.anclass) << "echoAst.anclass";
+    ASSERT_EQ(Anson::_type_, echoAst.base) << "echoAst.base";
+    // ASSERT_EQ(AnsonMsg<EchoReq>().anclass, echoAst.antype) << "echoAst.antype";
+
+    ASSERT_EQ((map<string, string>{
+                  {"ehco", "echo"},
+              }), echoAst.A) << "echoAst.A";
+
+    ASSERT_EQ((map<string, AnstField>{
+                  {"echo", AnstField("echo", "String")},
+              }), echoAst.fields) << "echoAst.fields";
 }
