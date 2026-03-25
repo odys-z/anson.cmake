@@ -10,11 +10,10 @@
 
 #include "common.h"
 
-using namespace std ;
-using namespace entt;
-
 namespace anson {
 
+using namespace std ;
+using namespace entt;
 
 class  AnsonAst;
 struct AnstField;
@@ -551,6 +550,7 @@ struct ParseNode {
     bool is_list;
     bool is_map;
     id_type activekey;
+    string map_key;
 };
 
 template<typename T>
@@ -605,10 +605,16 @@ private:
 
                 // data.set(top.instance, std::forward<V>(val));
                 auto view = top.instance.as_associative_container();
-                if (view)
-                    view.insert(active_key, std::forward<V>(val));
+                if (view) {
+                    // bool ok = view.insert(active_key, std::forward<V>(val));
+                    // works: view.insert(std::string{"---"}, std::forward<V>(val));
+                    // andebug(string_view("Insert success: " + std::to_string(ok)));
+                    view.insert(top.map_key, std::forward<V>(val));
+                }
                 else
                     anerror("Why cannot set value to map?");
+
+                andebug(string_view("Map size after insert: " + std::to_string(view.size())));
                 return;
             }
 
@@ -658,17 +664,6 @@ public:
                         stack.push_back({.instance = data.get(stack.back()),
                                      .astid=fd_astid});
                     else { // e.g. map<string, string
-                        // // anerror(string_view(std::format("Missing ast (anclass) {}", fd_astid)));
-                        // vector<string_view> fd_anclass = LangExt::split(fd_astid, '<');
-                        // fd_anclass = LangExt::split(fd_anclass.at(1), ',');
-
-                        // std::string val_anclass = LangExt::trim(fd_anclass.at(1));
-                        // andebug(string_view("Map value data class: "s + val_anclass));
-                        // stack.push_back({.instance = data.get(stack.back()),
-                        //                  .astid=val_anclass,
-                        //                  .is_map=true,
-                        //                  .activekey=active_key});
-
                         meta_any inst = data.get(stack.back().instance);
                         push_map(inst, active_key, fd_astid);
                     }
@@ -690,13 +685,27 @@ public:
     bool key(string_t& val) override {
         andebug(string_view(std::format("deserializing key {}", val)));
         active_key = hashed_string{val.c_str()};
+
+        if (!stack.empty()) {
+            stack.back().map_key = val;
+        }
+
         return true;
     }
 
     bool end_object() override {
         if (stack.size() > 1) {
-            active_key = stack.back().activekey;
+            ParseNode top = stack.back();
+            id_type key0 = top.activekey;
             stack.pop_back();
+
+            if (!stack.empty() && key0 != 0) {
+                auto data = find_field_recursive(stack.back().instance.type(), key0);
+                if (data) {
+                    data.set(stack.back().instance, top.instance);
+                }
+            }
+            active_key = key0;
         }
         return true;
     }

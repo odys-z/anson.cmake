@@ -169,6 +169,8 @@ void register_msgs(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
 TEST(PeerSettings, Load) {
     aninfo(string_view(filesystem::current_path().string()));
 
+    // entt::resolve<std::map<std::string, std::string>>();
+
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
     JsonOpt contxt{&asts, &enttypes};
@@ -255,12 +257,16 @@ TEST(AnsonAst, Load_Port) {
     ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
-              {"ehco", "ping.less"},
-              }), portAst.encode) << "echoAst.encode";
+              {"echo", "echo.less"},
+              {"del", "d.serv"},
+              {"heartbeat", "ping.serv"},
+              }), portAst.decode) << "echoAst.decode";
 
     ASSERT_EQ((map<string, string>{
-              {"ping.less", "echo"},
-              }), portAst.decode) << "echoAst.decode";
+              {"echo.less", "echo"},
+              {"d.serv", "del"},
+              {"ping.serv", "heartbeat"},
+              }), portAst.encode) << "echoAst.encode";
 }
 
 /*
