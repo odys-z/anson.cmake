@@ -94,6 +94,7 @@ public:
     // std::function<string(JavaEnum)> decoder;
     string enm;
 
+    // template<typename SubClass>
     JavaEnum(string dataAnclass, string e);
 
     JavaEnum& operator=(const JavaEnum&) = default;
@@ -207,6 +208,7 @@ public:
     bool isJavaEnum = false;
     string base = "io.odysz.anson.Anson";
 
+    string dataBase;
     /** The target's anson type or data type, e.g. string */
     string dataAnclass;
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
@@ -340,6 +342,7 @@ public:
 };
 */
 
+// template<typename SubClass>
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
     if (contxt_ptr->asts->contains(anclass)) {
         map<string, string> encode = any_cast<AnsonJavaEnumAst>(contxt_ptr->asts->at(anclass)).encode;
@@ -613,15 +616,17 @@ private:
                 anerror(string_view("Cannot find AST "s + top.astid));
                 return;
             }
-            AnsonAst ast = contxt->asts->at(top.astid);
 
             if (data) {
+                /*
+                AnsonAst ast = contxt->asts->at(top.astid);
                 aninfo(string_view("set_value(): setting "s + data.name()));
                 if (ast.isJavaEnum) {
                     auto v = data.type().construct(val);
                     data.set(top.instance, v);
                 }
                 else
+                */
                     data.set(top.instance, std::forward<V>(val));
             }
         }
@@ -683,7 +688,7 @@ public:
     }
 
     bool key(string_t& val) override {
-        andebug(string_view(std::format("deserializeing {}", val)));
+        andebug(string_view(std::format("deserializing key {}", val)));
         active_key = hashed_string{val.c_str()};
         return true;
     }

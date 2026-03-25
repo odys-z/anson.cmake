@@ -1,6 +1,6 @@
-{ "type": "io.odysz.semantier.AnsonJavaEnumAst",
-  "base"  : "io.odysz.anson.JavaEnum",
-  "dataAnclass": "io.odysz.semantic.jprotocol.AnsonMsg.Port",
+{ "type": "io.odysz.anson.AnsonJavaEnumAst",
+  "dataBase"  : "io.odysz.anson.JavaEnum",
+  "dataAnclass": "io.odysz.semantic.jprotocol.Port",
   "decode" : {
     "heartbeat": "ping.serv",
     "echo": "echo.less",

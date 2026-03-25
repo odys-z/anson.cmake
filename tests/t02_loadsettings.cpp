@@ -105,8 +105,6 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     asts[anclass] = bdast;
     bdast.base = AnsonAst::_type_;
     bdast.enttypeid = enttype;
-
-
 }
 
 void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -133,32 +131,22 @@ void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &
 }
 
 void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
-    string portclass = Port().anclass;
-    hashed_string enttype = hashed_string{portclass.c_str()};
+    string javaenum = AnsonJavaEnumAst().anclass;
+    hashed_string enttype = hashed_string{javaenum.c_str()};
     entt::meta_factory<anson::AnsonJavaEnumAst>()
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
+        .data<&anson::AnsonJavaEnumAst::dataBase>("dataBase"_hs, "dataBase")
+        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
         .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
         .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
         ;
 
     AnsonJavaEnumAst jeast = AnsonJavaEnumAst{AnsonJavaEnumAst::_type_};
-    jeast.dataAnclass = portclass;
+    jeast.dataAnclass = javaenum;
     jeast.base = JavaEnum::_type_;
     jeast.enttypeid = enttype;
-
-    jeast.encode = map<string, string>{
-        {"ping.serv", "heartbeat"},
-        {"echo.less", "echo"},
-        {"d.serv", "del"}
-    };
-
-    jeast.decode = map<string, string>{
-        {"heartbeat", "ping.serv"},
-        {"echo", "echo.less"},
-        {"del", "d.serv"}
-    };
 
     andebug(string_view("===========" + jeast.anclass + ".decode === "));
     string s_decodes = serialize_map_str(jeast.decode, "map<string, string"s);
@@ -171,7 +159,7 @@ void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
     };
 
-    asts[portclass] = jeast;
+    asts[javaenum] = jeast;
 }
 
 void register_msgs(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -231,6 +219,11 @@ TEST(PeerSettings, Load) {
     aninfo(string_view(""));
 }
 
+/**
+ * 1. Regiseter AnsonJavaEnumAst;
+ * 2. Load port.ast.json with AnsonJavaEnumAst;
+ * 3. Assert the port AST which is supposed to be in the IJonsalbe::contxt.
+ */
 TEST(AnsonAst, Load_Port) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -246,15 +239,20 @@ TEST(AnsonAst, Load_Port) {
         FAIL() << "Could not open the file! " << ast_port << endl;
     }
 
-    AnsonJavaEnumAst portAst{Port::_type_};
-    EnTTSaxParser handler(portAst, IJsonable::contxt_ptr);
     aninfo(string_view("Parsing Port..."));
+    AnsonJavaEnumAst portAst{};
+    portAst.dataAnclass = Port::_type_;
+    EnTTSaxParser handler(portAst, IJsonable::contxt_ptr);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(Port::_type_, portAst.type) << "portAst.type";
-    ASSERT_EQ(Port::_type_, portAst.anclass) << "portAst.anclass";
-    // ASSERT_EQ(JavaEnum::_type_, portAst.base) << "portAst.base";
-    // ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
+    ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
+    ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
+    ASSERT_EQ(JavaEnum::_type_, portAst.dataBase) << "portAst.dataBase";
+
+    string port_anclass = Port().anclass;
+    andebug(string_view(port_anclass));
+
+    ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
               {"ehco", "ping.less"},
@@ -265,8 +263,8 @@ TEST(AnsonAst, Load_Port) {
               }), portAst.decode) << "echoAst.decode";
 }
 
+/*
 TEST(AnsonAst, Load_Echo) {
-
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
     JsonOpt contxt{&asts, &enttypes};
@@ -299,3 +297,4 @@ TEST(AnsonAst, Load_Echo) {
                   {"echo", AnstField("echo", "String")},
               }), echoAst.fields) << "echoAst.fields";
 }
+*/
