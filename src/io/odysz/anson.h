@@ -261,6 +261,8 @@ public:
 class AnsonBodyAst : public AnsonAst {
  public:
     inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";
+
+    string uri;
     map<string, string> A;
 
     AnsonBodyAst() : AnsonAst(_type_, _type_) { }
@@ -272,76 +274,16 @@ class AnsonMsgAst : public AnsonAst {
 public:
     inline static const string _type_ = "io.odysz.anson.AnsonMsgAst";
 
-    // map<string, string> A;
-
-    string bodyType;
-    string portType;
-
-    /**
-     * AnsonBody's Ast.
-     * E.g.
-     * body.io.odysz.semantic.jprotocol.AnsonBody
-     * body.antype = "io.odysz.sematnic.jserv.echo.EchoReq"
-    AnsonAst body;
-     */
-
-    /** E.g. io.odysz.semantic.jprotocol.AnsonMsg */
-    // string antype;
+    string bodyAnclass;
+    string bodyAst;
+    string portAnclass;
+    string portAst;
 
     AnsonMsgAst() : AnsonAst() { }
 
     AnsonMsgAst(string anclass) : AnsonAst(anclass, _type_) { }
 };
 
-/*
-class AnstField : public AnsonAst {
-public:
-    inline static const string _type_ = "io.odysz.anson.AnstField";
-
-    // string datatype; // i.e. antype
-    string fieldname;
-    // meta_type enttype;
-    int length;
-
-    /**
-     * @brief static_val
-     * MsgCode.ok = 0, ...
-     * /
-    string staticVal;
-    AnstField & static_val(string v) {
-        staticVal = std::move(v);
-        return *this;
-    }
-
-    //////////////////////// v 0.2.0
-    /** "" for string, int, double or null * /
-    string astid;
-    // AnstField& ast_id(hashed_string &id) {
-    //     astid = std::move(id);
-    //     return *this;
-    // }
-
-    /** ""_hs for string, int, double or null * /
-    hashed_string enttypeid;
-    AnstField& enttype_id(hashed_string &id) {
-        enttypeid = std::move(id);
-        return *this;
-    }
-
-    AnstField(string fieldname) : AnsonAst(_type_), fieldname(fieldname) {}
-    AnstField(string fieldname, string type) : AnsonAst(_type_, type), fieldname(fieldname) {}
-
-    bool operator==(const AnstField& other) const {
-        return fieldname == other.fieldname && type == other.type
-            // && datatype == other.datatype && length == other.length
-            && staticVal == other.staticVal && antype == other.antype
-            && anclass == other.anclass && isList == other.isList && isMap == other.isMap
-            && isEnum == other.isEnum && isJavaEnum == other.isJavaEnum;
-    }
-};
-*/
-
-// template<typename SubClass>
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
     if (contxt_ptr->asts->contains(anclass)) {
         map<string, string> encode = any_cast<AnsonJavaEnumAst>(contxt_ptr->asts->at(anclass)).encode;
@@ -645,20 +587,23 @@ public:
 
     bool start_object(std::size_t size) override {
         if (active_key != 0 && !stack.empty()) {
-            meta_type type = stack.back().instance.type();
-            // auto data = type.data(active_key);
+            ParseNode top = stack.back();
+            meta_type type = top.instance.type();
             auto data = find_field_recursive(type, active_key);
             if (data) {
-                andebug(string_view("Starting object, name: "s + data.name()));
-                // AnsonAst ast = contxt->asts->at(stack.back().astid);
-                // std::string fd_astid = ast.fields.at(data.name()).astid;
-                // stack.push_back({.instance = data.get(stack.back()), .astid=fd_astid});
+                std::string fieldname = data.name();
+                andebug(string_view("Starting object, name: "s + fieldname));
 
-                if (contxt->asts->contains(stack.back().astid)) {
+                if (contxt->asts->contains(top.astid)) {
                     // jsonable
-                    AnsonAst ast = contxt->asts->at(stack.back().astid);
-                    std::string fd_astid = ast.fields.at(data.name()).dataAnclass;
+                    if (!contxt->asts->contains(top.astid))
+                        anerror(string_view("Context has no ast " + top.astid));
+                    AnsonAst ast = contxt->asts->at(top.astid);
 
+                    if (!ast.fields.contains(fieldname))
+                        anerror(string_view(std::format("AST {{anclass: {}, datatype: {}}} has no field {}.",
+                                                        ast.anclass, ast.dataAnclass, fieldname)));
+                    std::string fd_astid = ast.fields.at(fieldname).dataAnclass;
 
                     if (contxt->asts->contains(fd_astid))
                         stack.push_back({.instance = data.get(stack.back()),

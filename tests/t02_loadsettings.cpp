@@ -25,8 +25,9 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         .data<&anson::IJsonable::anclass>("anclass"_hs, "anclass")
         ;
 
-    AnsonAst ast = asts["io.odysz.anson.IJasonable"] = AnsonAst{"io.odysz.anson.IJsonable", false};
+    AnsonAst ast = AnsonAst{"io.odysz.anson.IJsonable", false};
     ast.enttypeid = enttype;
+    asts["io.odysz.anson.IJasonable"] = ast;
 
     //
     enttype = hashed_string{Anson::_type_.c_str()};
@@ -39,9 +40,10 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         ;
 
     anclass = Anson().anclass;
-    ast = asts[anclass] = AnsonAst{anclass, false};
+    ast = AnsonAst{anclass, false};
     ast.base = "io.odysz.anson.IJsonable";
     ast.enttypeid = enttype;
+    asts[anclass] = ast;
 
     //
     enttype = hashed_string{AnsonAst::_type_.c_str()};
@@ -66,7 +68,7 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         ;
 
     anclass = AnsonAst().anclass;
-    ast = asts[anclass] = AnsonAst{anclass};
+    ast = AnsonAst{anclass};
     ast.fields = map<string, AnstField>{
         {"isList", {.fieldname="isList", .dataAnclass="boolean"}},
         {"isJavaEnum", {.fieldname="isJavaEnum", .dataAnclass="boolean"}},
@@ -74,6 +76,7 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         {"fields", {.fieldname="fields", .dataAnclass="map<string, io.odysz.anson.AnstField"}},
     };
     ast.enttypeid = enttype;
+    asts[anclass] = ast;
 
     //
     enttype = hashed_string{AnsonJavaEnumAst::_type_.c_str()};
@@ -87,9 +90,9 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
 
     anclass = AnsonJavaEnumAst::_type_; // AnsonJavaEnumAst().anclass;
     AnsonJavaEnumAst jeast = AnsonJavaEnumAst{AnsonJavaEnumAst::_type_};
-    asts[anclass] = jeast;
     jeast.base = AnsonAst::_type_;
     jeast.enttypeid = enttype;
+    asts[anclass] = jeast;
 
     //
     enttype = hashed_string{AnsonBodyAst::_type_.c_str()};
@@ -97,14 +100,47 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
+        .data<&anson::AnsonBodyAst::uri>("uri"_hs, "uri")
         .data<&anson::AnsonBodyAst::A>("A"_hs, "A")
         ;
 
     anclass = AnsonBodyAst().anclass;
     AnsonBodyAst bdast = AnsonBodyAst{anclass};
-    asts[anclass] = bdast;
     bdast.base = AnsonAst::_type_;
+    bdast.dataAnclass = anclass;
     bdast.enttypeid = enttype;
+
+    bdast.fields = map<string, AnstField>{
+        {"fields", {.fieldname="fields", .dataAnclass="AnstField"}},
+        {"uri", {.fieldname="uri", .dataAnclass = "string"}},
+        {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
+    };
+    asts[anclass] = bdast;
+
+    //
+    enttype = hashed_string{AnsonMsgAst::_type_.c_str()};
+    entt::meta_factory<anson::AnsonMsgAst>()
+        .type(enttype)
+        .base<AnsonAst>()
+        .ctor<string>()
+        .data<&anson::AnsonMsgAst::bodyAnclass>("bodyAnclass"_hs, "bodyAnclass")
+        .data<&anson::AnsonMsgAst::bodyAst>("bodyAst"_hs, "bodyAst")
+        .data<&anson::AnsonMsgAst::portAnclass>("portAnclass"_hs, "portAnclass")
+        .data<&anson::AnsonMsgAst::portAst>("portAst"_hs, "portAst")
+        ;
+
+    anclass = AnsonMsgAst().anclass;
+    AnsonMsgAst msgast = AnsonMsgAst{anclass};
+    msgast.base = AnsonAst::_type_;
+    msgast.enttypeid = enttype;
+    msgast.fields = map<string, AnstField> {
+        {"fields", {.fieldname="fields", .dataAnclass="AnstField"}},
+        {"bodyAnclass", {.fieldname="bodyAnclass", .dataAnclass = "string"}},
+        {"bodyAst", {.fieldname="bodyAst", .dataAnclass = "string"}},
+        {"portAnclass", {.fieldname="portAnclass", .dataAnclass = "string"}},
+        {"portAst", {.fieldname="portAst", .dataAnclass = "string"}}
+    };
+    asts[anclass] = msgast;
 }
 
 void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -150,9 +186,7 @@ void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
 
     andebug(string_view("===========" + jeast.anclass + ".decode === "));
     string s_decodes = serialize_map_str(jeast.decode, "map<string, string"s);
-    andebug(string_view(s_decodes)); // must be the type
-    andebug(string_view("===========" + jeast.anclass + ".encode === "));
-    andebug(string_view(serialize_map_str(jeast.encode, "map<string, string"))); // must be the type
+    ASSERT_EQ(s_decodes, "{}"); // must be the type
 
     jeast.fields = map<string, AnstField>{
         {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
@@ -162,14 +196,11 @@ void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     asts[javaenum] = jeast;
 }
 
-void register_msgs(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
-
+void register_echo(JsonOpt* contxt, const AnsonBodyAst echo, const AnsonMsgAst echomsg) {
 }
 
 TEST(PeerSettings, Load) {
     aninfo(string_view(filesystem::current_path().string()));
-
-    // entt::resolve<std::map<std::string, std::string>>();
 
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -218,7 +249,6 @@ TEST(PeerSettings, Load) {
                              "io.odysz.semantic.jprotocol.DeleteReq",
                              "io.odysz.semantic.jprotocol.UsersReq"}),
               settings.anRequests) << "settings.anRequests";
-    aninfo(string_view(""));
 }
 
 /**
@@ -269,7 +299,6 @@ TEST(AnsonAst, Load_Port) {
               }), portAst.encode) << "echoAst.encode";
 }
 
-/*
 TEST(AnsonAst, Load_Echo) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -278,17 +307,32 @@ TEST(AnsonAst, Load_Echo) {
 
     register_asts(asts, enttypes);
     register_port(asts, enttypes);
-    register_msgs(asts, enttypes);
+    // register_msgs(asts, enttypes);
 
-    string ast_echo = "ast/echo.ast.json";
-    std::ifstream ifstream(ast_echo);
+    string echo_msg = "ast/echo-msg.ast.json";
+    std::ifstream ifmsgstream(echo_msg);
+    if (!ifmsgstream.is_open()) {
+        FAIL() << "Could not open the file! " << echo_msg << endl;
+    }
+    AnsonMsgAst echomsgAst;
+    EnTTSaxParser handler(echomsgAst, IJsonable::contxt_ptr);
+    bool result = nlohmann::json::sax_parse(ifmsgstream, &handler);
+    ASSERT_TRUE(result);
+
+    // string ast_echo = echomsgAst.json  "ast/echo.ast.json";
+    ASSERT_EQ("ast/echo.ast.json", echomsgAst.bodyAst) << "echo-msg.json";
+    ASSERT_EQ(AnsonMsgAst::_type_, echomsgAst.type) << "echo-msg.type";
+    ASSERT_EQ(AnsonMsgAst().anclass, echomsgAst.anclass) << "echo-msg.anclass";
+    ASSERT_EQ(Port::_type_, echomsgAst.portAnclass) << "echo-msg.portAnclass";
+
+    std::ifstream ifstream(echomsgAst.bodyAst);
     if (!ifstream.is_open()) {
-        FAIL() << "Could not open the file! " << ast_echo << endl;
+        FAIL() << "Could not open the file! " << echomsgAst.bodyAst << endl;
     }
 
     AnsonBodyAst echoAst;
-    EnTTSaxParser handler(echoAst, IJsonable::contxt_ptr);
-    bool result = nlohmann::json::sax_parse(ifstream, &handler);
+    EnTTSaxParser handler2(echoAst, IJsonable::contxt_ptr);
+    result = nlohmann::json::sax_parse(ifstream, &handler2);
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
     ASSERT_EQ(AnsonBodyAst().anclass, echoAst.anclass) << "echoAst.anclass";
@@ -303,4 +347,3 @@ TEST(AnsonAst, Load_Echo) {
                   {"echo", AnstField("echo", "String")},
               }), echoAst.fields) << "echoAst.fields";
 }
-*/
