@@ -16,7 +16,7 @@ using namespace std ;
 using namespace entt;
 
 class  AnsonAst;
-struct AnstField;
+struct AnsonField;
 
 class JsonOpt {
 public:
@@ -212,7 +212,7 @@ public:
     string dataAnclass;
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
 
-    map<string, AnstField> fields;
+    map<string, AnsonField> fields;
     map<string, int> enums;
 
     /** Only one static string value is allowed in semantic-* ? */
@@ -232,16 +232,34 @@ public:
     AnsonAst(string anclass, string type) : isEnum(false), Anson(type, anclass) { }
 };
 
-struct AnstField {
+inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
+struct AnsonField {
+
+    /** No conter-part in java */
     string fieldname;
 
-    /** ast-id */
+    /** ast-id, i.e. the java valType */
     string dataAnclass;
 
-    bool operator==(const AnstField& other) const {
-        return fieldname == other.fieldname && dataAnclass == other.dataAnclass;
+    /**
+     * Element type. Not used currently.
+     *
+     * dataAnclass represent the field itself's type, while valType is the map's value type.
+     * if dataAnclass == map<string, list<string, valuType == list<string.
+     */
+    string valType;
+
+    bool operator==(const AnsonField& other) const {
+        return fieldname == other.fieldname
+               && dataAnclass == other.dataAnclass
+               && valType == other.valType;
     }
 
+    friend std::ostream& operator<<(std::ostream& os, const AnsonField& obj) {
+        return os << "{fieldname: \"" << obj.fieldname << "\", "
+                  << "dataAnclass: \"" << obj.dataAnclass << "\", "
+                  << "valType: \"" << obj.valType << "\" }";
+    }
 };
 
 class AnsonJavaEnumAst: public AnsonAst {
@@ -254,7 +272,7 @@ public:
     AnsonJavaEnumAst() : AnsonJavaEnumAst(_type_) {}
 
     AnsonJavaEnumAst(string anclass) : AnsonAst(anclass, anclass) {
-        isJavaEnum = true;
+        // isJavaEnum = true; Ast is not a JavaEnum
     }
 };
 
@@ -262,6 +280,7 @@ class AnsonBodyAst : public AnsonAst {
  public:
     inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";
 
+    // ISSUE not adding uri to fields?
     string uri;
     map<string, string> A;
 
@@ -489,9 +508,11 @@ public:
 struct ParseNode {
     meta_any instance;
     string astid;
-    bool is_list;
-    bool is_map;
-    id_type activekey;
+    bool is_list = false;
+    bool is_map = false;
+    bool resolve_map2fields = false;
+    map<string, string> shadow_fields;
+    id_type activekey = 0;
     string map_key;
 };
 
@@ -535,47 +556,51 @@ private:
             if (view) {
                 view.insert(view.end(), std::forward<V>(val));
             }
-        }
+            return;
+        }// not the branch of is_map?
         else if (active_key != 0) {
             auto& top = stack.back();
 
-            auto data = find_field_recursive(top.instance.type(), active_key);
-
             if (contxt->primtypes.contains(top.astid)) {
                 if (!top.is_map)
-                    anerror("Why here?");
+                    anerror(string_view("Why here\n\n??????????\n\n"));
 
-                // data.set(top.instance, std::forward<V>(val));
+                andebug(string_view("set_value(): set to supposed map"));
                 auto view = top.instance.as_associative_container();
                 if (view) {
-                    // bool ok = view.insert(active_key, std::forward<V>(val));
-                    // works: view.insert(std::string{"---"}, std::forward<V>(val));
-                    // andebug(string_view("Insert success: " + std::to_string(ok)));
                     view.insert(top.map_key, std::forward<V>(val));
                 }
                 else
-                    anerror("Why cannot set value to map?");
+                    anerror(string_view("Why cannot set value to map?"));
 
                 andebug(string_view("Map size after insert: " + std::to_string(view.size())));
                 return;
             }
 
             if (!contxt->asts->contains(top.astid)) {
-                anerror(string_view("Cannot find AST "s + top.astid));
+                anerror(string_view("set_value(): Cannot find AST "s + top.astid));
                 return;
             }
 
+            auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
-                /*
+                andebug(string_view("set_value(): setting "s + data.name()));
                 AnsonAst ast = contxt->asts->at(top.astid);
-                aninfo(string_view("set_value(): setting "s + data.name()));
                 if (ast.isJavaEnum) {
+                    // TODO test with a Port instance, not AST
                     auto v = data.type().construct(val);
                     data.set(top.instance, v);
                 }
                 else
-                */
                     data.set(top.instance, std::forward<V>(val));
+            }
+            else {
+                // avoid error: SEH exception with code 0xc0000005 thrown in the test body.
+                //         anerror(string_view(std::format(
+                //             "Cannot find field of {}, key-id: {}",
+                //             top.instance.type().name(), top.map_key)));
+                anerror(string_view(std::format(
+                    "Cannot find field by key-id: {}", active_key)));
             }
         }
     }
@@ -583,16 +608,20 @@ private:
 public:
     EnTTSaxParser(T& obj, const JsonOpt *opts) : contxt(opts) {
         push(obj);
+        active_key = 0;
     }
 
     bool start_object(std::size_t size) override {
+        bool k0 = active_key != 0;
+        bool es = !stack.empty();
+
         if (active_key != 0 && !stack.empty()) {
             ParseNode top = stack.back();
             meta_type type = top.instance.type();
             auto data = find_field_recursive(type, active_key);
             if (data) {
                 std::string fieldname = data.name();
-                andebug(string_view("Starting object, name: "s + fieldname));
+                andebug(string_view("Starting object, field name: "s + fieldname));
 
                 if (contxt->asts->contains(top.astid)) {
                     // jsonable
@@ -600,22 +629,38 @@ public:
                         anerror(string_view("Context has no ast " + top.astid));
                     AnsonAst ast = contxt->asts->at(top.astid);
 
-                    if (!ast.fields.contains(fieldname))
-                        anerror(string_view(std::format("AST {{anclass: {}, datatype: {}}} has no field {}.",
-                                                        ast.anclass, ast.dataAnclass, fieldname)));
-                    std::string fd_astid = ast.fields.at(fieldname).dataAnclass;
+                    std::string fd_astid;
+                    // Notes 26 Mar 2026:
+                    // Fields is the definition of an AST, and must be merged back to a being loading AST.
+                    // The loading of AST according to AST stop the recursive traversal here.
+                    bool resolving_map2Fields = false;
+                    if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
+                        // fd_astid = "map<string, " + AnsonField_type;
+                        fd_astid = "map<string, map<string, string";
+                         resolving_map2Fields = true;
+                    }
+
+                    else if (!ast.fields.contains(fieldname))
+                        // AST {anclass: io.odysz.anson.AnsonBodyAst, datatype: io.odysz.anson.AnsonBodyAst} has no field fields.
+                        anerror(string_view(std::format(
+                            "AST {{anclass: {}, datatype: {}}} has no field {}.",
+                            ast.anclass, ast.dataAnclass, fieldname)));
+
+                    else
+                        fd_astid = ast.fields.at(fieldname).dataAnclass;
 
                     if (contxt->asts->contains(fd_astid))
                         stack.push_back({.instance = data.get(stack.back()),
                                      .astid=fd_astid});
                     else { // e.g. map<string, string
                         meta_any inst = data.get(stack.back().instance);
-                        push_map(inst, active_key, fd_astid);
+                        push_map(inst, active_key, fd_astid, resolving_map2Fields);
                     }
                 }
 
             } else {
-                anerror(string_view("Starting object, cannot find object field, key: " + std::to_string(active_key)));
+                anerror(string_view(std::format("Starting object, cannot find object field, key: {}",
+                                                std::to_string(active_key))));
                 anerror(type.info().name());
                 return true;
             }
@@ -628,8 +673,8 @@ public:
     }
 
     bool key(string_t& val) override {
-        andebug(string_view(std::format("deserializing key {}", val)));
         active_key = hashed_string{val.c_str()};
+        andebug(string_view(std::format("deserializing key {}, key-id: {}", val, active_key)));
 
         if (!stack.empty()) {
             stack.back().map_key = val;
@@ -647,7 +692,24 @@ public:
             if (!stack.empty() && key0 != 0) {
                 auto data = find_field_recursive(stack.back().instance.type(), key0);
                 if (data) {
-                    data.set(stack.back().instance, top.instance);
+                    if (!stack.back().resolve_map2fields)
+                        data.set(stack.back().instance, top.instance);
+                    else {
+                        // top.fields is a map<string, map<string, string
+                        meta_type anfieldtype = entt::resolve<AnsonField>();
+                        map<std::string, AnsonField> anfields;
+                        for (auto [fn, f] : top.shadow_fields) {
+                            map<std::string, std::string> fieldprops = any_cast<map<std::string, std::string>>(f);
+                            AnsonField field{};
+                            for (auto [k, v] : fieldprops) {
+                                id_type p = hashed_string{k.c_str()};
+                                auto fd = anfieldtype.data(p);
+                                fd.set(field, v);
+                            }
+                            anfields[fn] = field;
+                        }
+                        data.set(stack.back().instance, anfields);
+                    }
                 }
             }
             active_key = key0;
@@ -667,7 +729,7 @@ public:
     }
 
     bool string(string_t& val) override {
-        andebug(string_view("string string: " + val));
+        andebug(string_view("string: " + val));
         set_value(val);
         return true;
     }
@@ -711,8 +773,9 @@ public:
                     data.set(stack.back().instance, finished_list);
                 }
             }
+            active_key = key_to_update;
         }
-        active_key = 0;
+        // active_key = 0;
         return true;
     }
 
@@ -728,7 +791,7 @@ public:
         stack.push_back({.instance = instance, .astid="LIST", .is_list=true, .is_map=false, .activekey=active_key});
     }
 
-    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type) {
+    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {
 
         vector<string_view> fd_anclass = LangExt::split(map_type, '<');
         fd_anclass = LangExt::split(fd_anclass.at(1), ',');
@@ -736,7 +799,10 @@ public:
         std::string val_anclass = LangExt::trim(fd_anclass.at(1));
         andebug(string_view("Map value data class: "s + val_anclass));
 
-        stack.push_back({.instance = map_inst, .astid=val_anclass, .is_list=false, .is_map=true, .activekey=active_key});
+        stack.push_back({.instance = map_inst, .astid=val_anclass,
+                         .is_list=false, .is_map=true,
+                         .resolve_map2fields=resolve_map2fields,
+                         .activekey=active_key});
     }
 };
 

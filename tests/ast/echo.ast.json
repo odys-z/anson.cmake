@@ -1,8 +1,8 @@
-{ "type": "io.odysz.semantier.AnsonBodyAst",
-  "base"  : "io.odysz.anson.Anson",
+{ "type": "io.odysz.anson.AnsonBodyAst",
+  "base": "io.odysz.anson.Anson",
   "A": {"echo":  "echo", "inet":  "inet"},
   "dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
   "fields" : {
-    "echo": {"dataAnclass": "String"}
+    "echo": {"dataAnclass": "java.lang.String"}
   }
 }

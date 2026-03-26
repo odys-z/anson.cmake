@@ -8,13 +8,12 @@
 #include <entt/meta/meta.hpp>
 
 #include "anson.h"
-#include "common.h"
 
 namespace anson {
 
 class PeerSettings : public Anson {
 public:
-    inline static const string _type_ = "io.odysz.anson.PeerSettings";
+    inline static const string _type_ = "io.odysz.semantier.PeerSettings";
 
     vector<string> ansons;
     vector<string> scopeEnums;
