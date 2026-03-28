@@ -391,6 +391,21 @@ public:
 
         return parts;
     }
+
+    inline static string parseMapValtype(const string &map_type) {
+        vector<string_view> map_anclass = LangExt::split(map_type, '<');
+        vector<string_view> kv_anclass = LangExt::split(map_anclass.at(1), ',');
+        if (map_anclass.at(0) != "map" || kv_anclass.at(0) != "string")
+            anwarn(string_view("Not a regular map type: "s + map_type));
+        return LangExt::trim(kv_anclass.at(1));
+    }
+
+    inline static string parseListValtype(const string &list_type) {
+        vector<string_view> list_anclass = LangExt::split(list_type, '<');
+        if (list_anclass.at(0) != "list")
+            anwarn(string_view("Not a regular list type: "s + list_type));
+        return LangExt::trim(list_anclass.at(1));
+    }
 };
 
 inline static int default_port(const string &scheme) {

@@ -196,7 +196,19 @@ void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &
     ast.dataAnclass = PeerSettings::_type_;
     ast.base = Anson::_type_;
     ast.enttypeid = enttype;
-    asts[anclass] = ast; // no ast.fields?
+
+    // ast.fields is only used for serialization?
+    ast.fields = map<string, AnsonField>{
+        {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
+        {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
+        {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
+        {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
+        {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
+        {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+    };
+
+    asts[anclass] = ast;
+    enttypes[anclass] = entt::resolve<PeerSettings>();
 }
 
 void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
@@ -270,7 +282,7 @@ TEST(Load, PeerSettings) {
     std::string json_input = std::format(R"({{"type": "{}"}})", PeerSettings::_type_);
     EnTTSaxParser handler(settings, IJsonable::contxt_ptr);
 
-    cout << "[0] " << json_input << endl;
+    cout << "[0] " << json_input << endl; settings.type = "";
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
@@ -281,7 +293,9 @@ TEST(Load, PeerSettings) {
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t02_json << endl;
     }
+
     EnTTSaxParser handler2(settings, IJsonable::contxt_ptr);
+    settings.type = "";
     result = nlohmann::json::sax_parse(ifstream, &handler2);
     ASSERT_TRUE(result);
 

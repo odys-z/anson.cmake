@@ -314,6 +314,22 @@ inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsona
     enm = e;
 }
 
+inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type key) {
+    // Check current type
+    if (auto data = type.data(key); data) {
+        return data;
+    }
+
+    // Check base classes (requires entt::meta<Derived>().base<Base>() registration)
+    for (auto [id, base] : type.base()) {
+        if (auto data = find_field_recursive(base, key); data) {
+        return data;
+        }
+    }
+
+    return {}; // Null handle
+}
+
 /**
  * @brief serialize_enum
  * @param instance any type as enum in cpp has no base class
@@ -338,8 +354,19 @@ inline static ostream& serialize_enum(const meta_any &instance, const meta_type 
     return os;
 }
 
-inline static ostream& serialize_list(ostream& os, const meta_any &val, const AnsonAst &fd_ast,
-                                      const meta_type &fd_type) {
+inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const string &val_ast_id) {
+    if (val_ast_id == "string") {
+        vector<string> list = list_any.cast<vector<string>>();
+        os << '[';
+        bool first = true;
+        for (string e : list) {
+            if (first) first = false; else os << ',';
+            os << '"' << e << '"';
+        }
+        os << ']';
+    }
+    else
+        anerror(string_view("Todo: list of "s + val_ast_id));
     return os;
 }
 
@@ -383,8 +410,10 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
 
     entt::meta_any val{entt::forward_as_any(jsonable)};
 
-    if (fd_ast.isList)
-        serialize_list(os, val, fd_ast, fd_type);
+    if (fd_ast.isList) {
+        anerror(string_view("There is not ast of list, and list should be handled in serialize_field, so why reached here?"));
+        // serialize_list(os, val, fd_ast, fd_type); // Not Reachable
+    }
     else if (fd_ast.isMap)
         // serialize_map(os, val, fd_ast, fd_type, opts);
         serialize_map(os, val, fd_ast.dataAnclass);
@@ -411,29 +440,50 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
     return os;
 }
 
-inline static ostream& serialize_fields(ostream &os, auto fields, IJsonable& anson, const JsonOpt &opts) {
+inline static ostream& serialize_fields(ostream &os,
+        const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts) {
+
      if (fields.size() > 0) {
         meta_type enttype = opts.enttypes->at(anson.anclass);
-        entt::meta_any instance{entt::forward_as_any(anson)};
+        // meta_any instance = entt::forward_as_meta(anson);
+        meta_any instance{anson};
 
         bool first = true;
         for (auto[fn, f] : fields) {
-        if (first) first = false;
-        else os << ",";
+            if (first)
+                first = false;
+            else os << ",";
 
-        os << '\"' << fn << R"(": ")";
+            os << '\"' << fn << R"(": )";
 
-        AnsonAst fd_ast = opts.asts->at(f.dataAnclass);
-        meta_type fd_type = opts.enttypes->at(fn);
+            if (opts.asts->contains(f.dataAnclass)) {
+                AnsonAst fd_ast = opts.asts->at(f.dataAnclass);
+                meta_type fd_type = opts.enttypes->at(fn);
 
-        serialize_field(os, anson, fd_ast, fd_type, opts);
+                serialize_field(os, anson, fd_ast, fd_type, opts);
+            }
+            else if (f.dataAnclass.starts_with("list<")) {
+                string valtype = Regex::parseListValtype(f.dataAnclass);
+                hashed_string data_key{fn.c_str()};
+                meta_data data = find_field_recursive(enttype, data_key);
+                string fn = data.name();
+                meta_any list = data.get(instance);
+                if (list)
+                    serialize_list(os, anson, valtype);
+                else
+                    os << "null";
+            }
+            else {
+                os << '\"' << f << '\"';
+            }
         }
     }
     return os;
 }
 
-inline static ostream& serialize_kvs(ostream &os, IJsonable& anson, const JsonOpt &opts) {
+inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
 
+    // MARK break point for observe the deserialized (if end_object() call toBlock()
     // Java class can has only on base class
     AnsonAst ast = opts.asts->at(anson.anclass);
     if (opts.asts->find(ast.base) != opts.asts->end()) {
@@ -465,31 +515,8 @@ inline static ostream& serialize_kvs(ostream &os, IJsonable& anson, const JsonOp
 }
 
 inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts) {
-    os << "type: " + anson.type;
-
+    os << R"({"type": ")" + anson.type + '"';
     serialize_kvs(os, anson, opts);
-    // auto fields = opts.asts->at(anson->anclass).fields;
-
-    // if (fields.size() > 0) {
-    //     meta_type enttype = opts.types->at(anson->anclass);
-    //     entt::meta_any instance{entt::forward_as_any(anson)};
-
-    //     bool first = true;
-    //     for (auto[fn, f] : fields) {
-    //     if (first) first = false;
-    //     else os << ",";
-
-    //     os << '\"' << fn << R"(": ")";
-
-    //     AnsonAst fd_ast = opts.asts->at(f.astid);
-    //     meta_type fd_type = opts.types->at(fn);
-
-    //     auto data = enttype.data(hashed_string(fn.c_str()));
-    //     meta_any val = data.get(instance);
-
-    //     serialize_instance(os, val, fd_ast, fd_type, opts);
-    //     }
-    // }
     return  os << '}';
 }
 
@@ -525,22 +552,6 @@ private:
 
     id_type active_key{0};
 
-    entt::meta_data find_field_recursive(entt::meta_type type, id_type key) {
-        // Check current type
-        if (auto data = type.data(key); data) {
-            return data;
-        }
-
-        // Check base classes (requires entt::meta<Derived>().base<Base>() registration)
-        for (auto [id, base] : type.base()) {
-            if (auto data = find_field_recursive(base, key); data) {
-                return data;
-            }
-        }
-
-        return {}; // Null handle
-    }
-
     // Helper to set values on the current object in the stack
     template<typename V>
     void set_value(V&& val) {
@@ -552,9 +563,11 @@ private:
         auto& top = stack.back();
 
         if (top.is_list) {
+            andebug(string_view(std::format("setting string in list: {}", top.map_key)));
             auto view = top.instance.as_sequence_container();
             if (view) {
                 view.insert(view.end(), std::forward<V>(val));
+                andebug(string_view("List size: " + std::to_string(view.size())));
             }
             return;
         }// not the branch of is_map?
@@ -584,21 +597,27 @@ private:
 
             auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
-                andebug(string_view("set_value(): setting "s + data.name()));
+                andebug(string_view(
+                    std::format("set_value(): setting {}, active_key: {}",
+                                data.name(), active_key)));
+
                 AnsonAst ast = contxt->asts->at(top.astid);
                 if (ast.isJavaEnum) {
                     // TODO test with a Port instance, not AST
                     auto v = data.type().construct(val);
                     data.set(top.instance, v);
                 }
-                else
-                    data.set(top.instance, std::forward<V>(val));
+                else {
+                    bool res = data.set(top.instance, std::forward<V>(val));
+                    if (!res)
+                        anerror(string_view("failed to set"s + data.name()));
+
+                    // auto* ptr = stack.front().instance.try_cast<anson::PeerSettings>();
+                    // andebug(string_view(std::format("Modifying object at address: {}", (void*)ptr)));
+                }
             }
             else {
-                // avoid error: SEH exception with code 0xc0000005 thrown in the test body.
-                //         anerror(string_view(std::format(
-                //             "Cannot find field of {}, key-id: {}",
-                //             top.instance.type().name(), top.map_key)));
+                // Debug Notes: to avoid error: SEH exception, don't call top.instance.type().name()
                 anerror(string_view(std::format(
                     "Cannot find field by key-id: {}", active_key)));
             }
@@ -637,7 +656,7 @@ public:
                     if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
                         // fd_astid = "map<string, " + AnsonField_type;
                         fd_astid = "map<string, map<string, string";
-                         resolving_map2Fields = true;
+                        resolving_map2Fields = true;
                     }
 
                     else if (!ast.fields.contains(fieldname))
@@ -714,6 +733,7 @@ public:
             }
             active_key = key0;
         }
+        // else: needing a resetting for re-enter.
         return true;
     }
 
@@ -729,7 +749,10 @@ public:
     }
 
     bool string(string_t& val) override {
-        andebug(string_view("string: " + val));
+        andebug(string_view(
+            std::format("string: {}, top.is_list: {}, top.is_map: {}, map_key: {}",
+                        val, stack.back().is_list, stack.back().is_map, stack.back().map_key)));
+
         set_value(val);
         return true;
     }
@@ -749,16 +772,18 @@ public:
     bool binary(binary_t&) override { return true; }
     bool start_array(std::size_t) override {
         if (active_key != 0 && !stack.empty()) {
-            auto data = stack.back().instance.type().data(active_key);
+            // auto data = stack.back().instance.type().data(active_key);
+            auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
                 auto sequence_instance = data.get(stack.back().instance);
-                push_list(sequence_instance, active_key);
+                push_list(sequence_instance.as_ref(), active_key);
                 // Reset active_key so elements inside the array don't try to use it
                 active_key = 0;
             }
         }
         return true;
     }
+
     bool end_array() override {
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().instance;
@@ -768,14 +793,29 @@ public:
 
             // Now, WRITE the finished list back to the parent object
             if (!stack.empty() && key_to_update != 0) {
-                auto data = stack.back().instance.type().data(key_to_update);
+                // auto data = stack.back().instance.type().data(key_to_update);
+                auto data = find_field_recursive(stack.back().instance.type(), key_to_update);
                 if (data) {
-                    data.set(stack.back().instance, finished_list);
+                    if (vector<std::string>* vec = finished_list.try_cast<std::vector<std::string>>()) {
+                        andebug(string_view(std::format("end_array(): Cast success. List size: {}", vec->size())));
+                        if (vec->size() > 0) andebug(string_view(vec->at(0)));
+                    }
+                    else
+                        anwarn(string_view("end_array(): finished_list is NOT a vector<string>. Check registration."));
+
+                    bool res = data.set(stack.back().instance, finished_list);
+                    if (res)
+                        andebug(string_view(std::format("The reference of this list is found. Copied? field: {}, key-id: {}",
+                                                        data.name(), key_to_update)));
+                    else
+                        anerror(string_view("Failed to set back (copy) "s + data.name()));
+
+                    if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
+                        andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));
                 }
             }
-            active_key = key_to_update;
+            active_key = key_to_update;  // redundant?
         }
-        // active_key = 0;
         return true;
     }
 
@@ -787,16 +827,13 @@ public:
         stack.push_back({.instance = forward_as_meta(obj), .astid=obj.anclass, .is_list=false, .is_map=false, .activekey=0});
     }
 
-    void push_list(auto &instance, id_type active_key) {
-        stack.push_back({.instance = instance, .astid="LIST", .is_list=true, .is_map=false, .activekey=active_key});
+    void push_list(meta_any ref, id_type active_key) {
+        stack.push_back({.instance = ref, .astid="LIST", .is_list=true, .is_map=false, .activekey=active_key});
     }
 
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {
 
-        vector<string_view> fd_anclass = LangExt::split(map_type, '<');
-        fd_anclass = LangExt::split(fd_anclass.at(1), ',');
-
-        std::string val_anclass = LangExt::trim(fd_anclass.at(1));
+        std::string val_anclass = Regex::parseMapValtype(map_type);
         andebug(string_view("Map value data class: "s + val_anclass));
 
         stack.push_back({.instance = map_inst, .astid=val_anclass,
