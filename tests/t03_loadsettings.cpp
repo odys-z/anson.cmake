@@ -288,7 +288,7 @@ TEST(Load, PeerSettings) {
     ASSERT_TRUE(result);
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
-    string t02_json = "t02-settings.json";
+    string t02_json = "t03-settings.json";
     std::ifstream ifstream(t02_json);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t02_json << endl;
@@ -328,6 +328,7 @@ TEST(Load, PeerSettings) {
  * 1. Regiseter AnsonJavaEnumAst;
  * 2. Load port.ast.json with AnsonJavaEnumAst;
  * 3. Assert the port AST which is supposed to be in the IJonsalbe::contxt.
+ */
 TEST(Load, AnsonAst_Port) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -371,6 +372,7 @@ TEST(Load, AnsonAst_Port) {
               }), portAst.encode) << "echoAst.encode";
 }
 
+/**
 TEST(Load, EchoReq) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;

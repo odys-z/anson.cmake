@@ -95,6 +95,8 @@ public:
 
     // template<typename SubClass>
     JavaEnum(string dataAnclass, string e);
+    JavaEnum(const JavaEnum&) = default;
+    JavaEnum(JavaEnum&&) = default;
 
     JavaEnum& operator=(const JavaEnum&) = default;
     JavaEnum& operator=(JavaEnum&&) noexcept = default;

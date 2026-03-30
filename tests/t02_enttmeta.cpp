@@ -24,23 +24,6 @@ void load_json(const std::string& raw_json, T& out_obj) {
     }
 }
 
-// 2. Generic Convert
-json convert(entt::meta_any instance) {
-    json j;
-    auto type = instance.type();
-    for(auto [id, data] : type.data()) {
-        auto value = data.get(instance);
-        // if(value.type() == entt::resolve<int>()) {
-        //     j[id] = value.cast<int>();
-        // } else if(value.type() == entt::resolve<std::string>()) {
-        //     j[id] = value.cast<std::string>();
-        // }
-        if (auto* f = value.try_cast<string>())
-            j[id] = value.cast<string>();
-    }
-    return j;
-}
-
 TEST(HELLO, ENTT_META) {
     map<string, AnsonAst> enums;
     map<string, meta_type> types;
@@ -55,10 +38,8 @@ TEST(HELLO, ENTT_META) {
 
     cout << "Echo: " << msg.Body().echo << endl;
 
-    // cout << serialize_json(msg, enums) << endl;
     msg.toBlock(cout, jsonopts);
 
-    // serialize_recursive(msg, enums, cout) << endl;
     msg.toBlock(cout, jsonopts);
 
     EXPECT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", )"

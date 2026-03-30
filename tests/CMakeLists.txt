@@ -12,20 +12,20 @@ include(GoogleTest)
 
 add_executable(unit_tests
   semantier.h
-  # t01_common.cpp
+  t01_common.cpp
+  t02_entt_basic.cpp
   # t02_enttmeta.cpp
+  t03_loadsettings.cpp
   # t03_deserialize.cpp
   # t04_java_enum.cpp
   # t04_java_enum.h
   # t05_ansonresp.cpp
-  # t02_loadsettings.cpp
-  t02_entt_basic.cpp
 )
 
 add_custom_command(TARGET unit_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_SOURCE_DIR}/t02-settings.json"
-        "$<TARGET_FILE_DIR:unit_tests>/t02-settings.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/t03-settings.json"
+        "$<TARGET_FILE_DIR:unit_tests>/t03-settings.json"
 
     COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/t02_echo.body.json"
