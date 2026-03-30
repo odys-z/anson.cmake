@@ -444,7 +444,7 @@ inline static ostream& serialize_fields(ostream &os,
         const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts) {
 
      if (fields.size() > 0) {
-        meta_type enttype = opts.enttypes->at(anson.anclass);
+        // meta_type enttype = opts.enttypes->at(anson.anclass);
         // meta_any instance = entt::forward_as_meta(anson);
         meta_any instance{anson};
 
@@ -463,15 +463,22 @@ inline static ostream& serialize_fields(ostream &os,
                 serialize_field(os, anson, fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
-                string valtype = Regex::parseListValtype(f.dataAnclass);
-                hashed_string data_key{fn.c_str()};
-                meta_data data = find_field_recursive(enttype, data_key);
-                string fn = data.name();
-                meta_any list = data.get(instance);
-                if (list)
-                    serialize_list(os, anson, valtype);
-                else
-                    os << "null";
+                if (!opts.enttypes->contains(anson.anclass)) {
+                    anerror(string_view("Unknown entt type to serialize: "s + anson.anclass));
+                    os << '"' << anson.anclass << '"';
+                }
+                else {
+                    meta_type enttype = opts.enttypes->at(anson.anclass);
+                    string valtype = Regex::parseListValtype(f.dataAnclass);
+                    hashed_string data_key{fn.c_str()};
+                    meta_data data = find_field_recursive(enttype, data_key);
+                    string fn = data.name();
+                    meta_any list = data.get(instance);
+                    if (list)
+                        serialize_list(os, anson, valtype);
+                    else
+                        os << "null";
+                }
             }
             else {
                 os << '\"' << f << '\"';
@@ -549,7 +556,7 @@ class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
     const JsonOpt *contxt;
 
-    std::vector<ParseNode> stack;
+    // std::vector<ParseNode> stack;
 
     id_type active_key{0};
 
@@ -594,8 +601,7 @@ private:
 
             auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
-                andebug(string_view(
-                    std::format("set_value(): setting {}, active_key: {}",
+                andebug(string_view(std::format("set_value(): setting {}, active_key: {}",
                                 data.name(), active_key)));
 
                 if (!contxt->asts->contains(top.astid)) {
@@ -627,6 +633,8 @@ private:
     }
 
 public:
+    std::vector<ParseNode> stack;
+
     EnTTSaxParser(T& obj, const JsonOpt *opts) : contxt(opts) {
         push(obj);
         active_key = 0;
@@ -773,36 +781,53 @@ public:
 
     bool binary(binary_t&) override { return true; }
     bool start_array(std::size_t) override {
+
+        Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
+        andebug(string_view(std::format("start0 addr: {:P}", (void*)stack_ptr)));
+
         if (active_key != 0 && !stack.empty()) {
             // auto data = stack.back().instance.type().data(active_key);
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
-                auto sequence_instance = data.get(stack.back().instance);
-                push_list(sequence_instance.as_ref(), active_key);
-                // Reset active_key so elements inside the array don't try to use it
-                active_key = 0;
+                andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, data.name())));
+                // auto sequence_instance = data.get(stack.back().instance);
+                // push_list(sequence_instance.as_ref(), active_key);
+
+                push_list(stack.back().instance, active_key);
+
+                stack_ptr = stack.front().instance.try_cast<Anson>();
+                andebug(string_view(std::format("start1 addr: {:P}", (void*)stack_ptr)));
+                // active_key = 0;
             }
         }
+        stack_ptr = stack.front().instance.try_cast<Anson>();
+        andebug(string_view(std::format("start2 addr: {:P}", (void*)stack_ptr)));
+
         return true;
     }
 
     bool end_array() override {
+
+        Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
+        andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
+
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().shadow_list;
             id_type key_to_update = stack.back().activekey;
             std::string field_to_update = stack.back().map_key;
             id_type field_id = hashed_string(field_to_update.c_str());
 
-            stack.pop_back(); // Remove the list from stack
+            stack.pop_back();
 
-            // Now, WRITE the finished list back to the parent object
             if (!stack.empty() && key_to_update != 0) {
-                // auto data = stack.back().instance.type().data(key_to_update);
                 auto data = find_field_recursive(stack.back().instance.type(), key_to_update);
-                // andebug(string_view(std::format("Set back list: {} == {}, {} == {}", data.name(), field_to_update, key_to_update, field_id)));
                 if (data) {
-                    // vector<std::string> v = any_cast<vector<std::string>>(finished_list);
+                    andebug(string_view(std::format("Setting back list {} : {}, size: {}", data.name(), key_to_update, finished_list.size())));
                     bool res = data.set(stack.back().instance, finished_list);
+
+                    Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
+                    andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
+
                     // if (vector<std::string>* vec = finished_list.try_cast<std::vector<std::string>>()) {
                     //     andebug(string_view(std::format("end_array(): Cast success. List size: {}", vec->size())));
                     //     if (vec->size() > 0) andebug(string_view(vec->at(0)));
@@ -811,17 +836,18 @@ public:
                     //     anwarn(string_view("end_array(): finished_list is NOT a vector<string>. Check registration."));
                     // bool res = data.set(stack.back().instance, finished_list);
 
-                    if (res)
+                    if (res) {
                         andebug(string_view(std::format("The reference of this list is found. Copied? field: {}, key-id: {}",
                                                         data.name(), key_to_update)));
+                    }
                     else
                         anerror(string_view("Failed to set back (copy) "s + data.name()));
 
-                    // if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
-                    //     andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));
+                    if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
+                        andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));
                 }
             }
-            active_key = key_to_update;  // redundant?
+            // active_key = key_to_update;  // redundant?
         }
         return true;
     }
