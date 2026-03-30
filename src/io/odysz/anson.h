@@ -539,6 +539,7 @@ struct ParseNode {
     bool is_map = false;
     bool resolve_map2fields = false;
     map<string, string> shadow_fields;
+    vector<string> shadow_list;
     id_type activekey = 0;
     string map_key;
 };
@@ -564,11 +565,12 @@ private:
 
         if (top.is_list) {
             andebug(string_view(std::format("setting string in list: {}", top.map_key)));
-            auto view = top.instance.as_sequence_container();
+            auto view = forward_as_meta(top.shadow_list).as_sequence_container();
             if (view) {
                 view.insert(view.end(), std::forward<V>(val));
                 andebug(string_view("List size: " + std::to_string(view.size())));
             }
+            // top.shadow_list.push_back(std::any_cast<string_t&>(val));
             return;
         }// not the branch of is_map?
         else if (active_key != 0) {
@@ -590,16 +592,16 @@ private:
                 return;
             }
 
-            if (!contxt->asts->contains(top.astid)) {
-                anerror(string_view("set_value(): Cannot find AST "s + top.astid));
-                return;
-            }
-
             auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
                 andebug(string_view(
                     std::format("set_value(): setting {}, active_key: {}",
                                 data.name(), active_key)));
+
+                if (!contxt->asts->contains(top.astid)) {
+                    anerror(string_view("set_value(): Cannot find AST "s + top.astid));
+                    return;
+                }
 
                 AnsonAst ast = contxt->asts->at(top.astid);
                 if (ast.isJavaEnum) {
@@ -786,8 +788,10 @@ public:
 
     bool end_array() override {
         if (!stack.empty() && stack.back().is_list) {
-            auto finished_list = stack.back().instance;
+            auto finished_list = stack.back().shadow_list;
             id_type key_to_update = stack.back().activekey;
+            std::string field_to_update = stack.back().map_key;
+            id_type field_id = hashed_string(field_to_update.c_str());
 
             stack.pop_back(); // Remove the list from stack
 
@@ -795,23 +799,26 @@ public:
             if (!stack.empty() && key_to_update != 0) {
                 // auto data = stack.back().instance.type().data(key_to_update);
                 auto data = find_field_recursive(stack.back().instance.type(), key_to_update);
+                // andebug(string_view(std::format("Set back list: {} == {}, {} == {}", data.name(), field_to_update, key_to_update, field_id)));
                 if (data) {
-                    if (vector<std::string>* vec = finished_list.try_cast<std::vector<std::string>>()) {
-                        andebug(string_view(std::format("end_array(): Cast success. List size: {}", vec->size())));
-                        if (vec->size() > 0) andebug(string_view(vec->at(0)));
-                    }
-                    else
-                        anwarn(string_view("end_array(): finished_list is NOT a vector<string>. Check registration."));
-
+                    // vector<std::string> v = any_cast<vector<std::string>>(finished_list);
                     bool res = data.set(stack.back().instance, finished_list);
+                    // if (vector<std::string>* vec = finished_list.try_cast<std::vector<std::string>>()) {
+                    //     andebug(string_view(std::format("end_array(): Cast success. List size: {}", vec->size())));
+                    //     if (vec->size() > 0) andebug(string_view(vec->at(0)));
+                    // }
+                    // else
+                    //     anwarn(string_view("end_array(): finished_list is NOT a vector<string>. Check registration."));
+                    // bool res = data.set(stack.back().instance, finished_list);
+
                     if (res)
                         andebug(string_view(std::format("The reference of this list is found. Copied? field: {}, key-id: {}",
                                                         data.name(), key_to_update)));
                     else
                         anerror(string_view("Failed to set back (copy) "s + data.name()));
 
-                    if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
-                        andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));
+                    // if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
+                    //     andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));
                 }
             }
             active_key = key_to_update;  // redundant?
@@ -828,7 +835,7 @@ public:
     }
 
     void push_list(meta_any ref, id_type active_key) {
-        stack.push_back({.instance = ref, .astid="LIST", .is_list=true, .is_map=false, .activekey=active_key});
+        stack.push_back({.instance = ref, .astid="string", .is_list=true, .is_map=false, .activekey=active_key});
     }
 
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {
