@@ -633,7 +633,7 @@ private:
     }
 
 public:
-    std::vector<ParseNode> stack;
+    std::deque<ParseNode> stack;
 
     EnTTSaxParser(T& obj, const JsonOpt *opts) : contxt(opts) {
         push(obj);
@@ -801,7 +801,6 @@ public:
             }
         }
         stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(string_view(std::format("start2 addr: {:P}", (void*)stack_ptr)));
 
         return true;
     }
