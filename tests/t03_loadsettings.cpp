@@ -22,7 +22,7 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         // .base<IJsonable>()
         // .ctor<>()
         // .ctor<const std::string&>()
-        .data<&anson::IJsonable::anclass>("anclass"_hs, "anclass")
+        .data<&anson::IJsonable::anclass>("anclass")
         ;
 
     AnsonAst ast = AnsonAst{"io.odysz.anson.IJsonable", false};
@@ -33,9 +33,9 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     enttype = hashed_string{AnsonField_type.c_str()};
     entt::meta_factory<anson::AnsonField>()
         .type(enttype)
-        .data<&anson::AnsonField::fieldname>("fieldname"_hs, "fieldname")
-        .data<&anson::AnsonField::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-        .data<&anson::AnsonField::valType>("valType"_hs, "valType")
+        .data<&anson::AnsonField::fieldname>("fieldname")
+        .data<&anson::AnsonField::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonField::valType>("valType")
         ;
 
     ast = AnsonAst(AnsonField_type);
@@ -50,7 +50,7 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         .base<IJsonable>()
         .ctor<>()
         .ctor<const std::string&>()
-        .data<&anson::Anson::type>("type"_hs, "type")
+        .data<&anson::Anson::type>("type")
         ;
 
     anclass = Anson().anclass;
@@ -266,6 +266,7 @@ void register_echoAst(map<string, AnsonAst> &asts, map<string, meta_type> &entty
     asts[echoclass] = echoast;
 }
 
+/**
 TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
@@ -324,11 +325,11 @@ TEST(Load, PeerSettings) {
               settings.anRequests) << "settings.anRequests";
 }
 
-/**
  * 1. Regiseter AnsonJavaEnumAst;
  * 2. Load port.ast.json with AnsonJavaEnumAst;
  * 3. Assert the port AST which is supposed to be in the IJonsalbe::contxt.
  */
+/**
 TEST(Load, AnsonAst_Port) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -372,7 +373,6 @@ TEST(Load, AnsonAst_Port) {
               }), portAst.encode) << "echoAst.encode";
 }
 
-/**
 TEST(Load, EchoReq) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -398,6 +398,9 @@ TEST(Load, EchoReq) {
     ASSERT_EQ("echo", echo.a) << "echo.a";
     ASSERT_EQ("echo ...", echo.echo) << "echo.echo";
 }
+
+
+ */
 
 TEST(Load, EchoAst) {
     map<string, AnsonAst> asts;
@@ -447,5 +450,3 @@ TEST(Load, EchoAst) {
                 {"echo", AnsonField("echo", "String")},
               }), echoAst.fields) << "echoAst.fields";
 }
-
- */

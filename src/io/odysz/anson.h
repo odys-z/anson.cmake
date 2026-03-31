@@ -648,6 +648,14 @@ public:
 
         if (active_key != 0 && !stack.empty()) {
             ParseNode top = stack.back();
+            if (top.is_map) {
+
+                return true;
+            }
+            else if (top.is_list) {
+                anerror("TODO: start an object in a list...");
+                return true;
+            }
             meta_type type = top.instance.type();
             auto data = find_field_recursive(type, active_key);
             if (data) {
@@ -666,8 +674,7 @@ public:
                     // The loading of AST according to AST stop the recursive traversal here.
                     bool resolving_map2Fields = false;
                     if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
-                        // fd_astid = "map<string, " + AnsonField_type;
-                        fd_astid = "map<string, map<string, string";
+                        fd_astid = "map<string,"s + AnsonField_type;
                         resolving_map2Fields = true;
                     }
 
@@ -690,8 +697,10 @@ public:
                 }
 
             } else {
-                anerror(string_view(std::format("Starting object, cannot find object field, key: {}",
-                                                std::to_string(active_key))));
+                anerror(string_view(std::format(
+                    "Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
+                    std::to_string(active_key), top.astid, top.map_key)));
+
                 anerror(type.info().name());
                 return true;
             }
