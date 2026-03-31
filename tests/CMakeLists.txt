@@ -28,8 +28,8 @@ add_custom_command(TARGET unit_tests POST_BUILD
         "$<TARGET_FILE_DIR:unit_tests>/t03-settings.json"
 
     COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_SOURCE_DIR}/t02_echo.body.json"
-        "$<TARGET_FILE_DIR:unit_tests>/t02_echo.body.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/t03_echo.body.json"
+        "$<TARGET_FILE_DIR:unit_tests>/t03_echo.body.json"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/ast"

@@ -1,6 +1,0 @@
-{ "type" : "io.odysz.semantic.jserv.echo.EchoReq",
-  "base" : "io.odysz.semantic.jprotocal.AnsonBody",
-  "uri"  : "anson.cmake/tests",
-  "a"    : "echo",
-  "echo" : "echo ..."
-}

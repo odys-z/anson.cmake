@@ -41,6 +41,12 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
     ast = AnsonAst(AnsonField_type);
     ast.enttypeid = enttype;
     ast.base = "";
+    ast.fields = map<string, AnsonField>{
+        {"fieldname", {.fieldname="fieldname", .dataAnclass="string"}},
+        {"valType", {.fieldname="valType", .dataAnclass="string"}},
+        {"dataAnclass", {.fieldname="dataAnclass", .dataAnclass="string"}}
+    };
+
     asts[AnsonField_type] = ast;
 
     //
@@ -383,7 +389,7 @@ TEST(Load, EchoReq) {
     register_port(asts, enttypes);
     register_echoAst(asts, enttypes);
 
-    string t02_echo_json = "t02_echo.body.json";
+    string t02_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t02_echo_json);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t02_echo_json << endl;
@@ -440,13 +446,13 @@ TEST(Load, EchoAst) {
     ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
     ASSERT_EQ(AnsonBodyAst().anclass, echoAst.anclass) << "echoAst.anclass";
     ASSERT_EQ(Anson::_type_, echoAst.base) << "echoAst.base";
-    // ASSERT_EQ(AnsonMsg<EchoReq>().anclass, echoAst.dataAnclass) << "echoAst.dataAnclass";
+    // ASSERT_EQ(EchoReq().anclass, echoAst.dataAnclass) << "echoAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
                 {"echo", "echo"}, {"inet", "inet"}
               }), echoAst.A) << "echoAst.A";
 
     ASSERT_EQ((map<string, AnsonField>{
-                {"echo", AnsonField("echo", "String")},
+                {"echo", AnsonField("", "java.lang.String")},
               }), echoAst.fields) << "echoAst.fields";
 }
