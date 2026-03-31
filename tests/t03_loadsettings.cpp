@@ -178,7 +178,7 @@ void register_asts(map<string, AnsonAst> &asts) {
     bdast.fields = map<string, AnsonField> {
         {"a", {.fieldname="a", .dataAnclass = "string"}}
     };
-    asts[anclass] = msgast;
+    asts[anclass] = bdast;
 
 }
 
@@ -412,7 +412,6 @@ TEST(Load, EchoAst) {
 
     register_asts(asts);
     register_port(asts);
-    // register_msgs(asts, enttypes);
 
     string echo_msg = "ast/echo-msg.ast.json";
     std::ifstream ifmsgstream(echo_msg);
