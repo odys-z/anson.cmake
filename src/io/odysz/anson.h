@@ -42,6 +42,8 @@ public:
 class IJsonable {
 
 public:
+    inline static const string _anclass_ = "io.odysz.anson.IJsonable";
+
     // inline static const map<string, hashed_string> enttypes;
     // inline static const map<string, AnsonAst> asts;
     // static JsonOpt &contxt;

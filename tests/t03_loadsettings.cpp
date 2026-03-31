@@ -12,22 +12,22 @@ using json = nlohmann::json;
 using namespace anson;
 
 
-void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+void register_asts(map<string, AnsonAst> &asts) {
     hashed_string enttype;
     string anclass;
     //
     enttype = hashed_string{"io.odysz.anson.IJasonable"};
     entt::meta_factory<anson::IJsonable>()
         .type(enttype)
-        // .base<IJsonable>()
         // .ctor<>()
         // .ctor<const std::string&>()
         .data<&anson::IJsonable::anclass>("anclass")
         ;
 
-    AnsonAst ast = AnsonAst{"io.odysz.anson.IJsonable", false};
+    anclass = IJsonable::_anclass_;
+    AnsonAst ast = AnsonAst{anclass, false};
     ast.enttypeid = enttype;
-    asts["io.odysz.anson.IJasonable"] = ast;
+    asts[anclass] = ast;
 
     //
     enttype = hashed_string{AnsonField_type.c_str()};
@@ -217,7 +217,7 @@ void register_peersettings(map<string, AnsonAst> &asts, map<string, meta_type> &
     enttypes[anclass] = entt::resolve<PeerSettings>();
 }
 
-void register_port(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+void register_port(map<string, AnsonAst> &asts) {
     string javaenum = AnsonJavaEnumAst().anclass;
     hashed_string enttype = hashed_string{javaenum.c_str()};
     entt::meta_factory<anson::AnsonJavaEnumAst>()
@@ -280,7 +280,7 @@ TEST(Load, PeerSettings) {
     JsonOpt contxt{&asts, &enttypes};
     IJsonable::contxt_ptr = &contxt;
 
-    register_asts(asts, enttypes);
+    register_asts(asts);
     register_peersettings(asts, enttypes);
 
 
@@ -341,8 +341,8 @@ TEST(Load, AnsonAst_Port) {
     JsonOpt contxt{&asts, &enttypes};
     IJsonable::contxt_ptr = &contxt;
 
-    register_asts(asts, enttypes);
-    register_port(asts, enttypes);
+    register_asts(asts);
+    register_port(asts);
 
     string ast_port = "ast/port.ast.json";
     std::ifstream ifstream(ast_port);
@@ -384,8 +384,8 @@ TEST(Load, EchoReq) {
     JsonOpt contxt{&asts, &enttypes};
     IJsonable::contxt_ptr = &contxt;
 
-    register_asts(asts, enttypes);
-    register_port(asts, enttypes);
+    register_asts(asts);
+    register_port(asts);
     register_echoAst(asts, enttypes);
 
     string t02_echo_json = "t03_echo.body.json";
@@ -410,8 +410,8 @@ TEST(Load, EchoAst) {
     JsonOpt contxt{&asts, &enttypes};
     IJsonable::contxt_ptr = &contxt;
 
-    register_asts(asts, enttypes);
-    register_port(asts, enttypes);
+    register_asts(asts);
+    register_port(asts);
     // register_msgs(asts, enttypes);
 
     string echo_msg = "ast/echo-msg.ast.json";

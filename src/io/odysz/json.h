@@ -17,17 +17,8 @@ using namespace entt;
 using namespace entt::literals;
 
 inline void register_meta(map<string, AnsonAst>& asts, map<string, meta_type> &meta_types) {
-    using namespace entt::literals;
-
-    // entt::meta_factory<anson::IJsonable>()
-    //     .type("IJsonable"_hs)
-    //     .ctor<const std::string&>()
-    //     ;
-
     // Register Anson Base
-
     entt::meta_factory<anson::Anson>()
-        // .type("Anson"_hs)
         .type(hashed_string{Anson::_type_.c_str()})
         .base<IJsonable>()
         .ctor<>()
