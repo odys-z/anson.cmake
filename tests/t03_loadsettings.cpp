@@ -272,7 +272,6 @@ void register_echoAst(map<string, AnsonAst> &asts, map<string, meta_type> &entty
     asts[echoclass] = echoast;
 }
 
-/**
 TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
@@ -331,11 +330,11 @@ TEST(Load, PeerSettings) {
               settings.anRequests) << "settings.anRequests";
 }
 
+/**
  * 1. Regiseter AnsonJavaEnumAst;
  * 2. Load port.ast.json with AnsonJavaEnumAst;
  * 3. Assert the port AST which is supposed to be in the IJonsalbe::contxt.
  */
-/**
 TEST(Load, AnsonAst_Port) {
     map<string, AnsonAst> asts;
     map<string, meta_type> enttypes;
@@ -404,9 +403,6 @@ TEST(Load, EchoReq) {
     ASSERT_EQ("echo", echo.a) << "echo.a";
     ASSERT_EQ("echo ...", echo.echo) << "echo.echo";
 }
-
-
- */
 
 TEST(Load, EchoAst) {
     map<string, AnsonAst> asts;
