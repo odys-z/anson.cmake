@@ -649,7 +649,7 @@ public:
         if (active_key != 0 && !stack.empty()) {
             ParseNode top = stack.back();
             if (top.is_map) {
-
+                // 349fef9620674c8b65857616ddddb6d5dc516e7c
                 return true;
             }
             else if (top.is_list) {
