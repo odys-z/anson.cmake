@@ -109,14 +109,16 @@ enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral
 
 class AnsonResp : public AnsonBody{
 public:
+    inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
+
     MsgCode code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;
 
-    AnsonResp() : AnsonBody("NA", "io.odysz.semantic.jprotocol.AnsonResp") {}
+    AnsonResp() : AnsonBody("NA", _type_) {}
 
-    AnsonResp(string a) : AnsonBody(a, "io.odysz.semantic.jprotocol.AnsonResp") {}
+    AnsonResp(string a) : AnsonBody(a, _type_) {}
 
     AnsonResp& Code(MsgCode c) {
         code = c;
@@ -129,8 +131,6 @@ public:
     }
 };
 
-/// TODO? c20 template<std::derived_from<AnsonBody> T = AnsonBody>
-/// With anson::AnsonBoyd, any subclass of AnsonBody will be registered by specialize this templated class, AnsonMsg.
 template <
     typename T //anson::AnsonBody
     >
@@ -143,17 +143,13 @@ public:
     Port port;
 
     AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") {
-        // anclass = T()._type_special(_type_);
     }
 
-    // AnsonMsg(Port port) : Anson(_type_ + std::string(typeid(T).name())), port(port) {
     AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
-        // anclass = T()._type_special(_type_);
         cout << port.enm;
     }
 
     AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
-        // anclass = T()._type_special(_type_);
         this->Body(body);
     }
 
@@ -226,7 +222,6 @@ class OnProgress {
 
 class JProtocol {
 public:
-
     string protocolpath;
 };
 }

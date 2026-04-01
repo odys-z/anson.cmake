@@ -18,6 +18,8 @@ using namespace entt;
 class  AnsonAst;
 struct AnsonField;
 
+using AstMap = map<string, unique_ptr<AnsonAst>>;
+
 class JsonOpt {
 public:
     bool escape4DB;
@@ -27,6 +29,7 @@ public:
     const map<string, string> primtypes;
     const map<string, AnsonAst> *asts;
     const map<string, meta_type> *enttypes;
+
     JsonOpt(const map<string, AnsonAst> *asts, const map<string, meta_type> *types)
         : asts(asts), enttypes(types), primtypes({
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
@@ -132,7 +135,8 @@ class Anson;
 
 inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts);
 // ostream& serialize_envelope(ostream &os, Anson* anson, const JsonOpt &opts);
-bool parse(const string& json, IJsonable& an, const JsonOpt &opts);
+template<typename T>
+inline static bool parse(const string& json, T &an, const JsonOpt *opts);
 
 /**
  * @brief The Anson class
@@ -162,7 +166,7 @@ public:
     }
 
     template <typename T>
-    static bool from_json(const string& json, IJsonable& an, const JsonOpt &opts) {
+    static bool from_json(const string& json, T &an, const JsonOpt *opts = nullptr) {
         return parse(json, an, opts);
     }
 
@@ -197,6 +201,8 @@ class AnsonAst : public Anson {
 public:
     inline static const string _type_ = "io.odysz.anson.AnsonAst";
 
+    virtual ~AnsonAst() = default;
+
     inline static bool valid_type(const string& typ) {
         return !LangExt::isblank(typ);
     }
@@ -222,11 +228,6 @@ public:
     /** Only one static string value is allowed in semantic-* ? */
     string static_val;
 
-    // vector<vector<string>> ctors;
-    // map<string, string> encode;
-    // map<string, string> decode;
-
-    // meta_type meta_type;
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
     AnsonAst() : isEnum(false), Anson(_type_) { }
@@ -643,8 +644,9 @@ private:
 public:
     std::deque<ParseNode> stack;
 
-    EnTTSaxParser(T& obj, const JsonOpt *opts) : contxt(opts) {
+    EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : contxt(opts) {
         push(obj);
+        contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
         active_key = 0;
     }
 
@@ -920,7 +922,8 @@ public:
     }
 };
 
-inline static bool parse(const string& json, IJsonable & an, const JsonOpt * opts) {
+template<typename T>
+inline static bool parse(const string& json, T &an, const JsonOpt *opts) {
     EnTTSaxParser handler{an, opts};
     return nlohmann::json::sax_parse(json, &handler);
 }

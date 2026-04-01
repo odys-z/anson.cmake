@@ -8,7 +8,7 @@
 #include <io/odysz/anserializer.h>
 
 
-namespace {
+namespace anson {
 
 using namespace std;
 using json = nlohmann::json;
@@ -18,35 +18,39 @@ using namespace entt;
 map<string, AnsonAst> enums;
 map<string, meta_type> types;
 
-TEST(Anson, Base) {
-    register_meta(enums, types);
-    JsonOpt contxt{&enums, &types};
+JsonOpt contxt{&enums, &types};
 
-    auto an_type = entt::resolve("Anson"_hs);
+TEST(Anson, Base) {
+    register_asts(enums);
+    IJsonable::contxt_ptr = &contxt;
+
+    auto an_type = entt::resolve(hashed_string{Anson::_type_.c_str()});
     meta_any anptr = an_type.construct();
-    Anson& anobj = anptr.cast<anson::Anson&>();
+    Anson &anobj = anptr.cast<anson::Anson&>();
     cout << "Actual Type Name: " << anobj.anclass << endl;
-    ASSERT_EQ("", anobj.anclass);
+    ASSERT_EQ(Anson::_type_, anobj.anclass);
 
     anptr = an_type.construct(Anson::_type_);
     Anson& anobj2 = anptr.cast<anson::Anson&>();
     ASSERT_EQ(Anson::_type_, anobj2.anclass) << "1. anobj2.type";
 
     std::string json_input = R"({"type": "input"})";
-    // EnTTSaxParser<Anson>  handler(anobj2, contxt);
-    EnTTSaxParser handler(anobj2, contxt);
+    EnTTSaxParser handler(anobj2);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anobj2.anclass) << "Errors on parssing {type: input}.";
+    ASSERT_EQ("input", anobj2.type) << "anobj2.type: {type: input}.";
 }
 
 TEST(Anson, AnsonBody) {
-    JsonOpt contxt{&enums, &types};
+    register_msg(enums);
+    IJsonable::contxt_ptr = &contxt;
 
-    auto b = entt::resolve("AnsonBody"_hs);
+    AnsonBody testbody{"test"}; // instantatiate abstract class?
+
+    auto b = entt::resolve(hashed_string{AnsonBody::_type_.c_str()});
     auto v = b.construct(std::string("r/ds"));
     AnsonBody* anb = v.try_cast<AnsonBody>();
     cout << "[1] anb.type: " << anb->anclass << endl;
@@ -54,47 +58,97 @@ TEST(Anson, AnsonBody) {
     ASSERT_EQ("r/ds", anb->a) << "[1.0]";
 
     std::string json_input = R"({"type": "input", "a": "r/query"})";
-    // EnTTSaxParser<AnsonBody> handler(*anb, contxt);
-    EnTTSaxParser handler(*anb, contxt);
+    EnTTSaxParser handler(*anb, &contxt);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     cout << "[3] ok: " << result << ", type: " << anb->anclass << ", a: " << anb->a << endl;
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anb->anclass) << "[3.1]";
+    ASSERT_EQ("input", anb->type) << "[3.1]";
     ASSERT_EQ("r/query", anb->a) << "[3.2]";
 
     AnsonBody anc;
-    result = Anson::from_json<AnsonBody>(json_input, anc, contxt);
+    EnTTSaxParser handler2(anc, &contxt);
+    result = nlohmann::json::sax_parse(json_input, &handler2);
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", anc.anclass) << "[3.3]";
-    ASSERT_EQ("r/query", anc.a) << "[3.4]";
+    ASSERT_EQ("input", anc.type) << "[3.4]";
+
+    json_input = R"({"type": "input-2", "a": "d/del"})";
+    result = Anson::from_json<AnsonBody>(json_input, anc, &contxt);
+    ASSERT_TRUE(result);
+    ASSERT_EQ("input-2", anc.type) << "[3.5]";
+    ASSERT_EQ("d/del", anc.a) << "[3.6]";
+}
+
+TEST(Anson, PORT) {
+    register_port(enums, "ast/port.ast.json");
+    // string portclass = Port().anclass;
+    string portclass = Port::_type_;
+    AnsonAst ast = enums.at(portclass);
+    // AnsonJavaEnumAst portAst = std::any_cast<AnsonJavaEnumAst>(ast);
+    AnsonJavaEnumAst *portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass));
+    hashed_string portype{portclass.c_str()};
+
+    ASSERT_TRUE(portAst.encode.size() > 2);
+    ASSERT_TRUE(portAst.encode.contains(Port::echo));
+    ASSERT_TRUE(portAst.decode.size() > 2);
+    ASSERT_TRUE(portAst.decode.contains("echo"));
+    ASSERT_EQ(portAst.enttypeid, portype);
+}
+
+/*
+void load_echoAst(map<string, AnsonAst> &asts, string port_ast) {
+    hashed_string enttype{EchoReq::_type_.c_str()};
+    entt::meta_factory<anson::EchoReq>()
+        .type(enttype)
+        .base<AnsonBody>()
+        .ctor<>()
+        .ctor<string>()
+        .data<&anson::EchoReq::echo>("echo"_hs, "echo")
+        ;
+
+    string astclass = AnsonBodyAst().anclass;
+    string echoclass = EchoReq().anclass;
+    AnsonBodyAst echoast = AnsonBodyAst{astclass};
+    echoast.dataAnclass = echoclass;
+    echoast.enttypeid = enttype;
+
+    echoast.A["echo"] = "echo";
+    echoast.A["inet"] = "inet";
+
+    echoast.fields = map<string, AnsonField>{
+        {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
+    };
+    asts[echoclass] = echoast;
 }
 
 TEST(Anson, AnsonMsg) {
-    JsonOpt contxt{&enums, &types};
+    register_port(enums, "ast/port.ast.json");
+    load_echoAst(enums, "ast/echo.ast.json");
+    IJsonable::contxt_ptr = &contxt;
 
     using Req = AnsonMsg<EchoReq>;
 
-    auto mt = entt::resolve("AnsonMsgEchoReq"_hs);
+    string msgclass = Req().anclass;
+    auto mt = entt::resolve(hashed_string{msgclass.c_str()});
+    ASSERT_TRUE(mt);
 
     auto mv = mt.construct(Port(Port::echo));
-    AnsonMsg<EchoReq>* msg = mv.try_cast<AnsonMsg<EchoReq>>();
+    Req* msg = mv.try_cast<Req>();
     EchoReq body{"Hello"};
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
-    ASSERT_EQ("io.odysz.jprotocol.AnsonMsg", msg->anclass);
+    ASSERT_EQ(msgclass, msg->anclass);
+    ASSERT_EQ(Req::_type_, msg->type);
     ASSERT_EQ("echo", msg->port);
     ASSERT_EQ("r/query", msg->body.at(0)->a);
     ASSERT_EQ("Hello", msg->body.at(0)->echo);
 
     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
-    EnTTSaxParser handler(*msg, contxt);
-
     cout << "[2] " << json_input << endl;
-    bool result = nlohmann::json::sax_parse(json_input, &handler);
+    bool result = Anson::from_json(json_input, *msg);
     cout << "[3] ok: " << result << ", type: " << msg->anclass << ", port: " << msg->port << endl;
 
     ASSERT_TRUE(result);
@@ -129,5 +183,5 @@ TEST(Anson, Servialize_Msg) {
               R"("body": [{"a": "r/query", "echo": "Hello World"}]})",
               json_result);
 }
-
+*/
 }

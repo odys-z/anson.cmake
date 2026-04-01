@@ -24,11 +24,37 @@ void load_json(const std::string& raw_json, T& out_obj) {
     }
 }
 
-TEST(HELLO, ENTT_META) {
-    map<string, AnsonAst> enums;
+void register_echo(map<string, AnsonAst> &asts) {
+    //
+    string anclass{EchoReq().anclass};
+    hashed_string enttype{anclass.c_str()};
+    entt::meta_factory<anson::EchoReq>()
+        .type(enttype)
+        .base<AnsonBody>()
+        .ctor<>()
+        .ctor<const std::string&>()
+        .data<&anson::EchoReq::echo>("echo")
+        ;
+
+    AnsonBodyAst ast = AnsonBodyAst{anclass};
+    ast.enttypeid = enttype;
+    ast.base = AnsonBody::_type_;
+    ast.dataAnclass = anclass;
+
+    ast.fields = map<string, AnsonField>{
+        {"echo", {.fieldname="echo", .dataAnclass="string"}},
+    };
+
+    asts[anclass] = ast;
+}
+
+TEST(ENTT_META, JSON_REGISTRY) {
+    map<string, AnsonAst> asts;
     map<string, meta_type> types;
-    register_meta(enums, types);
-    JsonOpt jsonopts{&enums, &types};
+    register_asts(asts);
+    register_echo(asts);
+
+    JsonOpt jsonopts{&asts, &types};
 
     AnsonMsg<EchoReq> msg{Port::echo};
 
@@ -48,7 +74,10 @@ TEST(HELLO, ENTT_META) {
         << "static _type_ must be ignored, port name must used as the enum value...";
 
     // 1. Create EchoReq via reflection
-    auto echo_type = entt::resolve("EchoReq"_hs);
+    // auto echo_type = entt::resolve("EchoReq"_hs);
+    entt::hashed_string echo_type_hs{EchoReq::_type_.c_str()};
+    auto echo_type = entt::resolve(echo_type_hs);
+
     auto req_instance = echo_type.construct();
     std::cout << "Actual Type Name: " << req_instance.type().info().name() << std::endl;
     EchoReq* echoreq = req_instance.try_cast<EchoReq>();
