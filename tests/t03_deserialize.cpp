@@ -85,8 +85,7 @@ TEST(Anson, PORT) {
     // string portclass = Port().anclass;
     string portclass = Port::_type_;
     AnsonAst ast = enums.at(portclass);
-    // AnsonJavaEnumAst portAst = std::any_cast<AnsonJavaEnumAst>(ast);
-    AnsonJavaEnumAst *portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass));
+    AnsonJavaEnumAst portAst = std::any_cast<AnsonJavaEnumAst>(ast);
     hashed_string portype{portclass.c_str()};
 
     ASSERT_TRUE(portAst.encode.size() > 2);
