@@ -157,8 +157,11 @@ TEST(ENTT, T_LIST_PARSE) {
 
     T_List inst_list;
     T_List &anlist = inst_list;
+
     std::string json_input = std::format(R"({{"type": "{}", "txt": "text", "val": ["a", "b"]}})", T_List::_type_);
+    // or switch the order
     // std::string json_input = std::format(R"({{"type": "{}", "val": ["a", "b"], "txt": "text"}})", T_List::_type_);
+
     EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
 
     T_List* to_checkList0 = handler_parse.stack.back().instance.try_cast<anson::T_List>();
@@ -172,7 +175,6 @@ TEST(ENTT, T_LIST_PARSE) {
     ASSERT_EQ(T_List::_type_, anlist.type) << "anlist.type";
 
     T_List* stack_ptr = handler_parse.stack.front().instance.try_cast<T_List>();
-    // printf("Anlist addr: %p, Stack Root addr: %p : %p\n", (void*)&anlist, (void*)to_checkList0, (void*)stack_ptr);
     andebug(string_view(std::format("Anlist addr: {:P}, Stack Root addr: {:P} : {:P}",
                                     (void*)&anlist, (void*)to_checkList0, (void*)stack_ptr)));
 

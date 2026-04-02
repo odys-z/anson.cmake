@@ -73,8 +73,6 @@ TEST(ENTT_META, JSON_REGISTRY) {
               msg.toBlock(jsonopts))
         << "static _type_ must be ignored, port name must used as the enum value...";
 
-    // 1. Create EchoReq via reflection
-    // auto echo_type = entt::resolve("EchoReq"_hs);
     entt::hashed_string echo_type_hs{EchoReq::_type_.c_str()};
     auto echo_type = entt::resolve(echo_type_hs);
 
@@ -83,24 +81,18 @@ TEST(ENTT_META, JSON_REGISTRY) {
     EchoReq* echoreq = req_instance.try_cast<EchoReq>();
     cout << "EchoReq Reflected: " << echoreq->a << endl;
 
-    // Set the 'echo' field
     if (auto data = echo_type.data("echo"_hs)) {
         data.set(req_instance, std::string("Reflection Hello"));
     }
 
-    // 2. Create AnsonMsg<EchoReq> via reflection
     auto msg_rfl = entt::resolve("AnsonMsgEchoReq"_hs).construct(Port(Port::echo));
 
-    // Use this to check what EnTT actually thinks the type is:
     std::cout << "Actual Type Name: " << msg_rfl.type().info().name() << std::endl;
 
-    // Try to get the reference first, then take the address
     if (auto* msg_rpt = msg_rfl.try_cast<AnsonMsg<EchoReq>>()) {
         string t = msg_rpt->anclass;
         ASSERT_EQ(AnsonMsg<EchoReq>::_type_, t);
     } else {
-        // If that fails, msg_rfl might be holding a pointer.
-        // Try casting to the pointer type directly:
         auto** ptr_to_ptr = msg_rfl.try_cast<AnsonMsg<EchoReq>*>();
         if (ptr_to_ptr) {
             AnsonMsg<EchoReq>* msg_rpt_actual = *ptr_to_ptr;
@@ -109,7 +101,4 @@ TEST(ENTT_META, JSON_REGISTRY) {
             FAIL() << "Could not cast meta_any to AnsonMsg<EchoReq>";
         }
     }
-
-    // string t = msg_rpt->type;
-    // ASSERT_EQ(AnsonMsg<EchoReq>::_type_, msg_rpt->type);
 }

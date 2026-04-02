@@ -43,9 +43,7 @@ void register_peersettings(AstMap &asts) {
         {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
     };
 
-    // asts[anclass] = unique_ptr<AnsonAst>(ast);
     asts.insert(make_pair(anclass, ast));
-    // enttypes[anclass] = entt::resolve<PeerSettings>();
 }
 
 void register_echoAst(AstMap &asts) {

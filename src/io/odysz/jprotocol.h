@@ -216,7 +216,6 @@ class OnOk {
 using OnError = std::function<void(MsgCode code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
-    // using OnProgress = std::function<void(const string& path, std::string status)>;
     virtual void progess(const string& path, std::string status);
 };
 
