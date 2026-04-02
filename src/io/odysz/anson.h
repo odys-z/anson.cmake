@@ -28,10 +28,11 @@ public:
 
     const map<string, string> primtypes;
     const AstMap *asts;
-    const map<string, meta_type> *enttypes;
+    // 38c0b2b const map<string, meta_type> *enttypes;
 
     JsonOpt(const AstMap *asts, const map<string, meta_type> *types)
-        : asts(asts), enttypes(types), primtypes({
+        : asts(asts), // 38c0b2b enttypes(types),
+        primtypes({
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
             {"int", "int"}, {"Integer", "int"}, {"java.lang.Integer", "int"},
             {"short", "int"}, {"Short", "int"}, {"java.lang.Short", "int"},
@@ -467,19 +468,20 @@ inline static ostream& serialize_fields(ostream &os,
             os << '\"' << fn << R"(": )";
 
             if (opts.asts->contains(f.dataAnclass)) {
-                // AnsonAst fd_ast = opts.asts->at(f.dataAnclass);
                 AnsonAst* fd_ast = opts.ast<AnsonAst>(f.dataAnclass);
-                meta_type fd_type = opts.enttypes->at(fn);
+                // meta_type fd_type = opts.enttypes->at(fn);
+                meta_type fd_type = resolve(hashed_string{f.dataAnclass.c_str()});
 
                 serialize_field(os, anson, *fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
-                if (!opts.enttypes->contains(anson.anclass)) {
-                    anerror(string_view("Unknown entt type to serialize: "s + anson.anclass));
-                    os << '"' << anson.anclass << '"';
-                }
-                else {
-                    meta_type enttype = opts.enttypes->at(anson.anclass);
+                // if (!opts.enttypes->contains(anson.anclass)) {
+                //     anerror(string_view("Unknown entt type to serialize: "s + anson.anclass));
+                //     os << '"' << anson.anclass << '"';
+                // }
+                // else {
+                //     meta_type enttype = opts.enttypes->at(anson.anclass);
+                    meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
                     string valtype = Regex::parseListValtype(f.dataAnclass);
                     hashed_string data_key{fn.c_str()};
                     meta_data data = find_field_recursive(enttype, data_key);
@@ -489,7 +491,7 @@ inline static ostream& serialize_fields(ostream &os,
                         serialize_list(os, anson, valtype);
                     else
                         os << "null";
-                }
+                // }
             }
             else {
                 os << '\"' << f << '\"';
