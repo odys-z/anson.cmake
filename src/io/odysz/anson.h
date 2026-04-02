@@ -28,7 +28,6 @@ public:
     const map<string, string> primtypes;
     const AstMap *asts;
 
-    // JsonOpt(const AstMap *asts, const map<string, meta_type> *types)
     JsonOpt(const AstMap *asts)
         : asts(asts), primtypes({
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
@@ -545,6 +544,8 @@ struct ParseNode {
     bool resolve_map2fields = false;
 
     map<string, string> shadow_fields;
+
+    // a9ea7d6 vector<std::any> shadow_list;
     vector<string> shadow_list;
 
     id_type activekey = 0;
