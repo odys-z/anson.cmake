@@ -82,7 +82,6 @@ TEST(Load, PeerSettings) {
     register_asts(asts);
     register_peersettings(asts);
 
-
     PeerSettings settings;
     std::string json_input = std::format(R"({{"type": "{}"}})", PeerSettings::_type_);
     EnTTSaxParser handler(settings, IJsonable::contxt_ptr);
@@ -117,8 +116,8 @@ TEST(Load, PeerSettings) {
     ASSERT_EQ(AnsonBody::_type_, settings.ansonBody)
         << "settings.ansonBody";
 
-    ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.Port"}, settings.javaEnums);
     ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.MsgCode"}, settings.scopeEnums) << "settings.scopeEnums";
+    ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.Port"}, settings.javaEnums) << "settings.javaEnums";
 
     ASSERT_EQ((vector<string>{"io.odysz.semantic.jprotocol.EchoReq",
                              "io.odysz.semantic.jprotocol.SessionReq",

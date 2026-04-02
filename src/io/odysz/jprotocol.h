@@ -142,8 +142,7 @@ public:
 
     Port port;
 
-    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") {
-    }
+    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") { }
 
     AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
         cout << port.enm;

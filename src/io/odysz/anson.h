@@ -488,8 +488,9 @@ inline static ostream& serialize_fields(ostream &os,
 inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
     // Java class can has only on base class
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    if (opts.asts->find(ast->base) != opts.asts->end()) {
-        auto base_fields = opts.asts->at(ast->base)->fields;
+    AnsonMsgAst *msgast = opts.ast<AnsonMsgAst>(anson.anclass);
+    if (opts.asts->find(ast->dataBase) != opts.asts->end()) {
+        auto base_fields = opts.asts->at(ast->dataBase)->fields;
         serialize_fields(os, base_fields, anson, opts);
     }
 
@@ -531,7 +532,11 @@ inline static string serialize_map_str(const map<string, ValT> &m, const string 
 
 class SemanticObject : public Anson {
 public:
+    inline static string _type_ = "io.odysz.semantics.SemanticObject";
+
     map<string, std::any> data;
+
+    SemanticObject() : Anson(_type_) { }
 };
 
 struct ParseNode {
@@ -543,10 +548,10 @@ struct ParseNode {
     bool is_map = false;
     bool resolve_map2fields = false;
 
-    map<string, string> shadow_fields;
+    // map<string, string> shadow_fields;
 
     // a9ea7d6 vector<std::any> shadow_list;
-    vector<string> shadow_list;
+    // vector<string> shadow_list;
 
     id_type activekey = 0;
     string map_key;
@@ -570,11 +575,14 @@ private:
 
         if (top.is_list) {
             andebug(string_view(std::format("setting string in list: {}", top.map_key)));
-            auto view = forward_as_meta(top.shadow_list).as_sequence_container();
+            // auto view = forward_as_meta(top.shadow_list).as_sequence_container();
+            auto view = top.instance.as_sequence_container();
             if (view) {
                 view.insert(view.end(), std::forward<V>(val));
                 andebug(string_view("List size: " + std::to_string(view.size())));
             }
+            else
+                anerror(string_view(std::format("Failed to set list value: {}", val)));
             // top.shadow_list.push_back(std::any_cast<string_t&>(val));
             return;
         }// not the branch of is_map?
@@ -814,21 +822,28 @@ public:
     bool binary(binary_t&) override { return true; }
     bool start_array(std::size_t) override {
 
-        Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(string_view(std::format("start (0) addr: {:P}", (void*)stack_ptr)));
+        // Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
+        // andebug(string_view(std::format("start (0) addr: {:P}", (void*)stack_ptr)));
+        andebug(string_view(std::format("start (0) addr: {:P}",
+                (void*)stack.front().instance.try_cast<Anson>())));
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
                 andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, data.name())));
 
-                push_list(stack.back().instance, active_key);
+                // push_list(stack.back().instance, active_key);
+                meta_any list = data.get(stack.back().instance);
+                push_list(list, active_key);
 
-                stack_ptr = stack.front().instance.try_cast<Anson>();
-                andebug(string_view(std::format("start (1) addr: {:P}", (void*)stack_ptr)));
+                // stack_ptr = stack.front().instance.try_cast<Anson>();
+                // andebug(string_view(std::format("start (1) addr: {:P}", (void*)stack_ptr)));
+
+                andebug(string_view(std::format("start (1) addr: {:P}",
+                        (void*)stack.front().instance.try_cast<Anson>())));
             }
         }
-        stack_ptr = stack.front().instance.try_cast<Anson>();
+        // stack_ptr = stack.front().instance.try_cast<Anson>();
 
         return true;
     }
@@ -839,7 +854,7 @@ public:
         andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
 
         if (!stack.empty() && stack.back().is_list) {
-            auto finished_list = stack.back().shadow_list;
+            auto finished_list = stack.back().instance;
             id_type key_to_update = stack.back().activekey;
             std::string field_to_update = stack.back().map_key;
             id_type field_id = hashed_string(field_to_update.c_str());
@@ -849,7 +864,11 @@ public:
             if (!stack.empty() && key_to_update != 0) {
                 auto data = find_field_recursive(stack.back().instance.type(), key_to_update);
                 if (data) {
-                    andebug(string_view(std::format("Setting back list {} : {}, size: {}", data.name(), key_to_update, finished_list.size())));
+                    // andebug(string_view(std::format("Setting back list {} : {}, size: {}", data.name(), key_to_update, finished_list.size())));
+                    andebug(string_view(std::format(
+                        "Setting back list {} : {}, size: {}",
+                        data.name(), key_to_update,
+                        (forward_as_meta(finished_list).as_sequence_container()) ? forward_as_meta(finished_list).as_sequence_container().size() : -1)));
                     bool res = data.set(stack.back().instance, finished_list);
 
                     Anson* stack_ptr = stack.front().instance.try_cast<Anson>();

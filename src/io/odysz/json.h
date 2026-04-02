@@ -187,15 +187,15 @@ inline static void register_asts(AstMap &asts) {
 
 inline static void register_msg(AstMap &asts) {
     //
-    hashed_string enttype{SemanticObject::_type_.c_str()};
+    string anclass = SemanticObject().anclass;
+    hashed_string enttype{anclass.c_str()};
     entt::meta_factory<anson::SemanticObject>()
-    .type("SemanticObject"_hs)
+        .type(enttype)
         .ctor<>()
         .base<anson::Anson>()
         .data<&anson::SemanticObject::data>("data")
         ;
 
-    string anclass = SemanticObject().anclass;
     AnsonAst *ast = new AnsonAst(anclass);
     ast->base = Anson::_type_;
     ast->enttypeid = enttype;
@@ -277,6 +277,8 @@ inline static void register_port(AstMap &asts, string port_ast) {
 
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     portAst->dataAnclass = Port::_type_;
+    portAst->isJavaEnum = true;
+
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {

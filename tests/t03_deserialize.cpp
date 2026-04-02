@@ -192,7 +192,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     Req* msg = mv.try_cast<Req>();
     EchoReq body{"Hello"};
     body.a = "";
-    body.echo = "";
+    // body.echo = "";
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
@@ -200,7 +200,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     ASSERT_EQ(Req::_type_, msg->type);
     ASSERT_EQ("", msg->port) << "[1] msg->port";
     ASSERT_EQ("", msg->body.at(0)->a) << "[1] msg-body[0]";
-    ASSERT_EQ("", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
+    ASSERT_EQ("Hello", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
@@ -209,7 +209,8 @@ TEST(Anson, AnsonMsg_EchoReq) {
     cout << "[3] ok: " << result << ", type: " << msg->anclass << ", port: " << msg->port << endl;
 
     ASSERT_TRUE(result);
-    ASSERT_EQ("input", msg->anclass);
+    ASSERT_EQ(EchoReq()._type_special(AnsonMsg<EchoReq>::_type_), msg->anclass) << "msg->anclass";
+    ASSERT_EQ("input", msg->type);
     EXPECT_EQ("query", msg->port) << "TODO: ever breaked at operator overloads?";
 
     EchoReq& reqbd = msg->Body();
