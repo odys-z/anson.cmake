@@ -18,7 +18,7 @@ public:
     T_List() : Anson(_type_) {}
 };
 
-void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes) {
+void register_asts(AstMap &asts) {
     hashed_string enttype;
     string anclass;
     //
@@ -49,18 +49,18 @@ void register_asts(map<string, AnsonAst> &asts, map<string, meta_type> &enttypes
         ;
 
     anclass = T_List().anclass;
-    AnsonAst ast = AnsonAst{anclass, false};
-    ast.dataAnclass = T_List::_type_;
-    ast.base = Anson::_type_;
-    ast.enttypeid = enttype;
+    AnsonAst *ast = new AnsonAst{anclass, false};
+    ast->dataAnclass = T_List::_type_;
+    ast->base = Anson::_type_;
+    ast->enttypeid = enttype;
 
     // ast.fields is only used for serialization?
-    ast.fields = map<string, AnsonField>{
+    ast->fields = map<string, AnsonField>{
                  {"txt",   {.fieldname="txt", .dataAnclass = "string"}},
                  {"val",   {.fieldname="val", .dataAnclass = "list<string"}}
                  };
 
-    asts[anclass] = ast;
+    asts[anclass] = unique_ptr<AnsonAst>(ast);
 }
 }
 
@@ -68,11 +68,11 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace entt::literals;
     using namespace anson;
 
-    map<string, AnsonAst> asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    AstMap asts;
+    // map<string, meta_type> enttypes;
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
-    anson::register_asts(asts, enttypes);
+    anson::register_asts(asts);
 
     auto type = entt::resolve<anson::T_List>();
     entt::meta_any instance = type.construct();
@@ -150,11 +150,10 @@ TEST(ENTT, T_LIST_PARSE) {
     using namespace entt::literals;
     using namespace anson;
 
-    map<string, AnsonAst> asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    AstMap asts;
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
-    register_asts(asts, enttypes);
+    register_asts(asts);
 
     T_List inst_list;
     T_List &anlist = inst_list;

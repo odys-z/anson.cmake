@@ -12,7 +12,7 @@
 using json = nlohmann::json;
 using namespace anson;
 
-void register_peersettings(AstMap &asts, map<string, meta_type> &enttypes) {
+void register_peersettings(AstMap &asts) {
     //
     hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
     entt::meta_factory<anson::PeerSettings>()
@@ -45,10 +45,10 @@ void register_peersettings(AstMap &asts, map<string, meta_type> &enttypes) {
 
     // asts[anclass] = unique_ptr<AnsonAst>(ast);
     asts.insert(make_pair(anclass, ast));
-    enttypes[anclass] = entt::resolve<PeerSettings>();
+    // enttypes[anclass] = entt::resolve<PeerSettings>();
 }
 
-void register_echoAst(AstMap &asts, map<string, meta_type> &enttypes) {
+void register_echoAst(AstMap &asts) {
     hashed_string enttype{EchoReq::_type_.c_str()};
     entt::meta_factory<anson::EchoReq>()
         .type(enttype)
@@ -77,12 +77,12 @@ TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
     AstMap asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    // map<string, meta_type> enttypes;
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_peersettings(asts, enttypes);
+    register_peersettings(asts);
 
 
     PeerSettings settings;
@@ -138,8 +138,7 @@ TEST(Load, PeerSettings) {
  */
 TEST(Load, AnsonAst_Port) {
     AstMap asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
@@ -181,14 +180,13 @@ TEST(Load, AnsonAst_Port) {
 
 TEST(Load, EchoReq) {
     AstMap asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
     register_port(asts, "ast/port.ast.json");
     register_msg(asts);
-    register_echoAst(asts, enttypes);
+    register_echoAst(asts);
 
     string t02_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t02_echo_json);
@@ -208,8 +206,7 @@ TEST(Load, EchoReq) {
 
 TEST(Load, EchoAst) {
     AstMap asts;
-    map<string, meta_type> enttypes;
-    JsonOpt contxt{&asts, &enttypes};
+    JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);

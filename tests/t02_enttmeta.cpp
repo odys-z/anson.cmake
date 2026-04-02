@@ -24,7 +24,7 @@ void load_json(const std::string& raw_json, T& out_obj) {
     }
 }
 
-void register_echo(map<string, AnsonAst> &asts) {
+void register_echo(AstMap &asts) {
     //
     string anclass{EchoReq().anclass};
     hashed_string enttype{anclass.c_str()};
@@ -36,25 +36,25 @@ void register_echo(map<string, AnsonAst> &asts) {
         .data<&anson::EchoReq::echo>("echo")
         ;
 
-    AnsonBodyAst ast = AnsonBodyAst{anclass};
-    ast.enttypeid = enttype;
-    ast.base = AnsonBody::_type_;
-    ast.dataAnclass = anclass;
+    AnsonBodyAst *ast = new AnsonBodyAst{anclass};
+    ast->enttypeid = enttype;
+    ast->base = AnsonBody::_type_;
+    ast->dataAnclass = anclass;
 
-    ast.fields = map<string, AnsonField>{
+    ast->fields = map<string, AnsonField>{
         {"echo", {.fieldname="echo", .dataAnclass="string"}},
     };
 
-    asts[anclass] = ast;
+    asts[anclass] = unique_ptr<AnsonBodyAst>(ast);
 }
 
 TEST(ENTT_META, JSON_REGISTRY) {
-    map<string, AnsonAst> asts;
-    map<string, meta_type> types;
+    AstMap asts;
     register_asts(asts);
     register_echo(asts);
 
-    JsonOpt jsonopts{&asts, &types};
+    JsonOpt jsonopts{&asts};
+    IJsonable::contxt_ptr = &jsonopts;
 
     AnsonMsg<EchoReq> msg{Port::echo};
 

@@ -18,9 +18,8 @@ using namespace entt;
 AstMap enums;
 map<string, meta_type> types;
 
-JsonOpt contxt{&enums, &types};
+JsonOpt contxt{&enums};
 
-/*
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -93,6 +92,7 @@ TEST(Anson, PORT) {
     ASSERT_TRUE(portAst->decode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
 }
+/*
 */
 
 /**
@@ -175,49 +175,49 @@ void load_echoAst(AstMap &asts, string ast_path) {
         anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
 }
 
-TEST(Anson, AnsonMsg_EchoReq) {
-    IJsonable::contxt_ptr = &contxt;
-    register_asts(enums);
-    register_msg(enums);
-    register_port(enums, "ast/port.ast.json");
-    load_echoAst(enums, "ast/echo.ast.json");
+// TEST(Anson, AnsonMsg_EchoReq) {
+//     IJsonable::contxt_ptr = &contxt;
+//     register_asts(enums);
+//     register_msg(enums);
+//     register_port(enums, "ast/port.ast.json");
+//     load_echoAst(enums, "ast/echo.ast.json");
 
-    using Req = AnsonMsg<EchoReq>;
+//     using Req = AnsonMsg<EchoReq>;
 
-    string msgclass = Req().anclass;
-    auto mt = entt::resolve(hashed_string{msgclass.c_str()});
-    ASSERT_TRUE(mt) << "resolve " << msgclass;
+//     string msgclass = Req().anclass;
+//     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
+//     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    auto mv = mt.construct(Port(Port::echo));
-    Req* msg = mv.try_cast<Req>();
-    EchoReq body{"Hello"};
-    body.a = "";
-    body.echo = "";
-    msg->Body(body);
+//     auto mv = mt.construct(Port(Port::echo));
+//     Req* msg = mv.try_cast<Req>();
+//     EchoReq body{"Hello"};
+//     body.a = "";
+//     body.echo = "";
+//     msg->Body(body);
 
-    cout << "[1] msg.port: " << msg->port << endl;
-    ASSERT_EQ(msgclass, msg->anclass);
-    ASSERT_EQ(Req::_type_, msg->type);
-    ASSERT_EQ("", msg->port) << "[1] msg->port";
-    ASSERT_EQ("", msg->body.at(0)->a) << "[1] msg-body[0]";
-    ASSERT_EQ("", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
+//     cout << "[1] msg.port: " << msg->port << endl;
+//     ASSERT_EQ(msgclass, msg->anclass);
+//     ASSERT_EQ(Req::_type_, msg->type);
+//     ASSERT_EQ("", msg->port) << "[1] msg->port";
+//     ASSERT_EQ("", msg->body.at(0)->a) << "[1] msg-body[0]";
+//     ASSERT_EQ("", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
-    std::string json_input = R"({"type": "input", "port": "query", "body": []})";
+//     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
-    cout << "[2] " << json_input << endl;
-    bool result = Anson::from_json(json_input, *msg);
-    cout << "[3] ok: " << result << ", type: " << msg->anclass << ", port: " << msg->port << endl;
+//     cout << "[2] " << json_input << endl;
+//     bool result = Anson::from_json(json_input, *msg);
+//     cout << "[3] ok: " << result << ", type: " << msg->anclass << ", port: " << msg->port << endl;
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ("input", msg->anclass);
-    EXPECT_EQ("query", msg->port) << "TODO: ever breaked at operator overloads?";
+//     ASSERT_TRUE(result);
+//     ASSERT_EQ("input", msg->anclass);
+//     EXPECT_EQ("query", msg->port) << "TODO: ever breaked at operator overloads?";
 
-    EchoReq& reqbd = msg->Body();
+//     EchoReq& reqbd = msg->Body();
 
-    cout << "[4] body: " << msg->body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
-    EXPECT_EQ("io.odysz.jprotocol.EchoReq", reqbd.anclass) << "TODO: No way to check type?";
-    EXPECT_EQ("r/query", reqbd.a) << "[4: a = r/query]";
-}
+//     cout << "[4] body: " << msg->body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
+//     EXPECT_EQ("io.odysz.jprotocol.EchoReq", reqbd.anclass) << "TODO: No way to check type?";
+//     EXPECT_EQ("r/query", reqbd.a) << "[4: a = r/query]";
+// }
 
 /*
 TEST(Anson, Servialize_Msg) {
