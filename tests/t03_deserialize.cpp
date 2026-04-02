@@ -83,13 +83,7 @@ TEST(Anson, AnsonBody) {
 TEST(Anson, PORT) {
     register_port(enums, "ast/port.ast.json");
     string portclass = Port::_type_;
-<<<<<<< HEAD
-    AnsonAst ast = enums.at(portclass);
-    AnsonJavaEnumAst portAst = std::any_cast<AnsonJavaEnumAst>(ast);
-=======
-    // AnsonAst *ast = dynamic_cast<AnsonAst*>(enums.at(portclass).get());
     AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
->>>>>>> try-AST-ptr
     hashed_string portype{portclass.c_str()};
 
     ASSERT_TRUE(portAst->encode.size() > 2);
@@ -114,7 +108,6 @@ void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
     hashed_string enttype{anclass.c_str()};
 
     entt::meta_factory<anson::AnsonMsg<T>>()
-        // .type(entt::hashed_string{anclass.c_str()})
         .type(enttype)
         .template ctor<>()
         .template ctor<anson::Port>()
@@ -125,7 +118,7 @@ void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
     AnsonMsgAst *ast = new AnsonMsgAst(anclass);
     ast->dataBase = Anson::_type_;
     ast->enttypeid = enttype;
-    ast->dataAnclass = anclass; // T::_type_;
+    ast->dataAnclass = anclass;
 
     ast->fields = map<string, AnsonField>{
         {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
@@ -144,20 +137,6 @@ void load_echoAst(AstMap &asts, string ast_path) {
         .ctor<string>()
         .data<&anson::EchoReq::echo>("echo"_hs, "echo")
         ;
-
-    // string astclass = AnsonBodyAst().anclass;
-    // string echoclass = EchoReq().anclass;
-    // AnsonBodyAst echoast = AnsonBodyAst{astclass};
-    // echoast.dataAnclass = echoclass;
-    // echoast.enttypeid = enttype;
-
-    // echoast.A["echo"] = "echo";
-    // echoast.A["inet"] = "inet";
-
-    // echoast.fields = map<string, AnsonField>{
-    //     {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
-    // };
-    // asts[echoclass] = echoast;
 
     AnsonBodyAst *echoAst = new AnsonBodyAst{};
     echoAst->dataAnclass = EchoReq::_type_;
