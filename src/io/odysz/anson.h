@@ -28,10 +28,10 @@ public:
 
     const map<string, string> primtypes;
     const map<string, AnsonAst> *asts;
-    const map<string, meta_type> *enttypes;
+    // const map<string, meta_type> *enttypes;
 
     JsonOpt(const map<string, AnsonAst> *asts, const map<string, meta_type> *types)
-        : asts(asts), enttypes(types), primtypes({
+        : asts(asts), primtypes({
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
             {"int", "int"}, {"Integer", "int"}, {"java.lang.Integer", "int"},
             {"short", "int"}, {"Short", "int"}, {"java.lang.Short", "int"},
