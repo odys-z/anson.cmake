@@ -27,10 +27,10 @@ public:
     string indent;
 
     const map<string, string> primtypes;
-    const map<string, AnsonAst> *asts;
+    const AstMap *asts;
     const map<string, meta_type> *enttypes;
 
-    JsonOpt(const map<string, AnsonAst> *asts, const map<string, meta_type> *types)
+    JsonOpt(const AstMap *asts, const map<string, meta_type> *types)
         : asts(asts), enttypes(types), primtypes({
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
             {"int", "int"}, {"Integer", "int"}, {"java.lang.Integer", "int"},
@@ -40,6 +40,11 @@ public:
             {"double", "double"}, {"Double", "double"}, {"java.lang.Double", "double"},
             {"boolean", "boolean"}, {"Boolean", "boolean"}, {"java.lang.Boolean", "boolean"},
         }) { }
+
+    template<typename T>
+    T* ast(string astid) const {
+        return dynamic_cast<T*>(asts->at(astid).get());
+    }
 };
 
 class IJsonable {
@@ -47,9 +52,6 @@ class IJsonable {
 public:
     inline static const string _anclass_ = "io.odysz.anson.IJsonable";
 
-    // inline static const map<string, hashed_string> enttypes;
-    // inline static const map<string, AnsonAst> asts;
-    // static JsonOpt &contxt;
     inline static JsonOpt* contxt_ptr = nullptr;
 
     /**
@@ -230,11 +232,14 @@ public:
 
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
-    AnsonAst() : isEnum(false), Anson(_type_) { }
+    AnsonAst() : Anson(_type_),
+        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 
-    AnsonAst(string anclass, bool isEnum = false) : isEnum(isEnum), Anson(_type_, anclass) { }
+    AnsonAst(string anclass, bool isEnum = false) : Anson(_type_, anclass),
+        isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 
-    AnsonAst(string anclass, string type) : isEnum(false), Anson(type, anclass) { }
+    AnsonAst(string anclass, string type) : Anson(type, anclass),
+        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -310,7 +315,7 @@ public:
 
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
     if (contxt_ptr->asts->contains(anclass)) {
-        map<string, string> encode = any_cast<AnsonJavaEnumAst>(contxt_ptr->asts->at(anclass)).encode;
+        map<string, string> encode = dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
         if (encode.contains(e)) {
             enm = encode[e];
             return;
@@ -462,10 +467,11 @@ inline static ostream& serialize_fields(ostream &os,
             os << '\"' << fn << R"(": )";
 
             if (opts.asts->contains(f.dataAnclass)) {
-                AnsonAst fd_ast = opts.asts->at(f.dataAnclass);
+                // AnsonAst fd_ast = opts.asts->at(f.dataAnclass);
+                AnsonAst* fd_ast = opts.ast<AnsonAst>(f.dataAnclass);
                 meta_type fd_type = opts.enttypes->at(fn);
 
-                serialize_field(os, anson, fd_ast, fd_type, opts);
+                serialize_field(os, anson, *fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
                 if (!opts.enttypes->contains(anson.anclass)) {
@@ -497,13 +503,13 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
 
     // MARK break point for observe the deserialized (if end_object() call toBlock()
     // Java class can has only on base class
-    AnsonAst ast = opts.asts->at(anson.anclass);
-    if (opts.asts->find(ast.base) != opts.asts->end()) {
-        auto base_fields = opts.asts->at(ast.base).fields;
+    AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
+    if (opts.asts->find(ast->base) != opts.asts->end()) {
+        auto base_fields = opts.asts->at(ast->base)->fields;
         serialize_fields(os, base_fields, anson, opts);
     }
 
-    auto fields = opts.asts->at(anson.anclass).fields;
+    auto fields = opts.asts->at(anson.anclass)->fields;
 
     // if (fields.size() > 0) {
     //     meta_type enttype = opts.types->at(anson.anclass);
@@ -618,8 +624,8 @@ private:
                     return;
                 }
 
-                AnsonAst ast = contxt->asts->at(top.val_astid);
-                if (ast.isJavaEnum) {
+                AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
+                if (ast->isJavaEnum) {
                     // TODO test with a Port instance, not AST
                     auto v = data.type().construct(val);
                     data.set(top.instance, v);
@@ -644,11 +650,28 @@ private:
 public:
     std::deque<ParseNode> stack;
 
-    EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : contxt(opts) {
-        push(obj);
+    /**
+     * Parser for AST loading.
+     * When parsing AST strings, the ast_id can be different to obj.anclass.
+     *
+     * @brief EnTTSaxParser
+     * @param obj
+     * @param ast_id
+     * @param opts
+     */
+    EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts = nullptr) : contxt(opts) {
+        push(obj, ast_id);
         contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
         active_key = 0;
     }
+
+    EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : EnTTSaxParser(obj, obj.anclass, opts) {}
+    // EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : contxt(opts) {
+    //     push(obj, obj.anclass);
+    //     contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
+    //     active_key = 0;
+    // }
+
 
     bool start_object(std::size_t size) override {
         bool k0 = active_key != 0;
@@ -663,7 +686,7 @@ public:
                 andebug(string_view("Starting object, field name: "s + fieldname));
 
                 if (contxt->asts->contains(top.val_astid)) {
-                    AnsonAst ast = contxt->asts->at(top.val_astid);
+                    AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
                     std::string fd_astid;
                     // Notes 26 Mar 2026:
                     // Fields is the definition of an AST, and must be merged back to a being loading AST.
@@ -674,13 +697,13 @@ public:
                         resolving_map2Fields = true;
                     }
 
-                    else if (!ast.fields.contains(fieldname))
+                    else if (!ast->fields.contains(fieldname))
                         anerror(string_view(std::format(
                             "AST {{anclass: {}, datatype: {}}} has no field {}.",
-                            ast.anclass, ast.dataAnclass, fieldname)));
+                            ast->anclass, ast->dataAnclass, fieldname)));
 
                     else
-                        fd_astid = ast.fields.at(fieldname).dataAnclass;
+                        fd_astid = ast->fields.at(fieldname).dataAnclass;
 
                     if (contxt->asts->contains(fd_astid))
                         stack.push_back({.instance = datafield.get(stack.back()),
@@ -697,7 +720,7 @@ public:
 
                 std::string fd_astid;
                 if (contxt->asts->contains(top.val_astid)) {
-                    AnsonAst ast = contxt->asts->at(top.val_astid);
+                    AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
                     fd_astid = top.val_astid;
 
                     meta_type type = resolve(hashed_string{fd_astid.c_str()});
@@ -902,8 +925,12 @@ public:
     /////////////////////////////////////////////////////////////////
     bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
 
-    void push(T &obj) {
-        stack.push_back({.instance = forward_as_meta(obj), .val_astid=obj.anclass, .is_list=false, .is_map=false, .activekey=0});
+    // void push(T &obj) {
+    //     stack.push_back({.instance = forward_as_meta(obj), .val_astid=obj.anclass, .is_list=false, .is_map=false, .activekey=0});
+    // }
+
+    void push(T &obj, std::string astid) {
+        stack.push_back({.instance = forward_as_meta(obj), .val_astid=astid, .is_list=false, .is_map=false, .activekey=0});
     }
 
     void push_list(meta_any ref, id_type active_key) {

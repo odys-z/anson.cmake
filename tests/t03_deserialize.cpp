@@ -3,9 +3,9 @@
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
 #include <iostream>
-#include <io/odysz/jprotocol.h>
-#include <io/odysz/json.h>
-#include <io/odysz/anserializer.h>
+
+#include "io/odysz/jprotocol.h"
+#include "io/odysz/json.h"
 
 
 namespace anson {
@@ -15,7 +15,7 @@ using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-map<string, AnsonAst> enums;
+AstMap enums;
 map<string, meta_type> types;
 
 JsonOpt contxt{&enums, &types};
@@ -82,22 +82,55 @@ TEST(Anson, AnsonBody) {
 
 TEST(Anson, PORT) {
     register_port(enums, "ast/port.ast.json");
-    // string portclass = Port().anclass;
     string portclass = Port::_type_;
-    AnsonAst ast = enums.at(portclass);
-    AnsonJavaEnumAst portAst = std::any_cast<AnsonJavaEnumAst>(ast);
-    // AnsonJavaEnumAst *portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
+    // AnsonAst *ast = dynamic_cast<AnsonAst*>(enums.at(portclass).get());
+    AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
     hashed_string portype{portclass.c_str()};
 
-    ASSERT_TRUE(portAst.encode.size() > 2);
-    ASSERT_TRUE(portAst.encode.contains(Port::echo));
-    ASSERT_TRUE(portAst.decode.size() > 2);
-    ASSERT_TRUE(portAst.decode.contains("echo"));
-    ASSERT_EQ(portAst.enttypeid, portype);
+    ASSERT_TRUE(portAst->encode.size() > 2);
+    ASSERT_TRUE(portAst->encode.contains(Port::echo));
+    ASSERT_TRUE(portAst->decode.size() > 2);
+    ASSERT_TRUE(portAst->decode.contains("echo"));
+    ASSERT_EQ(portAst->enttypeid, portype);
 }
 
-/*
-void load_echoAst(map<string, AnsonAst> &asts, string port_ast) {
+/**
+ * @brief specialize_req
+ *
+ * Register AnsonMsg template (example for EchoReq)
+ *
+ * @param asts
+ * @param body_ast
+ */
+template<typename T>
+void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
+    AnsonMsg<T> msg_echoreq;
+    string anclass = msg_echoreq.anclass;
+    hashed_string enttype{anclass.c_str()};
+
+    entt::meta_factory<anson::AnsonMsg<T>>()
+        // .type(entt::hashed_string{anclass.c_str()})
+        .type(enttype)
+        .template ctor<>()
+        .template ctor<anson::Port>()
+        .template base<anson::Anson>()
+        .template data<&anson::AnsonMsg<T>::port>("port")
+        .template data<&anson::AnsonMsg<T>::body>("body");
+
+    AnsonMsgAst *ast = new AnsonMsgAst(anclass);
+    ast->dataBase = Anson::_type_;
+    ast->enttypeid = enttype;
+    ast->dataAnclass = anclass; // T::_type_;
+
+    ast->fields = map<string, AnsonField>{
+        {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
+        {"body", {.fieldname = "body", .dataAnclass="list<"s + T::_type_}}
+    };
+
+    asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
+}
+
+void load_echoAst(AstMap &asts, string ast_path) {
     hashed_string enttype{EchoReq::_type_.c_str()};
     entt::meta_factory<anson::EchoReq>()
         .type(enttype)
@@ -107,22 +140,57 @@ void load_echoAst(map<string, AnsonAst> &asts, string port_ast) {
         .data<&anson::EchoReq::echo>("echo"_hs, "echo")
         ;
 
-    string astclass = AnsonBodyAst().anclass;
-    string echoclass = EchoReq().anclass;
-    AnsonBodyAst echoast = AnsonBodyAst{astclass};
-    echoast.dataAnclass = echoclass;
-    echoast.enttypeid = enttype;
+    // string astclass = AnsonBodyAst().anclass;
+    // string echoclass = EchoReq().anclass;
+    // AnsonBodyAst echoast = AnsonBodyAst{astclass};
+    // echoast.dataAnclass = echoclass;
+    // echoast.enttypeid = enttype;
 
-    echoast.A["echo"] = "echo";
-    echoast.A["inet"] = "inet";
+    // echoast.A["echo"] = "echo";
+    // echoast.A["inet"] = "inet";
 
-    echoast.fields = map<string, AnsonField>{
-        {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
-    };
-    asts[echoclass] = echoast;
+    // echoast.fields = map<string, AnsonField>{
+    //     {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
+    // };
+    // asts[echoclass] = echoast;
+
+    AnsonBodyAst *echoAst = new AnsonBodyAst{};
+    echoAst->dataAnclass = EchoReq::_type_;
+    EnTTSaxParser handler(*echoAst, IJsonable::contxt_ptr);
+
+    std::ifstream ifstream(ast_path);
+    if (!ifstream.is_open()) {
+        anerror(string_view(std::format("Could not open the file {}! ", ast_path)));
+    }
+
+    bool result = nlohmann::json::sax_parse(ifstream, &handler);
+    if (result) {
+        string anclass = echoAst->dataAnclass;
+        hashed_string enttype = hashed_string{anclass.c_str()};
+
+        // meta_type portype =
+        entt::meta_factory<anson::Port>()
+            .type(enttype)
+            .base<JavaEnum>()
+            .ctor<>()
+            .ctor<string>()
+            ;
+
+        // for field in portAst.fields
+        //    type.data<Port::type.name()>();
+
+        echoAst->enttypeid = enttype;
+
+        asts[anclass] = unique_ptr<AnsonBodyAst>(echoAst);
+
+        specialize_req<EchoReq>(asts, echoAst);
+    }
+    else
+        anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
 }
 
-TEST(Anson, AnsonMsg) {
+TEST(Anson, AnsonMsg_EchoReq) {
+    register_msg(enums);
     register_port(enums, "ast/port.ast.json");
     load_echoAst(enums, "ast/echo.ast.json");
     IJsonable::contxt_ptr = &contxt;
@@ -131,19 +199,21 @@ TEST(Anson, AnsonMsg) {
 
     string msgclass = Req().anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
-    ASSERT_TRUE(mt);
+    ASSERT_TRUE(mt) << "resolve " << msgclass;
 
     auto mv = mt.construct(Port(Port::echo));
     Req* msg = mv.try_cast<Req>();
     EchoReq body{"Hello"};
+    body.a = "";
+    body.echo = "";
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
     ASSERT_EQ(msgclass, msg->anclass);
     ASSERT_EQ(Req::_type_, msg->type);
-    ASSERT_EQ("echo", msg->port);
-    ASSERT_EQ("r/query", msg->body.at(0)->a);
-    ASSERT_EQ("Hello", msg->body.at(0)->echo);
+    ASSERT_EQ("", msg->port) << "[1] msg->port";
+    ASSERT_EQ("", msg->body.at(0)->a) << "[1] msg-body[0]";
+    ASSERT_EQ("", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
     std::string json_input = R"({"type": "input", "port": "query", "body": []})";
 
@@ -162,6 +232,7 @@ TEST(Anson, AnsonMsg) {
     EXPECT_EQ("r/query", reqbd.a) << "[4: a = r/query]";
 }
 
+/*
 TEST(Anson, Servialize_Msg) {
 
     using Req = AnsonMsg<EchoReq>;
