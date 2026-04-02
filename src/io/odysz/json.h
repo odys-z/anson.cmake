@@ -83,8 +83,8 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<Anson>()
         .ctor<>()
-        .ctor<string, bool>()
-        .ctor<string, string>()
+        .ctor<std::string, bool>()
+        .ctor<std::string, std::string>()
         .data<&anson::AnsonAst::isInt>("isInt"_hs, "isInt")
         .data<&anson::AnsonAst::isDouble>("isDouble"_hs, "isDouble")
         .data<&anson::AnsonAst::isEnum>("isEnum"_hs, "isEnum")
@@ -102,7 +102,7 @@ inline static void register_asts(AstMap &asts) {
     anclass = AnsonAst().anclass;
     ast = new AnsonAst{anclass};
     ast->dataAnclass = anclass;
-    ast->fields = map<string, AnsonField>{
+    ast->fields = map<std::string, AnsonField>{
         {"isList", {.fieldname="isList", .dataAnclass="boolean"}},
         {"isJavaEnum", {.fieldname="isJavaEnum", .dataAnclass="boolean"}},
         {"dataAnclass", {.fieldname="dataAnclass", .dataAnclass="String"}},
@@ -290,7 +290,7 @@ inline static void register_port(AstMap &asts, string port_ast) {
             .type(enttype)
             .base<JavaEnum>()
             .ctor<>()
-            .ctor<string>()
+            .ctor<std::string>()
             ;
 
         // for field in portAst.fields

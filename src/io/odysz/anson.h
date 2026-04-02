@@ -41,7 +41,12 @@ public:
 
     template<typename T>
     T* ast(string astid) const {
-        return dynamic_cast<T*>(asts->at(astid).get());
+        // return dynamic_cast<T*>(asts->at(astid).get());
+        auto it = asts->find(astid);
+        if (it != asts->end()) {
+            return dynamic_cast<T*>(it->second.get());
+        }
+        return nullptr;
     }
 };
 
@@ -318,6 +323,7 @@ inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsona
         }
     }
     enm = e;
+    andebug(string_view("JavaEnum: "s + enm));
 }
 
 inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type key) {
@@ -564,6 +570,13 @@ private:
 
     id_type active_key{0};
 
+
+    AnsonAst* find_field_ast(const AnsonAst *inst_ast, const std::string &fieldname) {
+        if (inst_ast->fields.contains(fieldname))
+            return contxt->ast<AnsonAst>(inst_ast->fields.at(fieldname).dataAnclass);
+        else return nullptr;
+    }
+
     template<typename V>
     void set_value(V&& val) {
         if (stack.empty()){
@@ -616,10 +629,42 @@ private:
                 }
 
                 AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
-                if (ast->isJavaEnum) {
-                    // TODO test with a Port instance, not AST
-                    auto v = data.type().construct(val);
-                    data.set(top.instance, v);
+                AnsonAst *fd_ast = find_field_ast(ast, data.name());
+
+                if (fd_ast != nullptr) {
+                    if (fd_ast->isJavaEnum) {
+                        // auto v = data.type().construct(val);
+                        std::ostringstream oss;
+                        oss << std::boolalpha << val; // boolalpha turns 1/0 into true/false
+                        std::string s = oss.str();
+                        andebug(s);
+
+                        meta_type dt = data.type();
+
+
+                        // auto v = dt.construct(std::string{std::forward<V>(val)});
+                        std::string string_val;
+
+                        if constexpr (std::is_same_v<std::decay_t<V>, std::string>) {
+                            string_val = std::forward<V>(val);
+                        } else if constexpr (std::is_same_v<std::decay_t<V>, bool>) {
+                            string_val = val ? "true" : "false";
+                        } else {
+                            // This handles ints, floats, etc., safely
+                            string_val = std::to_string(val);
+                        }
+                        auto v = data.type().construct(forward_as_meta(string_val));
+
+
+
+                        JavaEnum *je = v.template try_cast<JavaEnum>();
+                        bool res = data.set(top.instance, v);
+                        return;
+                    }
+                    if (fd_ast->isEnum) { // TODO
+                        anerror(string_view("TODO: "s + fd_ast->dataAnclass));
+                        return;
+                    }
                 }
                 else {
                     bool res = data.set(top.instance, std::forward<V>(val));

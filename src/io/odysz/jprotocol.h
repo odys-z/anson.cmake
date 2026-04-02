@@ -71,7 +71,7 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    Port(): JavaEnum(_type_, "") {}
+    Port(): JavaEnum(_type_, "na") {}
     Port(string enum_val) : JavaEnum(_type_, enum_val) { }
 };
 
