@@ -774,23 +774,8 @@ public:
                 if (data) {
                     if (!stack.back().resolve_map2fields)
                         data.set(stack.back().instance, top.instance);
-                    else {
+                    else
                         anerror(string_view("Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map)."));
-                        // // top.fields is a map<string, map<string, string
-                        // meta_type anfieldtype = entt::resolve<AnsonField>();
-                        // map<std::string, AnsonField> anfields;
-                        // for (auto [fn, f] : top.shadow_fields) {
-                        //     map<std::string, std::string> fieldprops = any_cast<map<std::string, std::string>>(f);
-                        //     AnsonField field{};
-                        //     for (auto [k, v] : fieldprops) {
-                        //         id_type p = hashed_string{k.c_str()};
-                        //         auto fd = anfieldtype.data(p);
-                        //         fd.set(field, v);
-                        //     }
-                        //     anfields[fn] = field;
-                        // }
-                        // data.set(stack.back().instance, anfields);
-                    }
                 }
                 else if (stack.back().is_map) {
                     meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
@@ -853,21 +838,17 @@ public:
     bool start_array(std::size_t) override {
 
         Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(string_view(std::format("start0 addr: {:P}", (void*)stack_ptr)));
+        andebug(string_view(std::format("start (0) addr: {:P}", (void*)stack_ptr)));
 
         if (active_key != 0 && !stack.empty()) {
-            // auto data = stack.back().instance.type().data(active_key);
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
                 andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, data.name())));
-                // auto sequence_instance = data.get(stack.back().instance);
-                // push_list(sequence_instance.as_ref(), active_key);
 
                 push_list(stack.back().instance, active_key);
 
                 stack_ptr = stack.front().instance.try_cast<Anson>();
-                andebug(string_view(std::format("start1 addr: {:P}", (void*)stack_ptr)));
-                // active_key = 0;
+                andebug(string_view(std::format("start (1) addr: {:P}", (void*)stack_ptr)));
             }
         }
         stack_ptr = stack.front().instance.try_cast<Anson>();
@@ -896,14 +877,6 @@ public:
 
                     Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
                     andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
-
-                    // if (vector<std::string>* vec = finished_list.try_cast<std::vector<std::string>>()) {
-                    //     andebug(string_view(std::format("end_array(): Cast success. List size: {}", vec->size())));
-                    //     if (vec->size() > 0) andebug(string_view(vec->at(0)));
-                    // }
-                    // else
-                    //     anwarn(string_view("end_array(): finished_list is NOT a vector<string>. Check registration."));
-                    // bool res = data.set(stack.back().instance, finished_list);
 
                     if (res) {
                         andebug(string_view(std::format("The reference of this list is found. Copied? field: {}, key-id: {}",

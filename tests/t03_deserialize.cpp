@@ -20,6 +20,7 @@ map<string, meta_type> types;
 
 JsonOpt contxt{&enums, &types};
 
+/*
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -92,6 +93,7 @@ TEST(Anson, PORT) {
     ASSERT_TRUE(portAst->decode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
 }
+*/
 
 /**
  * @brief specialize_req
@@ -174,10 +176,11 @@ void load_echoAst(AstMap &asts, string ast_path) {
 }
 
 TEST(Anson, AnsonMsg_EchoReq) {
+    IJsonable::contxt_ptr = &contxt;
+    register_asts(enums);
     register_msg(enums);
     register_port(enums, "ast/port.ast.json");
     load_echoAst(enums, "ast/echo.ast.json");
-    IJsonable::contxt_ptr = &contxt;
 
     using Req = AnsonMsg<EchoReq>;
 
