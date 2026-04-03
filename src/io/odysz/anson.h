@@ -108,13 +108,13 @@ public:
     JavaEnum& operator=(const JavaEnum&) = default;
     JavaEnum& operator=(JavaEnum&&) noexcept = default;
 
-    static string url(string enm) {
+    string url() {
         return enm;
     }
 
-    static JavaEnum& valof(string s, JavaEnum& stub) {
-        return stub;
-    }
+    // static JavaEnum& valof(string s, JavaEnum& stub) {
+    //     return stub;
+    // }
 
     IJsonable* toBlock(ostream& stream, const JsonOpt& opts) override {
         stream << this;
