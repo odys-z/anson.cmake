@@ -220,7 +220,7 @@ public:
     bool isJavaEnum = false;
     string base = "io.odysz.anson.Anson";
 
-    string dataBase;
+    string dataBaseAst;
     /** The target's anson type or data type, e.g. string */
     string dataAnclass;
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
@@ -317,12 +317,11 @@ public:
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
     if (contxt_ptr->asts->contains(anclass)) {
         map<string, string> encode = dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
-        if (encode.contains(e)) {
-            enm = encode[e];
+        if (encode.contains(enm)) {
+            enm = encode[enm];
             return;
         }
     }
-    enm = e;
     andebug(string_view("JavaEnum: "s + enm));
 }
 
@@ -495,8 +494,8 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
     // Java class can has only on base class
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     AnsonMsgAst *msgast = opts.ast<AnsonMsgAst>(anson.anclass);
-    if (opts.asts->find(ast->dataBase) != opts.asts->end()) {
-        auto base_fields = opts.asts->at(ast->dataBase)->fields;
+    if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
+        auto base_fields = opts.asts->at(ast->dataBaseAst)->fields;
         serialize_fields(os, base_fields, anson, opts);
     }
 
@@ -555,8 +554,6 @@ struct ParseNode {
     bool resolve_map2fields = false;
 
     // map<string, string> shadow_fields;
-
-    // a9ea7d6 vector<std::any> shadow_list;
     // vector<string> shadow_list;
 
     id_type activekey = 0;
@@ -574,7 +571,10 @@ private:
     AnsonAst* find_field_ast(const AnsonAst *inst_ast, const std::string &fieldname) {
         if (inst_ast->fields.contains(fieldname))
             return contxt->ast<AnsonAst>(inst_ast->fields.at(fieldname).dataAnclass);
-        else return nullptr;
+        else if (AnsonAst *base_ast = contxt->ast<AnsonAst>(inst_ast->dataBaseAst); base_ast)
+            return find_field_ast(base_ast, fieldname);
+
+        return nullptr;
     }
 
     template<typename V>
@@ -633,13 +633,13 @@ private:
 
                 if (fd_ast != nullptr) {
                     if (fd_ast->isJavaEnum) {
-                        // auto v = data.type().construct(val);
-                        std::ostringstream oss;
-                        oss << std::boolalpha << val; // boolalpha turns 1/0 into true/false
-                        std::string s = oss.str();
-                        andebug(s);
+                        // // auto v = data.type().construct(val);
+                        // std::ostringstream oss;
+                        // oss << std::boolalpha << val; // boolalpha turns 1/0 into true/false
+                        // std::string s = oss.str();
+                        // andebug(string_view(s));
 
-                        meta_type dt = data.type();
+                        // meta_type dt = data.type();
 
 
                         // auto v = dt.construct(std::string{std::forward<V>(val)});
@@ -653,8 +653,9 @@ private:
                             // This handles ints, floats, etc., safely
                             string_val = std::to_string(val);
                         }
-                        auto v = data.type().construct(forward_as_meta(string_val));
-
+                        // andebug(string_view(string_val));
+                        // auto v = data.type().construct(forward_as_meta(string_val));
+                        auto v = data.type().construct(string_val);
 
 
                         JavaEnum *je = v.template try_cast<JavaEnum>();
@@ -746,7 +747,7 @@ public:
             } else if (top.is_map) {
                 // e.g. val_type = AnsonField in a Map, the top.instance. String in map won't reach here, starting obj.
                 std::string fieldname = top.map_key;
-                andebug(string_view(std::format("Starting object, field key: {}", active_key)));
+                andebug(string_view(std::format("Starting object in map, field key: {}", active_key)));
 
                 std::string fd_astid;
                 if (contxt->asts->contains(top.val_astid)) {
@@ -766,6 +767,31 @@ public:
                         anerror(string_view("Cannot start an object in a map with ast id:"s + fd_astid));
                     }
                 }
+            } else if (top.is_list) {
+                std::string fieldname = top.map_key;
+                andebug(string_view(std::format("Starting object in list, field key: {}: {}", active_key, fieldname)));
+
+                if (contxt->asts->contains(top.val_astid)) {
+                    AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
+
+                    std::string fd_astid;
+                    fd_astid = top.val_astid;
+                    meta_type type = resolve(hashed_string{fd_astid.c_str()});
+                    if (type) {
+                        meta_any inst = type.construct();
+                        if (contxt->asts->contains(fd_astid))
+                            stack.push_back({.instance = inst, .val_astid=fd_astid, .activekey=active_key});
+                        else
+                            push_map(inst, active_key, fd_astid, false);
+                    }
+                    else {
+                        anerror(string_view("Primative types can not be here?"));
+                        anerror(string_view("Cannot start an object in a list with ast id:"s + fd_astid));
+                    }
+                }
+                else
+                    anerror(string_view("Cannot find ast "s + top.val_astid));
+
             } else {
                 anerror(string_view(std::format(
                     "Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
@@ -867,29 +893,31 @@ public:
     bool binary(binary_t&) override { return true; }
     bool start_array(std::size_t) override {
 
-        // Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        // andebug(string_view(std::format("start (0) addr: {:P}", (void*)stack_ptr)));
         andebug(string_view(std::format("start (0) addr: {:P}",
                 (void*)stack.front().instance.try_cast<Anson>())));
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
-                andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, data.name())));
+                std::string fieldname = data.name();
+                andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, fieldname)));
 
-                // push_list(stack.back().instance, active_key);
+                std::string val_astid;
+                AnsonAst *ast = contxt->ast<AnsonAst>(stack.back().val_astid);
+                if (!ast->fields.contains(fieldname))
+                    anerror(string_view(std::format(
+                        "AST {{anclass: {}, datatype: {}}} has no field {}.",
+                        ast->anclass, ast->dataAnclass, fieldname)));
+                else
+                    val_astid = ast->fields.at(fieldname).dataAnclass;
+
                 meta_any list = data.get(stack.back().instance);
-                push_list(list, active_key);
-
-                // stack_ptr = stack.front().instance.try_cast<Anson>();
-                // andebug(string_view(std::format("start (1) addr: {:P}", (void*)stack_ptr)));
+                push_list(list, active_key, val_astid);
 
                 andebug(string_view(std::format("start (1) addr: {:P}",
                         (void*)stack.front().instance.try_cast<Anson>())));
             }
         }
-        // stack_ptr = stack.front().instance.try_cast<Anson>();
-
         return true;
     }
 
@@ -911,9 +939,9 @@ public:
                 if (data) {
                     // andebug(string_view(std::format("Setting back list {} : {}, size: {}", data.name(), key_to_update, finished_list.size())));
                     andebug(string_view(std::format(
-                        "Setting back list {} : {}, size: {}",
+                        "Setting back list {} : {}, size: {:#x}",
                         data.name(), key_to_update,
-                        (forward_as_meta(finished_list).as_sequence_container()) ? forward_as_meta(finished_list).as_sequence_container().size() : -1)));
+                        finished_list.as_sequence_container() ? finished_list.as_sequence_container().size() : -1)));
                     bool res = data.set(stack.back().instance, finished_list);
 
                     Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
@@ -942,8 +970,11 @@ public:
         stack.push_back({.instance = forward_as_meta(obj), .val_astid=astid, .is_list=false, .is_map=false, .activekey=0});
     }
 
-    void push_list(meta_any ref, id_type active_key) {
-        stack.push_back({.instance = ref, .val_astid="string", .is_list=true, .is_map=false, .activekey=active_key});
+    void push_list(meta_any ref, id_type active_key, std::string list_type) {
+        std::string val_anclass = Regex::parseListValtype(list_type);
+        andebug(string_view("List value data class: "s + val_anclass));
+
+        stack.push_back({.instance = ref, .val_astid=val_anclass, .is_list=true, .is_map=false, .activekey=active_key});
     }
 
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {

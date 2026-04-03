@@ -2,6 +2,7 @@
   "base": "io.odysz.anson.Anson",
   "A": {"echo":  "echo", "inet":  "inet"},
   "dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
+  "dataBaseAst": "io.odysz.semantic.jprotocol.AnsonBodyAst",
   "fields" : {
     "echo": {"dataAnclass": "java.lang.String"}
   }

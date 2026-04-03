@@ -85,18 +85,18 @@ inline static void register_asts(AstMap &asts) {
         .ctor<>()
         .ctor<std::string, bool>()
         .ctor<std::string, std::string>()
-        .data<&anson::AnsonAst::isInt>("isInt"_hs, "isInt")
-        .data<&anson::AnsonAst::isDouble>("isDouble"_hs, "isDouble")
-        .data<&anson::AnsonAst::isEnum>("isEnum"_hs, "isEnum")
-        .data<&anson::AnsonAst::isList>("isList"_hs, "isList")
-        .data<&anson::AnsonAst::isMap>("isMap"_hs, "isMap")
-        .data<&anson::AnsonAst::istring>("istring"_hs, "istring")
-        .data<&anson::AnsonAst::isJsonable>("isJsonable"_hs, "isJsonable")
-        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum"_hs, "isJavaEnum")
-        .data<&anson::AnsonAst::enttypeid>("enttypeid"_hs, "enttypeid")
-        .data<&anson::AnsonAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-        .data<&anson::AnsonAst::fields>("fields"_hs, "fields")
-        .data<&anson::AnsonAst::enums>("enums"_hs, "enums")
+        .data<&anson::AnsonAst::isInt>("isInt")
+        .data<&anson::AnsonAst::isDouble>("isDouble")
+        .data<&anson::AnsonAst::isEnum>("isEnum")
+        .data<&anson::AnsonAst::isList>("isList")
+        .data<&anson::AnsonAst::isMap>("isMap")
+        .data<&anson::AnsonAst::istring>("istring")
+        .data<&anson::AnsonAst::isJsonable>("isJsonable")
+        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum")
+        .data<&anson::AnsonAst::enttypeid>("enttypeid")
+        .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonAst::fields>("fields")
+        .data<&anson::AnsonAst::enums>("enums")
         ;
 
     anclass = AnsonAst().anclass;
@@ -119,10 +119,10 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
-        .data<&anson::AnsonJavaEnumAst::dataBase>("dataBase"_hs, "dataBase")
-        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-        .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
-        .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
+        .data<&anson::AnsonJavaEnumAst::dataBaseAst>("dataBaseAst")
+        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonJavaEnumAst::encode>("encode")
+        .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
 
     AnsonJavaEnumAst *jeast = new AnsonJavaEnumAst(AnsonJavaEnumAst::_type_);
@@ -156,7 +156,6 @@ inline static void register_asts(AstMap &asts) {
         {"uri", {.fieldname="uri", .dataAnclass = "string"}},
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     };
-    // asts[anclass] = unique_ptr<AnsonBodyAst>(&bdast);
     asts.insert(make_pair(anclass, bdast));
 
     //
@@ -165,10 +164,10 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
-        .data<&anson::AnsonMsgAst::bodyAnclass>("bodyAnclass"_hs, "bodyAnclass")
-        .data<&anson::AnsonMsgAst::bodyAst>("bodyAst"_hs, "bodyAst")
-        .data<&anson::AnsonMsgAst::portAnclass>("portAnclass"_hs, "portAnclass")
-        .data<&anson::AnsonMsgAst::portAst>("portAst"_hs, "portAst")
+        .data<&anson::AnsonMsgAst::bodyAnclass>("bodyAnclass")
+        .data<&anson::AnsonMsgAst::bodyAst>("bodyAst")
+        .data<&anson::AnsonMsgAst::portAnclass>("portAnclass")
+        .data<&anson::AnsonMsgAst::portAst>("portAst")
         ;
 
     anclass = AnsonMsgAst().anclass;
@@ -299,9 +298,38 @@ inline static void register_port(AstMap &asts, string port_ast) {
         portAst->enttypeid = enttype;
 
         asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
-        // asts.insert(make_pair(anclass, portAst));
     }
     else
         anerror(string_view(std::format("Could not load AST from {}!", port_ast)));
 }
+
+
+template<typename T>
+inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
+    AnsonMsg<T> msg_echoreq;
+    string anclass = msg_echoreq.anclass;
+    hashed_string enttype{anclass.c_str()};
+
+    entt::meta_factory<anson::AnsonMsg<T>>()
+        .type(enttype)
+        .template ctor<>()
+        .template ctor<anson::Port>()
+        .template base<anson::Anson>()
+        .template data<&anson::AnsonMsg<T>::port>("port")
+        .template data<&anson::AnsonMsg<T>::body>("body");
+
+    AnsonMsgAst *ast = new AnsonMsgAst(anclass);
+    ast->dataBaseAst = AnsonAst::_type_;
+    ast->enttypeid = enttype;
+    ast->dataAnclass = anclass;
+
+    ast->fields = map<string, AnsonField>{
+        {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
+        {"body", {.fieldname = "body", .dataAnclass="list<"s + T::_type_}}
+    };
+
+    // asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
+    asts.insert(make_pair(anclass, ast));
+}
+
 }

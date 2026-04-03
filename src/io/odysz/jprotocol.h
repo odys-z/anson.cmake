@@ -24,7 +24,7 @@ class AnResultset : public Anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    virtual string _type_special(string msgtype) { return msgtype + "<AnsonBody>"; }
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
     string a;
 
@@ -37,8 +37,8 @@ public:
 
 class EchoReq: public AnsonBody {
 public:
-    inline static const std::string _type_ = "io.odysz.jprotocol.EchoReq";
-    string _type_special(string msgtype) { return msgtype + "<EchoReq>"; }
+    inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
+    string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
     string echo;
 
@@ -49,7 +49,7 @@ public:
 
 class UserReq : public AnsonBody {
 public:
-    inline static const string _type_ = "io.odysz.jprotocol.UserReq";
+    inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
     map<string, entt::any> data;
     UserReq() : UserReq("null") {}
     UserReq(string a) : AnsonBody(a, _type_) {}
@@ -71,8 +71,13 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    Port(): JavaEnum(_type_, "na") {}
-    Port(string enum_val) : JavaEnum(_type_, enum_val) { }
+    Port(): JavaEnum(_type_, "na") {
+        andebug(string_view("Port Default Cosntructor"));
+    }
+
+    Port(string enum_val) : JavaEnum(_type_, enum_val) {
+        andebug(string_view("Port Cosntructor<string>("s + enum_val + ").enm = " + enm));
+    }
 };
 
 inline bool operator==(const Port& p, const Port& q) {

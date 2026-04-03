@@ -155,7 +155,7 @@ TEST(Load, AnsonAst_Port) {
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
     ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
-    ASSERT_EQ(JavaEnum::_type_, portAst.dataBase) << "portAst.dataBase";
+    ASSERT_EQ("", portAst.dataBaseAst) << "portAst.dataBaseAst";
 
     string port_anclass = Port().anclass;
     andebug(string_view(port_anclass));
@@ -166,13 +166,15 @@ TEST(Load, AnsonAst_Port) {
               {"echo", "echo.less"},
               {"del", "d.serv"},
               {"heartbeat", "ping.serv"},
-              }), portAst.decode) << "echoAst.decode";
+              {"query", "r.serv"}
+              }), portAst.encode) << "echoAst.encode";
 
     ASSERT_EQ((map<string, string>{
               {"echo.less", "echo"},
               {"d.serv", "del"},
               {"ping.serv", "heartbeat"},
-              }), portAst.encode) << "echoAst.encode";
+              {"r.serv", "query"}
+              }), portAst.decode) << "echoAst.decode";
 }
 
 TEST(Load, EchoReq) {
