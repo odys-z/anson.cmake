@@ -11,53 +11,12 @@
 using json = nlohmann::json;
 using namespace anson;
 
-/*
-template<typename T>
-void load_json(const std::string& raw_json, T& out_obj) {
-    EnTTSaxParser handler(out_obj);
-
-    // Wrap our existing C++ instance so the parser can fill it
-    // handler.set_top(entt::forward_as_meta(out_obj));
-    handler.set_top(out_obj);
-
-    // Execute SAX parse
-    if (nlohmann::json::sax_parse(raw_json, &handler)) {
-        // Success: out_obj is now populated
-    }
-}
-
-void register_echo(AstMap &asts) {
-    //
-    string anclass{EchoReq().anclass};
-    hashed_string enttype{anclass.c_str()};
-    entt::meta_factory<anson::EchoReq>()
-        .type(enttype)
-        .base<AnsonBody>()
-        .ctor<>()
-        .ctor<const std::string&>()
-        .data<&anson::EchoReq::echo>("echo")
-        ;
-
-    AnsonBodyAst *ast = new AnsonBodyAst{anclass};
-    ast->enttypeid = enttype;
-    ast->base = AnsonBody::_type_;
-    ast->dataAnclass = anclass;
-
-    ast->fields = map<string, AnsonField>{
-        {"echo", {.fieldname="echo", .dataAnclass="string"}},
-    };
-
-    asts[anclass] = unique_ptr<AnsonBodyAst>(ast);
-}
-*/
-
 TEST(ENTT_META, JSON_REGISTRY) {
     AstMap asts;
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    // register_echo(asts);
     load_echoAst(asts, "ast/echo.ast.json");
 
     JsonOpt jsonopts{&asts};

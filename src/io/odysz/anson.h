@@ -41,7 +41,6 @@ public:
 
     template<typename T>
     T* ast(string astid) const {
-        // return dynamic_cast<T*>(asts->at(astid).get());
         auto it = asts->find(astid);
         if (it != asts->end()) {
             return dynamic_cast<T*>(it->second.get());

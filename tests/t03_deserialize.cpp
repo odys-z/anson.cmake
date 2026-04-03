@@ -20,7 +20,6 @@ map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
 
-/*
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -88,95 +87,12 @@ TEST(Anson, PORT) {
     hashed_string portype{portclass.c_str()};
 
     ASSERT_TRUE(portAst->encode.size() > 2);
-    ASSERT_TRUE(portAst->encode.contains(Port::echo));
+    ASSERT_TRUE(portAst->decode.contains(Port::echo));
+    ASSERT_TRUE(Port(Port::echo) == "echo");
     ASSERT_TRUE(portAst->decode.size() > 2);
-    ASSERT_TRUE(portAst->decode.contains("echo"));
+    ASSERT_TRUE(portAst->encode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
 }
-*/
-
-/**
- * @brief specialize_req
- *
- * Register AnsonMsg template (example for EchoReq)
- *
- * @param asts
- * @param body_ast
-template<typename T>
-void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
-    AnsonMsg<T> msg_echoreq;
-    string anclass = msg_echoreq.anclass;
-    hashed_string enttype{anclass.c_str()};
-
-    entt::meta_factory<anson::AnsonMsg<T>>()
-        .type(enttype)
-        .template ctor<>()
-        .template ctor<anson::Port>()
-        .template base<anson::Anson>()
-        .template data<&anson::AnsonMsg<T>::port>("port")
-        .template data<&anson::AnsonMsg<T>::body>("body");
-
-    AnsonMsgAst *ast = new AnsonMsgAst(anclass);
-    ast->dataBaseAst = AnsonAst::_type_;
-    ast->enttypeid = enttype;
-    ast->dataAnclass = anclass;
-
-    ast->fields = map<string, AnsonField>{
-        {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
-        {"body", {.fieldname = "body", .dataAnclass="list<"s + T::_type_}}
-    };
-
-    // asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
-    asts.insert(make_pair(anclass, ast));
-}
-
-void load_echoAst(AstMap &asts, string ast_path) {
-    hashed_string enttype{EchoReq::_type_.c_str()};
-    entt::meta_factory<anson::EchoReq>()
-        .type(enttype)
-        .base<AnsonBody>()
-        .ctor<>()
-        .ctor<string>()
-        .data<&anson::EchoReq::echo>("echo"_hs, "echo")
-        ;
-
-    AnsonBodyAst *echoAst = new AnsonBodyAst{};
-    echoAst->dataAnclass = EchoReq::_type_;
-    EnTTSaxParser handler(*echoAst, IJsonable::contxt_ptr);
-
-    std::ifstream ifstream(ast_path);
-    if (!ifstream.is_open()) {
-        anerror(string_view(std::format("Could not open the file {}! ", ast_path)));
-    }
-
-    bool result = nlohmann::json::sax_parse(ifstream, &handler);
-    if (result) {
-        string anclass = echoAst->dataAnclass;
-        hashed_string enttype = hashed_string{anclass.c_str()};
-
-        // meta_type portype =
-        entt::meta_factory<anson::EchoReq>()
-            .type(enttype)
-            .base<AnsonBody>()
-            .ctor<>()
-            .ctor<string>()
-            // .data<&EchoReq::a>("a")
-            .data<&EchoReq::echo>("echo")
-            ;
-
-        // for field in portAst.fields
-        //    type.data<field.name().for_class>();
-
-        echoAst->enttypeid = enttype;
-
-        asts[anclass] = unique_ptr<AnsonBodyAst>(echoAst);
-
-        specialize_req<EchoReq>(asts, echoAst);
-    }
-    else
-        anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
-}
- */
 
 TEST(Anson, AnsonMsg_EchoReq) {
     IJsonable::contxt_ptr = &contxt;

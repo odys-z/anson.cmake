@@ -80,35 +80,39 @@ public:
     }
 };
 
-inline bool operator==(const Port& p, const Port& q) {
+inline bool operator==(const Port& p, const JavaEnum& q) {
     return p.enm == q.enm;
 }
 
-inline bool operator==(const anson::Port& p, const std::string& s) {
-    return p.enm == s;
+inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
+    if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
+        AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
+        return p.enm == ast->encode[s];
+    }
+    return false;
 }
 
-inline bool operator==(const std::string& s, const anson::Port& p) {
+inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
     // return p == from_enum_string<Port>(s);
     return p == s;
 }
 
-template<typename E>
-std::optional<E> from_enum_string(const std::string& s) {
-    using namespace entt::literals;
-    auto type = entt::resolve<E>();
+// template<typename E>
+// std::optional<E> from_enum_string(const std::string& s) {
+//     using namespace entt::literals;
+//     auto type = entt::resolve<E>();
 
-    if (type) {
-        for (auto [id, data] : type.data()) {
-            if (auto prop = data.name()) {
-                if (prop == s) {
-                    return data.get({}).template cast<E>();
-                }
-            }
-        }
-    }
-    return std::nullopt;
-}
+//     if (type) {
+//         for (auto [id, data] : type.data()) {
+//             if (auto prop = data.name()) {
+//                 if (prop == s) {
+//                     return data.get({}).template cast<E>();
+//                 }
+//             }
+//         }
+//     }
+//     return std::nullopt;
+// }
 
 enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext };
 
