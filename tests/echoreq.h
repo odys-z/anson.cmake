@@ -9,7 +9,7 @@ namespace anson{
 inline static void load_echoAst(AstMap &asts, string ast_path) {
     hashed_string enttype{EchoReq::_type_.c_str()};
     entt::meta_factory<anson::EchoReq>()
-        .type(enttype)
+        .type(EchoReq::_type_.c_str())
         .base<AnsonBody>()
         .ctor<>()
         .ctor<string>()
@@ -44,7 +44,7 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
         //    type.data<field.name().for_class>();
 
         echoAst->enttypeid = enttype;
-
+        echoAst->dataBaseAst = AnsonBodyAst::_type_;
         asts[anclass] = unique_ptr<AnsonBodyAst>(echoAst);
 
         specialize_req<EchoReq>(asts, echoAst);

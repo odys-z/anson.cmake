@@ -579,22 +579,22 @@ private:
     template<typename V>
     void set_value(V&& val) {
         if (stack.empty()){
-            anerror("setting val to empty object");
+            anerror("set_value(): setting val to empty object");
             return;
         }
 
         auto& top = stack.back();
 
         if (top.is_list) {
-            andebug(string_view(std::format("setting string in list: {}", top.map_key)));
+            andebug(string_view(std::format("set_value(): setting string in list: {}", top.map_key)));
             // auto view = forward_as_meta(top.shadow_list).as_sequence_container();
             auto view = top.instance.as_sequence_container();
             if (view) {
                 view.insert(view.end(), std::forward<V>(val));
-                andebug(string_view("List size: " + std::to_string(view.size())));
+                andebug(string_view("set_value(): List size: " + std::to_string(view.size())));
             }
             else
-                anerror(string_view(std::format("Failed to set list value: {}", val)));
+                anerror(string_view(std::format("set_value(): Failed to set list value: {}", val)));
             // top.shadow_list.push_back(std::any_cast<string_t&>(val));
             return;
         }// not the branch of is_map?
@@ -603,7 +603,7 @@ private:
 
             if (contxt->primtypes.contains(top.val_astid)) {
                 if (!top.is_map)
-                    anerror(string_view("Why here\n\n??????????\n\n"));
+                    anerror(string_view("set_value(): Why here\n\n??????????\n\n"));
 
                 andebug(string_view("set_value(): set to supposed map"));
                 auto view = top.instance.as_associative_container();
@@ -611,16 +611,17 @@ private:
                     view.insert(top.map_key, std::forward<V>(val));
                 }
                 else
-                    anerror(string_view("Why cannot set value to map?"));
+                    anerror(string_view("set_value(): Why cannot set value to map?"));
 
-                andebug(string_view("Map size after insert: " + std::to_string(view.size())));
+                andebug(string_view("set_value(): Map size after insert: " + std::to_string(view.size())));
                 return;
             }
 
             auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
+                std::string fieldname = data.name();
                 andebug(string_view(std::format("set_value(): setting {}, active_key: {}",
-                                data.name(), active_key)));
+                                fieldname, active_key)));
 
                 if (!contxt->asts->contains(top.val_astid)) {
                     anerror(string_view("set_value(): Cannot find AST "s + top.val_astid));
@@ -628,7 +629,7 @@ private:
                 }
 
                 AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
-                AnsonAst *fd_ast = find_field_ast(ast, data.name());
+                AnsonAst *fd_ast = find_field_ast(ast, fieldname);
 
                 if (fd_ast != nullptr) {
                     if (fd_ast->isJavaEnum) {
@@ -669,7 +670,7 @@ private:
                 else {
                     bool res = data.set(top.instance, std::forward<V>(val));
                     if (!res)
-                        anerror(string_view("failed to set"s + data.name()));
+                        anerror(string_view("set_value(): failed to set"s + fieldname));
 
                     // auto* ptr = stack.front().instance.try_cast<anson::PeerSettings>();
                     // andebug(string_view(std::format("Modifying object at address: {}", (void*)ptr)));
@@ -678,7 +679,7 @@ private:
             else {
                 // Debug Notes: to avoid error: SEH exception, don't call top.instance.type().name()
                 anerror(string_view(std::format(
-                    "Cannot find field by key-id: {}", active_key)));
+                    "set_value(): Cannot find field by key-id: {}", active_key)));
             }
         }
     }
@@ -713,7 +714,7 @@ public:
             auto datafield = find_field_recursive(type, active_key);
             if (datafield) {
                 std::string fieldname = datafield.name();
-                andebug(string_view("Starting object, field name: "s + fieldname));
+                andebug(string_view("start_obj(): Starting object, field name: "s + fieldname));
 
                 if (contxt->asts->contains(top.val_astid)) {
                     AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
@@ -729,7 +730,7 @@ public:
 
                     else if (!ast->fields.contains(fieldname))
                         anerror(string_view(std::format(
-                            "AST {{anclass: {}, datatype: {}}} has no field {}.",
+                            "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
                             ast->anclass, ast->dataAnclass, fieldname)));
 
                     else
@@ -746,7 +747,7 @@ public:
             } else if (top.is_map) {
                 // e.g. val_type = AnsonField in a Map, the top.instance. String in map won't reach here, starting obj.
                 std::string fieldname = top.map_key;
-                andebug(string_view(std::format("Starting object in map, field key: {}", active_key)));
+                andebug(string_view(std::format("start_obj(): Starting object in map, field key: {}", active_key)));
 
                 std::string fd_astid;
                 if (contxt->asts->contains(top.val_astid)) {
@@ -762,13 +763,13 @@ public:
                             push_map(inst, active_key, fd_astid, false);
                     }
                     else {
-                        anerror(string_view("Primative types can not be here?"));
-                        anerror(string_view("Cannot start an object in a map with ast id:"s + fd_astid));
+                        anerror(string_view("start_obj(): Primative types can not be here?"));
+                        anerror(string_view("start_obj(): Cannot start an object in a map with ast id:"s + fd_astid));
                     }
                 }
             } else if (top.is_list) {
-                std::string fieldname = top.map_key;
-                andebug(string_view(std::format("Starting object in list, field key: {}: {}", active_key, fieldname)));
+                // top.map_key should be empty;
+                andebug(string_view(std::format("start_obj(): Starting object in list, field key: {}", active_key)));
 
                 if (contxt->asts->contains(top.val_astid)) {
                     AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
@@ -784,16 +785,16 @@ public:
                             push_map(inst, active_key, fd_astid, false);
                     }
                     else {
-                        anerror(string_view("Primative types can not be here?"));
-                        anerror(string_view("Cannot start an object in a list with ast id:"s + fd_astid));
+                        anerror(string_view("start_obj(): Primative types can not be here?"));
+                        anerror(string_view("start_obj(): Cannot start an object in a list with ast id:"s + fd_astid));
                     }
                 }
                 else
-                    anerror(string_view("Cannot find ast "s + top.val_astid));
+                    anerror(string_view("start_obj(): Cannot find ast "s + top.val_astid));
 
             } else {
                 anerror(string_view(std::format(
-                    "Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
+                    "start_obj(): Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
                     std::to_string(active_key), top.val_astid, top.map_key)));
 
                 anerror(type.info().name());
@@ -801,7 +802,7 @@ public:
             }
         } else if (stack.empty()) {
             // This is the root object.
-            anerror("Starting object with empty stack.");
+            anerror("start_obj(): Starting object with empty stack.");
             return true;
         }
         return true;
@@ -809,7 +810,7 @@ public:
 
     bool key(string_t& val) override {
         active_key = hashed_string{val.c_str()};
-        andebug(string_view(std::format("deserializing key {}, key-id: {}", val, active_key)));
+        andebug(string_view(std::format("key(): deserializing key {}, key-id: {}", val, active_key)));
 
         if (!stack.empty()) {
             stack.back().map_key = val;
@@ -830,12 +831,12 @@ public:
                     if (!stack.back().resolve_map2fields)
                         data.set(stack.back().instance, top.instance);
                     else
-                        anerror(string_view("Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map)."));
+                        anerror(string_view("end_obj(): Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map)."));
                 }
                 else if (stack.back().is_map) {
                     meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
                     meta_type obj_type = top.instance.type();
-                    andebug(string_view(std::format("fd_type.id() {}, map_type.id() {}", val_type.id(), obj_type.id())));
+                    andebug(string_view(std::format("end_obj(): fd_type.id() {}, map_type.id() {}", val_type.id(), obj_type.id())));
                     if (val_type.id() == obj_type.id()) {
                         auto view = stack.back().instance.as_associative_container();
                         if (view) {
@@ -844,16 +845,36 @@ public:
                             bool success = view.insert(std::move(key), top.instance);
 
                             if (!success) {
-                                anerror(string_view("Handle failure (type mismatch or key already exists"));
+                                anerror(string_view("end_obj(): Handle failure (type mismatch or key already exists"));
                             }
                         }
                     }
-                            ;
+                }
+                else if (stack.back().is_list) {
+                    // meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
+                    meta_type obj_type = stack.back().instance.type();
+                    std::string typname{obj_type.info().name()};
+                    andebug(string_view(std::format("end_obj(): list-container.type-id() {}, info: {}", obj_type.id(), typname)));
+                    // if (val_type.id() == obj_type.id()) {
+                        auto view = stack.back().instance.as_sequence_container();
+                        if (view) {
+                            // entt::meta_any key{std::move(stack.back().map_key)};
+
+                            meta_any success = view.insert(view.end(), top.instance);
+
+                            if (!success)
+                                anerror(string_view("end_obj(): Setting back the list is failed!"));
+                            else
+                                andebug(string_view(std::format("end_obj(): size of the inserted list of obj: {}",
+                                                                view.size())));
+                        }
+                    // }
+
                 }
             }
             active_key = key0;
         }
-        // else: needing a stack resetting for re-enter.
+        // else: TODO needing a stack resetting for re-enter.
         return true;
     }
 
@@ -870,7 +891,7 @@ public:
 
     bool string(string_t& val) override {
         andebug(string_view(
-            std::format("string: {}, top.is_list: {}, top.is_map: {}, map_key: {}",
+            std::format("string(): {}, top.is_list: {}, top.is_map: {}, map_key: {}",
                         val, stack.back().is_list, stack.back().is_map, stack.back().map_key)));
 
         set_value(val);
@@ -892,20 +913,21 @@ public:
     bool binary(binary_t&) override { return true; }
     bool start_array(std::size_t) override {
 
-        andebug(string_view(std::format("start (0) addr: {:P}",
+        andebug(string_view(std::format("start_array(): [0] list container addr: {:P}",
                 (void*)stack.front().instance.try_cast<Anson>())));
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
             if (data) {
                 std::string fieldname = data.name();
-                andebug(string_view(std::format("Starting array, field key {}, name {}", active_key, fieldname)));
+                andebug(string_view(std::format("start_array(): starting, field key {}, name {}",
+                                                active_key, fieldname)));
 
                 std::string val_astid;
                 AnsonAst *ast = contxt->ast<AnsonAst>(stack.back().val_astid);
                 if (!ast->fields.contains(fieldname))
                     anerror(string_view(std::format(
-                        "AST {{anclass: {}, datatype: {}}} has no field {}.",
+                        "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
                         ast->anclass, ast->dataAnclass, fieldname)));
                 else
                     val_astid = ast->fields.at(fieldname).dataAnclass;
@@ -913,7 +935,7 @@ public:
                 meta_any list = data.get(stack.back().instance);
                 push_list(list, active_key, val_astid);
 
-                andebug(string_view(std::format("start (1) addr: {:P}",
+                andebug(string_view(std::format("start_array(): [1] list container addr: {:P}",
                         (void*)stack.front().instance.try_cast<Anson>())));
             }
         }
@@ -923,7 +945,7 @@ public:
     bool end_array() override {
 
         Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
+        andebug(string_view(std::format("end_array(): Stack back addr: {:P}", (void*)stack_ptr)));
 
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().instance;
@@ -936,22 +958,24 @@ public:
             if (!stack.empty() && key_to_update != 0) {
                 auto data = find_field_recursive(stack.back().instance.type(), key_to_update);
                 if (data) {
-                    // andebug(string_view(std::format("Setting back list {} : {}, size: {}", data.name(), key_to_update, finished_list.size())));
                     andebug(string_view(std::format(
-                        "Setting back list {} : {}, size: {:#x}",
+                        "end_array(): Setting back list {} : {}, size: {:#x} -> {}",
                         data.name(), key_to_update,
-                        finished_list.as_sequence_container() ? finished_list.as_sequence_container().size() : -1)));
+                        finished_list.as_sequence_container() ? finished_list.as_sequence_container().size() : -1,
+                        data.get(stack.back().instance).as_sequence_container().size())));
+
                     bool res = data.set(stack.back().instance, finished_list);
 
                     Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-                    andebug(string_view(std::format("Stack back addr: {:P}", (void*)stack_ptr)));
+                    andebug(string_view(std::format("end_array(): Stack back addr: {:P}", (void*)stack_ptr)));
 
                     if (res) {
-                        andebug(string_view(std::format("The reference of this list is found. Copied? field: {}, key-id: {}",
+                        andebug(string_view(std::format("end_array(): The reference of this list is found. size: {}, field: {}, key-id: {}",
+                                                        data.get(stack.back().instance).as_sequence_container().size(),
                                                         data.name(), key_to_update)));
                     }
                     else
-                        anerror(string_view("Failed to set back (copy) "s + data.name()));
+                        anerror(string_view("end_array(): Failed to set back (copy) "s + data.name()));
 
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
                         andebug(string_view(v->toBlock(*IJsonable::contxt_ptr)));

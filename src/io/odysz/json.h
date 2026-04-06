@@ -209,6 +209,7 @@ inline static void register_msg(AstMap &asts) {
     entt::meta_factory<anson::AnsonBody>()
         .type(enttype)
         .base<Anson>()
+        .ctor()
         .ctor<string>()
         .ctor<string, string>()
         .data<&anson::AnsonBody::a>("a") // This is what justifying all fields in ast must be regstered.
@@ -311,7 +312,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
     hashed_string enttype{anclass.c_str()};
 
     entt::meta_factory<anson::AnsonMsg<T>>()
-        .type(enttype)
+        .type(anclass.c_str())
         .template ctor<>()
         .template ctor<anson::Port>()
         .template base<anson::Anson>()

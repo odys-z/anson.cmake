@@ -147,7 +147,8 @@ class AnsonMsg: public Anson {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
-    vector<shared_ptr<T>> body;
+    // vector<shared_ptr<T>> body;
+    vector<T> body;
 
     Port port;
 
@@ -162,7 +163,8 @@ public:
     }
 
     AnsonMsg<T>& Body(const T& body) {
-        this->body.push_back(make_shared<T>(body));
+        // this->body.push_back(make_shared<T>(body));
+        this->body.push_back(body);
         return *this;
     }
 
@@ -186,7 +188,10 @@ public:
     }
 
     T& Body() {
-        return *body.at(0);
+        if (body.empty()) {
+            throw std::runtime_error("Body list is empty");
+        }
+        return body.at(0);
     }
 };
 
