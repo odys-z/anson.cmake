@@ -31,6 +31,7 @@ class T_List2DPtr : public Anson {
 public:
     inline static const string _type_ = "io.odysz.anson.T_List2DPtr";
 
+    // Parsing pointer vector, to be continued.
     vector<shared_ptr<T_List>> vpp;
 
     T_List2DPtr() : Anson(_type_) {}
