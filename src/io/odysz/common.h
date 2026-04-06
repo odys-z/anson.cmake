@@ -434,14 +434,6 @@ public:
     }
 
     inline static vector<string> parseMapValtype(const string &map_type) {
-        /*
-        vector<string_view> map_anclass = LangExt::split(map_type, '<');
-        vector<string_view> kv_anclass = LangExt::split(map_anclass.at(1), ',');
-        if (map_anclass.at(0) != "map" || kv_anclass.at(0) != "string")
-            anwarn(string_view("Not a regular map type: "s + map_type));
-        return {LangExt::trim(kv_anclass.at(1)), "false"};
-        */
-
         // map<string, val_type
         vector<string_view> tss = LangExt::split(map_type, '<');
         if (tss.size() < 1)
@@ -451,7 +443,6 @@ public:
         vector<string_view> kvss = LangExt::split(kvtype, ',');
         if (tss.at(0) != "map" || kvss.at(0) != "string" || kvss.size() <= 1) {
             anwarn(string_view("Not a regular map type: "s + map_type));
-            // return {LangExt::trim(kv_anclass.at(1)), "false"};
             return {LangExt::trim(map_type), "false"};
         }
 
@@ -461,13 +452,6 @@ public:
     }
 
     inline static vector<string> parseListValtype(const string &list_type) {
-        /*
-        vector<string_view> list_anclass = LangExt::split(list_type, '<');
-        if (list_anclass.at(0) != "list")
-            anwarn(string_view("Not a regular list type: "s + list_type));
-        return {LangExt::trim(list_anclass.at(1)), "fals"};
-        */
-
         // list<val_type
         vector<string_view> tss = LangExt::split(list_type, '<');
         if (tss.at(0) != "list") {
@@ -476,19 +460,6 @@ public:
         }
 
         return parse_val_type(LangExt::join(tss, 1, -1, "<"));
-        // if (tss.at(1) == "shared_ptr") {
-        //     return {LangExt::trim(tss.at(2)), "true"};
-        // }
-        // else if (tss.size() > 1 && is_pointer_type(string{tss[1]})) {
-        //     string r = std::regex_replace(string{tss[1]}, is_begin_star, "");
-        //     return {LangExt::trim(r), "true"};
-        // }
-        // else if (tss.size() > 0) {
-        //     string rest = LangExt::join(tss, 1, -1, "<");
-        //     return {LangExt::trim(rest), "false"};
-        // }
-        // else
-        //     return {LangExt::trim(list_type), "false"};
     }
 };
 
