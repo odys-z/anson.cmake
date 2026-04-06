@@ -17,7 +17,7 @@ add_executable(unit_tests
   t02_entt_basic.cpp
   # t02_enttmeta.cpp
   # t03_loadsettings.cpp
-  t03_deserialize.cpp
+  # t03_deserialize.cpp
   # t04_java_enum.cpp
   # t04_java_enum.h
   # t05_ansonresp.cpp

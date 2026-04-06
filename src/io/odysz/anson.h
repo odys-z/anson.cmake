@@ -364,8 +364,8 @@ inline static ostream& serialize_enum(const meta_any &instance, const meta_type 
     return os;
 }
 
-inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const string &val_ast_id) {
-    if (val_ast_id == "string") {
+inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const vector<string> &val_ast_id) {
+    if (val_ast_id[0] == "string") {
         vector<string> list = list_any.cast<vector<string>>();
         os << '[';
         bool first = true;
@@ -376,7 +376,7 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
         os << ']';
     }
     else
-        anerror(string_view("Todo: list of "s + val_ast_id));
+        anerror(string_view("Todo: list of "s + val_ast_id[0] + ", ptr " + val_ast_id[1]));
     return os;
 }
 
@@ -471,15 +471,16 @@ inline static ostream& serialize_fields(ostream &os,
             }
             else if (f.dataAnclass.starts_with("list<")) {
                 meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
-                string valtype = Regex::parseListValtype(f.dataAnclass);
+                vector<string> valtype = Regex::parseListValtype(f.dataAnclass);
                 hashed_string data_key{fn.c_str()};
                 meta_data data = find_field_recursive(enttype, data_key);
                 string fn = data.name();
                 meta_any list = data.get(instance);
+
                 if (list)
-                serialize_list(os, anson, valtype);
+                    serialize_list(os, anson, valtype);
                 else
-                os << "null";
+                    os << "null";
             }
             else {
                 os << '\"' << f << '\"';
@@ -547,6 +548,7 @@ struct ParseNode {
     meta_any instance;
 
     string val_astid;
+    bool is_val_ptr = false;
 
     bool is_list = false;
     bool is_map = false;
@@ -994,18 +996,22 @@ public:
     }
 
     void push_list(meta_any ref, id_type active_key, std::string list_type) {
-        std::string val_anclass = Regex::parseListValtype(list_type);
-        andebug(string_view("List value data class: "s + val_anclass));
+        vector<std::string> val_anclass = Regex::parseListValtype(list_type);
+        andebug(string_view(std::format("List value data class: {}, ptr {}", val_anclass[0], val_anclass[1])));
 
-        stack.push_back({.instance = ref, .val_astid=val_anclass, .is_list=true, .is_map=false, .activekey=active_key});
+        stack.push_back({.instance = ref,
+                         .val_astid=val_anclass[0], .is_val_ptr=(val_anclass[1] == "true"),
+                         .is_list=true, .is_map=false,
+                         .activekey=active_key});
     }
 
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {
 
-        std::string val_anclass = Regex::parseMapValtype(map_type);
-        andebug(string_view("Map value data class: "s + val_anclass));
+        vector<std::string> val_anclass = Regex::parseMapValtype(map_type);
+        andebug(string_view(std::format("Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1])));
 
-        stack.push_back({.instance = map_inst, .val_astid=val_anclass,
+        stack.push_back({.instance = map_inst,
+                         .val_astid=val_anclass[0], .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
                          .resolve_map2fields=resolve_map2fields,
                          .activekey=active_key});

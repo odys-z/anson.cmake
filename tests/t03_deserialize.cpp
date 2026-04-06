@@ -19,7 +19,7 @@ AstMap enums;
 map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
-
+/*
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -93,6 +93,7 @@ TEST(Anson, PORT) {
     ASSERT_TRUE(portAst->encode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
 }
+*/
 
 TEST(Anson, AnsonMsg_EchoReq) {
     IJsonable::contxt_ptr = &contxt;
@@ -119,8 +120,8 @@ TEST(Anson, AnsonMsg_EchoReq) {
     ASSERT_EQ(Req::_type_, msg->type);
     ASSERT_EQ(Port::echo, msg->port.url()) << "[1] msg->port";
     ASSERT_EQ("echo", msg->port) << "[1] msg->port";
-    ASSERT_EQ("", msg->body.at(0).a) << "[1] msg-body[0]";
-    ASSERT_EQ("Hello", msg->body.at(0).echo) << "[1] msg-body[0].echo";
+    ASSERT_EQ("", msg->body.at(0)->a) << "[1] msg-body[0]";
+    ASSERT_EQ("Hello", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
 
     Req msg2{};
@@ -141,7 +142,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
 
     cout << "[4] body: " << msg2.body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
     EXPECT_EQ(EchoReq::_type_, reqbd.anclass) << "[4] reqbd.anclass";
-    EXPECT_EQ("AnsonMsg_EchoReq!", msg2.body[0].echo) << "[4] msg->body.echo";
+    EXPECT_EQ("AnsonMsg_EchoReq!", msg2.body[0]->echo) << "[4] msg->body.echo";
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
 

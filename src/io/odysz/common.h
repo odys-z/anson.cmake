@@ -115,6 +115,22 @@ public:
         return oss.str();
     }
 
+    inline static string join(const vector<string_view> from, int begin, int until = -1, const string& sep = ",", const string& front = "", const string& back = "") {
+        std::ostringstream oss;
+
+        oss << front;
+
+        bool first = true;
+        for (int i = begin; until < 0 && i < from.size() || i < until; i++) {
+            if (first) first = false;
+            else oss << sep;
+            oss << from[i];
+        }
+
+        oss << back;
+        return oss.str();
+    }
+
     // template <typename Range>
     // inline static string join(const Range& range, const string& sep = ",") {
     //     return LangExt::join(range, sep, "", "");
@@ -181,6 +197,8 @@ public:
     inline static std::regex httpregx{R"(^https?://)"};
 
     inline static std::regex httpsregx{R"(^https://)"};
+
+    inline static std::regex is_begin_star{R"(^\s*\*\s*)"};
 
     /**
      * Checks if the scheme is https.
@@ -392,19 +410,85 @@ public:
         return parts;
     }
 
-    inline static string parseMapValtype(const string &map_type) {
+    inline static bool is_pointer_type(const string & s) {
+        return regex_search(s, is_begin_star);
+    }
+
+    inline static vector<string> parse_val_type(const string & val_type) {
+        // string | int | *Anson | shared_ptr<val_type | ...
+        if (is_pointer_type(val_type)) {
+            string r = std::regex_replace(string{val_type}, is_begin_star, "");
+            return {r, "true"};
+        }
+
+        vector<string_view> tss = LangExt::split(val_type, '<');
+
+        if (tss.at(0) != "shared_ptr") {
+            return {LangExt::trim(val_type), "false"};
+        }
+
+        if (tss.size() > 1)
+            return {LangExt::trim(LangExt::join(tss, 1, -1, "<")), "true"};
+
+        return {LangExt::trim(val_type), "false"};
+    }
+
+    inline static vector<string> parseMapValtype(const string &map_type) {
+        /*
         vector<string_view> map_anclass = LangExt::split(map_type, '<');
         vector<string_view> kv_anclass = LangExt::split(map_anclass.at(1), ',');
         if (map_anclass.at(0) != "map" || kv_anclass.at(0) != "string")
             anwarn(string_view("Not a regular map type: "s + map_type));
-        return LangExt::trim(kv_anclass.at(1));
+        return {LangExt::trim(kv_anclass.at(1)), "false"};
+        */
+
+        // map<string, val_type
+        vector<string_view> tss = LangExt::split(map_type, '<');
+        if (tss.size() < 1)
+            return {map_type, "false"};
+
+        string kvtype = LangExt::join(tss, 1, -1, "<");
+        vector<string_view> kvss = LangExt::split(kvtype, ',');
+        if (tss.at(0) != "map" || kvss.at(0) != "string" || kvss.size() <= 1) {
+            anwarn(string_view("Not a regular map type: "s + map_type));
+            // return {LangExt::trim(kv_anclass.at(1)), "false"};
+            return {LangExt::trim(map_type), "false"};
+        }
+
+        string valtype = LangExt::trim(LangExt::join(kvss, 1, -1, ","));
+        return parse_val_type(valtype);
+
     }
 
-    inline static string parseListValtype(const string &list_type) {
+    inline static vector<string> parseListValtype(const string &list_type) {
+        /*
         vector<string_view> list_anclass = LangExt::split(list_type, '<');
         if (list_anclass.at(0) != "list")
             anwarn(string_view("Not a regular list type: "s + list_type));
-        return LangExt::trim(list_anclass.at(1));
+        return {LangExt::trim(list_anclass.at(1)), "fals"};
+        */
+
+        // list<val_type
+        vector<string_view> tss = LangExt::split(list_type, '<');
+        if (tss.at(0) != "list") {
+            anwarn(string_view("Not a regular list type: "s + list_type));
+            return {LangExt::trim(list_type), "false"};
+        }
+
+        return parse_val_type(LangExt::join(tss, 1, -1, "<"));
+        // if (tss.at(1) == "shared_ptr") {
+        //     return {LangExt::trim(tss.at(2)), "true"};
+        // }
+        // else if (tss.size() > 1 && is_pointer_type(string{tss[1]})) {
+        //     string r = std::regex_replace(string{tss[1]}, is_begin_star, "");
+        //     return {LangExt::trim(r), "true"};
+        // }
+        // else if (tss.size() > 0) {
+        //     string rest = LangExt::join(tss, 1, -1, "<");
+        //     return {LangExt::trim(rest), "false"};
+        // }
+        // else
+        //     return {LangExt::trim(list_type), "false"};
     }
 };
 

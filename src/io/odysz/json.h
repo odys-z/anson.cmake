@@ -326,7 +326,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
 
     ast->fields = map<string, AnsonField>{
         {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
-        {"body", {.fieldname = "body", .dataAnclass="list<"s + T::_type_}}
+        {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
     // asts[anclass] = unique_ptr<AnsonMsgAst>(ast);

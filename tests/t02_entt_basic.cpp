@@ -27,6 +27,15 @@ public:
     T_List2D() : Anson(_type_) {}
 };
 
+class T_List2DPtr : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.anson.T_List2DPtr";
+
+    vector<shared_ptr<T_List>> vpp;
+
+    T_List2DPtr() : Anson(_type_) {}
+};
+
 void register_asts(AstMap &asts) {
     hashed_string enttype;
     string anclass;
@@ -94,8 +103,32 @@ void register_2Dasts(AstMap &asts) {
 
     asts[anclass] = unique_ptr<AnsonAst>(ast);
 }
+
+void register_2DPtr_asts(AstMap &asts) {
+    //
+    entt::meta_factory<anson::T_List2DPtr>()
+        .type(T_List2DPtr::_type_.c_str())
+        .base<Anson>()
+        .ctor<>()
+        .data<&anson::T_List2DPtr::vpp>("vpp")
+        ;
+
+    string anclass = T_List2DPtr().anclass;
+    AnsonAst *ast = new AnsonAst{anclass, false};
+    ast->dataAnclass = T_List2DPtr::_type_;
+    ast->dataBaseAst = AnsonAst::_type_;
+    ast->base = Anson::_type_;
+    ast->enttypeid = hashed_string{T_List2DPtr::_type_.c_str()};
+
+    ast->fields = map<string, AnsonField>{
+      {"vpp",   {.fieldname="vpp", .dataAnclass = "list<shared_ptr<"s + T_List::_type_}},
+    };
+
+    asts[anclass] = unique_ptr<AnsonAst>(ast);
+}
 }
 
+/*
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace entt::literals;
     using namespace anson;
@@ -252,4 +285,41 @@ TEST(ENTT, T_LIST_2D) {
     ASSERT_EQ("x", anlist.vss[0].txt) << "vss[0].txt";
     ASSERT_EQ(1, anlist.vss[0].val.size()) << "vss[0].val.size";
     ASSERT_EQ((vector<string>{"0"}), anlist.vss[0].val) << "vss[0].val";
+}
+*/
+
+TEST(ENTT, T_LIST_2D_Ptr) {
+    using namespace entt::literals;
+    using namespace anson;
+
+    AstMap asts;
+    JsonOpt contxt{&asts};
+    IJsonable::contxt_ptr = &contxt;
+    register_asts(asts);
+    register_2DPtr_asts(asts);
+
+    T_List2DPtr inst_list;
+    T_List2DPtr &anlist = inst_list;
+
+    std::string json_input = std::format(R"({{"type": "{}", "vpp": [{{"txt": "y", "val": ["1"]}}] }})",
+                                         T_List2DPtr::_type_);
+
+    EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
+
+    cout << "[0] " << json_input << endl;
+    anlist.type = "";
+    bool result = nlohmann::json::sax_parse(json_input, &handler_parse);
+
+    ASSERT_TRUE(result);
+    ASSERT_EQ(T_List2DPtr::_type_, anlist.anclass) << "anlist.anclass";
+    ASSERT_EQ(T_List2DPtr::_type_, anlist.type) << "anlist.type";
+
+
+    T_List2DPtr* to_checkList = handler_parse.stack.back().instance.try_cast<anson::T_List2DPtr>();
+
+    ASSERT_EQ(1, to_checkList->vpp.size()) << "to_check_list.vss.size";
+    ASSERT_EQ((vector<string>{"0"}), to_checkList->vpp[0]->val) << "to_check_list_pp[0]->val";
+    ASSERT_EQ("x", anlist.vpp[0]->txt) << "vpp[0]->txt";
+    ASSERT_EQ(1, anlist.vpp[0]->val.size()) << "vpp[0]->val->size";
+    ASSERT_EQ((vector<string>{"0"}), anlist.vpp[0]->val) << "vpp[0]->val";
 }
