@@ -131,16 +131,6 @@ public:
         return oss.str();
     }
 
-    // template <typename Range>
-    // inline static string join(const Range& range, const string& sep = ",") {
-    //     return LangExt::join(range, sep, "", "");
-    // }
-
-    // template <typename Range>
-    // inline static string join(const Range& range) {
-    //     return join(range, ",", "", "");
-    // }
-
     inline static bool isblank(const string s) {
         return s.length() == 0;
     }
@@ -205,9 +195,6 @@ public:
      * Boost.URL handles case-insensitivity automatically.
      */
     inline static bool isHttps(const std::string& s) {
-        // auto r = urls::parse_uri(s);
-        // if (!r) return false;
-        // return r->scheme_id() == urls::scheme::https;
         return regex_search(s, httpsregx);
     }
 
@@ -216,10 +203,6 @@ public:
      * Boost.URL handles case-insensitivity automatically.
      */
     inline static bool isHttp(const std::string& s) {
-        // auto r = urls::parse_uri(s);
-        // if (!r) return false;
-        // return r->scheme_id() == urls::scheme::http ||
-        //    r->scheme_id() == urls::scheme::https;
         return regex_search(s, httpregx);
     }
 
@@ -314,13 +297,10 @@ public:
         if (!regex_search(url, schemePrefix))
             url = "http://" + url;
 
-        // ArrayList<String> grps = reg3986.findGroups(url);
         smatch grps;
         regex_match(url, grps, reg3986);
         if (LangExt::isblank(grps[4]))
             return parts;
-
-        // aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
 
         bool https = "https" == grps[2];
         bool http  = "http" == grps[2] || LangExt::isblank(grps[2]);
@@ -329,8 +309,6 @@ public:
         string host = grps[4];
         smatch iportss;
         regex_match(host, iportss, reg_hostportv6);
-
-        // aninfo(iportss, {.head="\nIP-port:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
 
         if (iportss.size() == 7) {
             // Debug Notes: Don't change host before iportss matchs are no-longer accessed.

@@ -59,6 +59,10 @@ public:
         _print(cout, vector<string_view>{msg}, f);
     }
 
+    inline static void print(const std::string& msg, const PrintFormat& f = {.breakline=true}) {
+        _print(cout, vector<string_view>{msg}, f);
+    }
+
     inline static void print(const char* s, const PrintFormat& f = {.breakline=true}) {
         print(std::string_view(s), f);
     }
