@@ -862,7 +862,11 @@ public:
                         if (view) {
                             // entt::meta_any key{std::move(stack.back().map_key)};
 
-                            meta_any success = view.insert(view.end(), top.instance);
+                            meta_any success;
+                            if (top.is_val_ptr)
+                                success = view.insert(view.end(), make_shared<Anson>(top.instance));
+                            else
+                                success = view.insert(view.end(), top.instance);
 
                             if (!success)
                                 anerror(string_view("end_obj(): Setting back the list is failed!"));
