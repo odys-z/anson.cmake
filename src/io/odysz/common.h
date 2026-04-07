@@ -42,8 +42,13 @@ public:
      * @brief split
      * @param str
      * @param delim
-     * @return string_views to the str. IMPORTANT this is a NRV (Named Return Value), so
-     * don't return it further beyond will str exists.
+     * @return string_views to the str.
+     *
+     * IMPORTANT
+     *
+     * this is a NRV (Named Return Value), so
+     * don't return it further beyond where the str exists.
+     *
      * auto bad() {
      *
      *   std::string temp = "hello,world";
@@ -76,6 +81,22 @@ public:
         return result;
     }
 
+    inline static std::string trim(std::string_view sv) {
+        // Skip leading whitespace
+        size_t start = 0;
+        while (start < sv.size() && std::isspace(static_cast<unsigned char>(sv[start]))) {
+            ++start;
+        }
+
+        // Skip trailing whitespace
+        size_t end = sv.size();
+        while (end > start && std::isspace(static_cast<unsigned char>(sv[end - 1]))) {
+            --end;
+        }
+
+        return std::string(sv.substr(start, end - start));
+    }
+
     template <typename Range>
     inline static string join(const Range& range, const string& sep = ",", const string& front = "", const string& back = "") {
         std::ostringstream oss;
@@ -90,6 +111,22 @@ public:
                 oss << sep << *it++;
             }
         }
+        oss << back;
+        return oss.str();
+    }
+
+    inline static string join(const vector<string_view> from, int begin, int until = -1, const string& sep = ",", const string& front = "", const string& back = "") {
+        std::ostringstream oss;
+
+        oss << front;
+
+        bool first = true;
+        for (int i = begin; until < 0 && i < from.size() || i < until; i++) {
+            if (first) first = false;
+            else oss << sep;
+            oss << from[i];
+        }
+
         oss << back;
         return oss.str();
     }
@@ -160,6 +197,8 @@ public:
     inline static std::regex httpregx{R"(^https?://)"};
 
     inline static std::regex httpsregx{R"(^https://)"};
+
+    inline static std::regex is_begin_star{R"(^\s*\*\s*)"};
 
     /**
      * Checks if the scheme is https.
@@ -369,6 +408,58 @@ public:
         parts.fragment = grps[9];
 
         return parts;
+    }
+
+    inline static bool is_pointer_type(const string & s) {
+        return regex_search(s, is_begin_star);
+    }
+
+    inline static vector<string> parse_val_type(const string & val_type) {
+        // string | int | *Anson | shared_ptr<val_type | ...
+        if (is_pointer_type(val_type)) {
+            string r = std::regex_replace(string{val_type}, is_begin_star, "");
+            return {r, "true"};
+        }
+
+        vector<string_view> tss = LangExt::split(val_type, '<');
+
+        if (tss.at(0) != "shared_ptr") {
+            return {LangExt::trim(val_type), "false"};
+        }
+
+        if (tss.size() > 1)
+            return {LangExt::trim(LangExt::join(tss, 1, -1, "<")), "true"};
+
+        return {LangExt::trim(val_type), "false"};
+    }
+
+    inline static vector<string> parseMapValtype(const string &map_type) {
+        // map<string, val_type
+        vector<string_view> tss = LangExt::split(map_type, '<');
+        if (tss.size() < 1)
+            return {map_type, "false"};
+
+        string kvtype = LangExt::join(tss, 1, -1, "<");
+        vector<string_view> kvss = LangExt::split(kvtype, ',');
+        if (tss.at(0) != "map" || kvss.at(0) != "string" || kvss.size() <= 1) {
+            anwarn(string_view("Not a regular map type: "s + map_type));
+            return {LangExt::trim(map_type), "false"};
+        }
+
+        string valtype = LangExt::trim(LangExt::join(kvss, 1, -1, ","));
+        return parse_val_type(valtype);
+
+    }
+
+    inline static vector<string> parseListValtype(const string &list_type) {
+        // list<val_type
+        vector<string_view> tss = LangExt::split(list_type, '<');
+        if (tss.at(0) != "list") {
+            anwarn(string_view("Not a regular list type: "s + list_type));
+            return {LangExt::trim(list_type), "false"};
+        }
+
+        return parse_val_type(LangExt::join(tss, 1, -1, "<"));
     }
 };
 

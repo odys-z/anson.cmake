@@ -1,0 +1,14 @@
+{ "type": "io.odysz.semantier.AnsonAst",
+  "isEnum": true,
+  "anclass": "io.odysz.semantic.jprotocol.AnsonMsg.MsgCode",
+  "fields" : {
+    "ok":  0,
+    "exSession": 1,
+    "exSemantic": 2,
+    "exIo": 3,
+    "exTransct": 4,
+    "exDA": 5,
+    "exGeneral": 6,
+    "ext": 7
+  }
+}
