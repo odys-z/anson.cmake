@@ -24,7 +24,7 @@ class AnResultset : public Anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    virtual string _type_special(string msgtype) { return msgtype + "<AnsonBody>"; }
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
     string a;
 
@@ -37,8 +37,8 @@ public:
 
 class EchoReq: public AnsonBody {
 public:
-    inline static const std::string _type_ = "io.odysz.jprotocol.EchoReq";
-    string _type_special(string msgtype) { return msgtype + "<EchoReq>"; }
+    inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
+    string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
     string echo;
 
@@ -49,7 +49,7 @@ public:
 
 class UserReq : public AnsonBody {
 public:
-    inline static const string _type_ = "io.odysz.jprotocol.UserReq";
+    inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
     map<string, entt::any> data;
     UserReq() : UserReq("null") {}
     UserReq(string a) : AnsonBody(a, _type_) {}
@@ -71,39 +71,48 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    Port(): JavaEnum(_type_, "") {}
-    Port(string enum_val) : JavaEnum(_type_, enum_val) { }
+    Port(): JavaEnum(_type_, "na") {
+        andebug(string_view("Port Default Cosntructor"));
+    }
+
+    Port(string enum_val) : JavaEnum(_type_, enum_val) {
+        andebug(string_view("Port Cosntructor<string>("s + enum_val + ").enm = " + enm));
+    }
 };
 
-inline bool operator==(const Port& p, const Port& q) {
+inline bool operator==(const Port& p, const JavaEnum& q) {
     return p.enm == q.enm;
 }
 
-inline bool operator==(const anson::Port& p, const std::string& s) {
-    return p.enm == s;
+inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
+    if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
+        AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
+        return p.enm == ast->encode[s];
+    }
+    return false;
 }
 
-inline bool operator==(const std::string& s, const anson::Port& p) {
+inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
     // return p == from_enum_string<Port>(s);
     return p == s;
 }
 
-template<typename E>
-std::optional<E> from_enum_string(const std::string& s) {
-    using namespace entt::literals;
-    auto type = entt::resolve<E>();
+// template<typename E>
+// std::optional<E> from_enum_string(const std::string& s) {
+//     using namespace entt::literals;
+//     auto type = entt::resolve<E>();
 
-    if (type) {
-        for (auto [id, data] : type.data()) {
-            if (auto prop = data.name()) {
-                if (prop == s) {
-                    return data.get({}).template cast<E>();
-                }
-            }
-        }
-    }
-    return std::nullopt;
-}
+//     if (type) {
+//         for (auto [id, data] : type.data()) {
+//             if (auto prop = data.name()) {
+//                 if (prop == s) {
+//                     return data.get({}).template cast<E>();
+//                 }
+//             }
+//         }
+//     }
+//     return std::nullopt;
+// }
 
 enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext };
 
@@ -142,8 +151,7 @@ public:
 
     Port port;
 
-    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") {
-    }
+    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") { }
 
     AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
         cout << port.enm;
@@ -178,7 +186,10 @@ public:
     }
 
     T& Body() {
-        return *body.at(0);
+        if (body.empty()) {
+            throw std::runtime_error("Body list is empty");
+        }
+        return body.at(0);
     }
 };
 
@@ -216,7 +227,6 @@ class OnOk {
 using OnError = std::function<void(MsgCode code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
-    // using OnProgress = std::function<void(const string& path, std::string status)>;
     virtual void progess(const string& path, std::string status);
 };
 

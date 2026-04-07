@@ -83,26 +83,26 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<Anson>()
         .ctor<>()
-        .ctor<string, bool>()
-        .ctor<string, string>()
-        .data<&anson::AnsonAst::isInt>("isInt"_hs, "isInt")
-        .data<&anson::AnsonAst::isDouble>("isDouble"_hs, "isDouble")
-        .data<&anson::AnsonAst::isEnum>("isEnum"_hs, "isEnum")
-        .data<&anson::AnsonAst::isList>("isList"_hs, "isList")
-        .data<&anson::AnsonAst::isMap>("isMap"_hs, "isMap")
-        .data<&anson::AnsonAst::istring>("istring"_hs, "istring")
-        .data<&anson::AnsonAst::isJsonable>("isJsonable"_hs, "isJsonable")
-        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum"_hs, "isJavaEnum")
-        .data<&anson::AnsonAst::enttypeid>("enttypeid"_hs, "enttypeid")
-        .data<&anson::AnsonAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-        .data<&anson::AnsonAst::fields>("fields"_hs, "fields")
-        .data<&anson::AnsonAst::enums>("enums"_hs, "enums")
+        .ctor<std::string, bool>()
+        .ctor<std::string, std::string>()
+        .data<&anson::AnsonAst::isInt>("isInt")
+        .data<&anson::AnsonAst::isDouble>("isDouble")
+        .data<&anson::AnsonAst::isEnum>("isEnum")
+        .data<&anson::AnsonAst::isList>("isList")
+        .data<&anson::AnsonAst::isMap>("isMap")
+        .data<&anson::AnsonAst::istring>("istring")
+        .data<&anson::AnsonAst::isJsonable>("isJsonable")
+        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum")
+        .data<&anson::AnsonAst::enttypeid>("enttypeid")
+        .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonAst::fields>("fields")
+        .data<&anson::AnsonAst::enums>("enums")
         ;
 
     anclass = AnsonAst().anclass;
     ast = new AnsonAst{anclass};
     ast->dataAnclass = anclass;
-    ast->fields = map<string, AnsonField>{
+    ast->fields = map<std::string, AnsonField>{
         {"isList", {.fieldname="isList", .dataAnclass="boolean"}},
         {"isJavaEnum", {.fieldname="isJavaEnum", .dataAnclass="boolean"}},
         {"dataAnclass", {.fieldname="dataAnclass", .dataAnclass="String"}},
@@ -119,10 +119,10 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
-        .data<&anson::AnsonJavaEnumAst::dataBase>("dataBase"_hs, "dataBase")
-        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-        .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
-        .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
+        .data<&anson::AnsonJavaEnumAst::dataBaseAst>("dataBaseAst")
+        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonJavaEnumAst::encode>("encode")
+        .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
 
     AnsonJavaEnumAst *jeast = new AnsonJavaEnumAst(AnsonJavaEnumAst::_type_);
@@ -156,7 +156,6 @@ inline static void register_asts(AstMap &asts) {
         {"uri", {.fieldname="uri", .dataAnclass = "string"}},
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     };
-    // asts[anclass] = unique_ptr<AnsonBodyAst>(&bdast);
     asts.insert(make_pair(anclass, bdast));
 
     //
@@ -165,10 +164,10 @@ inline static void register_asts(AstMap &asts) {
         .type(enttype)
         .base<AnsonAst>()
         .ctor<string>()
-        .data<&anson::AnsonMsgAst::bodyAnclass>("bodyAnclass"_hs, "bodyAnclass")
-        .data<&anson::AnsonMsgAst::bodyAst>("bodyAst"_hs, "bodyAst")
-        .data<&anson::AnsonMsgAst::portAnclass>("portAnclass"_hs, "portAnclass")
-        .data<&anson::AnsonMsgAst::portAst>("portAst"_hs, "portAst")
+        .data<&anson::AnsonMsgAst::bodyAnclass>("bodyAnclass")
+        .data<&anson::AnsonMsgAst::bodyAst>("bodyAst")
+        .data<&anson::AnsonMsgAst::portAnclass>("portAnclass")
+        .data<&anson::AnsonMsgAst::portAst>("portAst")
         ;
 
     anclass = AnsonMsgAst().anclass;
@@ -187,15 +186,15 @@ inline static void register_asts(AstMap &asts) {
 
 inline static void register_msg(AstMap &asts) {
     //
-    hashed_string enttype{SemanticObject::_type_.c_str()};
+    string anclass = SemanticObject().anclass;
+    hashed_string enttype{anclass.c_str()};
     entt::meta_factory<anson::SemanticObject>()
-    .type("SemanticObject"_hs)
+        .type(enttype)
         .ctor<>()
         .base<anson::Anson>()
         .data<&anson::SemanticObject::data>("data")
         ;
 
-    string anclass = SemanticObject().anclass;
     AnsonAst *ast = new AnsonAst(anclass);
     ast->base = Anson::_type_;
     ast->enttypeid = enttype;
@@ -210,6 +209,7 @@ inline static void register_msg(AstMap &asts) {
     entt::meta_factory<anson::AnsonBody>()
         .type(enttype)
         .base<Anson>()
+        .ctor()
         .ctor<string>()
         .ctor<string, string>()
         .data<&anson::AnsonBody::a>("a") // This is what justifying all fields in ast must be regstered.
@@ -270,31 +270,6 @@ inline static void register_msg(AstMap &asts) {
 }
 
 inline static void register_port(AstMap &asts, string port_ast) {
-    // string javaenum = AnsonJavaEnumAst().anclass;
-    // hashed_string enttype = hashed_string{javaenum.c_str()};
-    // entt::meta_factory<anson::AnsonJavaEnumAst>()
-    //     .type(enttype)
-    //     .base<AnsonAst>()
-    //     .ctor<string>()
-    //     .data<&anson::AnsonJavaEnumAst::dataBase>("dataBase"_hs, "dataBase")
-    //     .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass"_hs, "dataAnclass")
-    //     .data<&anson::AnsonJavaEnumAst::encode>("encode"_hs, "encode")
-    //     .data<&anson::AnsonJavaEnumAst::decode>("decode"_hs, "decode")
-    //     ;
-
-    // AnsonJavaEnumAst *jeast = new AnsonJavaEnumAst(AnsonJavaEnumAst::_type_);
-    // jeast->dataAnclass = javaenum;
-    // jeast->base = JavaEnum::_type_;
-    // jeast->enttypeid = enttype;
-
-    // jeast->fields = map<string, AnsonField>{
-    //     {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
-    //     {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
-    // };
-
-    // asts.insert(make_pair(javaenum, jeast));
-    // asts[javaenum] = unique_ptr<AnsonJavaEnumAst>(jeast);
-
     std::ifstream ifstream(port_ast);
     if (!ifstream.is_open()) {
         anerror(string_view(std::format("Could not open the file {}! ", port_ast)));
@@ -302,6 +277,8 @@ inline static void register_port(AstMap &asts, string port_ast) {
 
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     portAst->dataAnclass = Port::_type_;
+    portAst->isJavaEnum = true;
+
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {
@@ -313,7 +290,7 @@ inline static void register_port(AstMap &asts, string port_ast) {
             .type(enttype)
             .base<JavaEnum>()
             .ctor<>()
-            .ctor<string>()
+            .ctor<std::string>()
             ;
 
         // for field in portAst.fields
@@ -322,254 +299,38 @@ inline static void register_port(AstMap &asts, string port_ast) {
         portAst->enttypeid = enttype;
 
         asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
-        // asts.insert(make_pair(anclass, portAst));
     }
     else
         anerror(string_view(std::format("Could not load AST from {}!", port_ast)));
 }
 
-/*
-inline void register_meta(AstMap& asts, map<string, meta_type> &meta_types) {
-    // Register Anson Base
-    entt::meta_factory<anson::Anson>()
-        .type(hashed_string{Anson::_type_.c_str()})
-        .base<IJsonable>()
-        .ctor<>()
-        .ctor<const std::string&>()
-        .data<&anson::Anson::type>("type")
-        ;
 
-    // Register SemanticObject
-    AnsonAst *ast = dynamic_cast<AnsonAst*>(asts.at(Anson::_type_).get());
-    entt::meta_factory<anson::SemanticObject>()
-        .type("SemanticObject"_hs)
-        .ctor<>()
-        .base<anson::Anson>();
+template<typename T>
+inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
+    AnsonMsg<T> msg_echoreq;
+    string anclass = msg_echoreq.anclass;
+    hashed_string enttype{anclass.c_str()};
 
-    // Register AnsonBody
-    entt::meta_factory<anson::AnsonBody>()
-        .type("AnsonBody"_hs)
-        .ctor<const std::string&>()
-        .ctor<const std::string&, const std::string&>()
-        .base<anson::Anson>()
-        .data<&anson::AnsonBody::a>("a");
+    entt::meta_factory<anson::AnsonMsg<T>>()
+        .type(anclass.c_str())
+        .template ctor<>()
+        .template ctor<anson::Port>()
+        .template base<anson::Anson>()
+        .template data<&anson::AnsonMsg<T>::port>("port")
+        .template data<&anson::AnsonMsg<T>::body>("body");
 
-    // Register UserReq
-    entt::meta_factory<anson::UserReq>()
-        .type("UserReq"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>()
-        .data<&anson::UserReq::data>("data");
+    AnsonMsgAst *ast = new AnsonMsgAst(anclass);
+    ast->dataBaseAst = AnsonAst::_type_;
+    ast->enttypeid = enttype;
+    ast->dataAnclass = anclass;
 
-    // Register EchoReq
-    entt::meta_factory<anson::EchoReq>()
-        .type("EchoReq"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>()
-        .data<&anson::EchoReq::echo>("echo");
-
-    // Register AnsonResp
-    entt::meta_factory<anson::AnsonResp>()
-        .type("AnsonResp"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>();
-
-    // Register AnsonMsg template (example for EchoReq)
-    AnsonMsg<EchoReq> msg_echoreq;
-    string ast_id = msg_echoreq.anclass; // "io.odysz.jprotocol.AnsonMsg<EchoReq>"
-    entt::meta_factory<anson::AnsonMsg<anson::EchoReq>>()
-        // .type("AnsonMsgEchoReq"_hs)
-        .type(entt::hashed_string{ast_id.c_str()})
-        .ctor<>()
-        .ctor<anson::Port>()
-        .base<anson::Anson>()
-        .data<&anson::AnsonMsg<anson::EchoReq>::port>("port")
-        .data<&anson::AnsonMsg<anson::EchoReq>::body>("body");
-
-    ast = asts[ast_id] = unique_ptr<AnsonAst>(new AnsonAst(AnsonMsg<EchoReq>::_type_, true));
-    ast->base = Anson::_type_;
-    ast->enttypeid = hashed_string{ast_id.c_str()};
-
-    hashed_string astid;
-    astid = hashed_string{Port::_type_.c_str()};
-    // ast.fields["port"].enttype_id(astid);
-
-    astid = hashed_string{EchoReq::_type_.c_str()};
-    // ast.fields["body"].enttype_id(astid);
-
-
-    // Register Port enum
-    entt::meta_factory<anson::JavaEnum>()
-        .type("JavaEnumPort"_hs, "JavaEnumPort")
-        .base<IJsonable>()
-        .data<&anson::JavaEnum::enm>("enm")
-        ;
-
-    entt::meta_factory<anson::Port>()
-        .type("Port"_hs, "Port")
-        .base<anson::JavaEnum>()
-        .ctor<std::string>() // TODO: Force to check
-        .data<&anson::Port::echo>("echo")
-        ;
-
-    {
-        // Port::decode["query"]   = "r.serv";
-        // Port::decode["update"]  = "u.serv";
-        // Port::decode["insert"]  = "c.serv";
-        // Port::decode["del"]     = "d.serv";
-        // Port::decode["echo"]    = "echo.less";
-        // Port::decode["file"]    = "file.serv";
-        // Port::decode["docstie"] = "docs.tier";
-
-        // Port::encode["r.serv"]   = "query";
-        // Port::encode["u.serv"]   = "update";
-        // Port::encode["c.serv"]   = "insert";
-        // Port::encode["d.serv"]   = "del";
-        // Port::encode["echo.less"]= "echo";
-        // Port::encode["file.serv"]= "file";
-        // Port::encode["docs.tier"]= "docstie";
-    }
-
-    // Register MsgCode enum
-    entt::meta_factory<anson::MsgCode>()
-        .type("MsgCode"_hs)
-        .data<anson::MsgCode::ok>("ok"_hs)
-        .data<anson::MsgCode::exSession>("exSession"_hs)
-        .data<anson::MsgCode::exSemantic>("exSemantic"_hs)
-        .data<anson::MsgCode::exIo>("exIo"_hs)
-        .data<anson::MsgCode::exTransct>("exTransct"_hs)
-        .data<anson::MsgCode::exDA>("exDA"_hs)
-        .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
-        .data<anson::MsgCode::ext>("ext"_hs);
-
-    // map<string, int> *msgCodeMap = new map<string, int>{
-    //     {"ok", 0}, {"exSession", 1}, {"exSemantic", 2}, {"exIo", 3}, {"exTransct", 4}, {"exDA", 5}, {"exGeneral", 6}, {"ext", 7}
-    // };
-
-    ast = asts["MsgCode"] = AnsonAst("MsgCode", true);
-
-    // AnsonAst port_ast{"MsgCode", true};
-    ast.anclass = "MsgCode";
-    ast.isEnum = true;
-    /*
-    ast.fields["ok"] = AnstField{.datatype="int", .fieldname = "ok", .static_val="0"};
-    ast.fields["exSession"] = AnstField{.datatype="int", .fieldname = "exSession", .static_val="1"};
-    ast.fields["exSemantic"] = AnstField{.datatype="int", .fieldname = "exSemantic", .static_val="2"};
-    ast.fields["exIo"] = AnstField{.datatype="int", .fieldname = "exIo", .static_val="3"};
-    ast.fields["exTransct"] = AnstField{.datatype="int", .fieldname = "exIo", .static_val="4"};
-    ast.fields["exDA"] = AnstField{.datatype="int", .fieldname = "exDA", .static_val="5"};
-    ast.fields["exGeneral"] = AnstField{.datatype="int", .fieldname = "exGeneral", .static_val="6"};
-    ast.fields["ext"] = AnstField{.datatype="int", .fieldname = "ext", .static_val="7"};
-    * /
-}
-*/
-
-inline void register_meta(map<string, map<string, int>*>& enum_vals) {
-    using namespace entt::literals;
-
-    // Register Anson Base
-    entt::meta_factory<anson::Anson>()
-        .type("Anson"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<IJsonable>()
-        ; //.data<&anson::Anson::type>("type"_hs, "type");
-
-    // Register SemanticObject
-    entt::meta_factory<anson::SemanticObject>()
-        .type("SemanticObject"_hs)
-        .ctor<>()
-        .base<anson::Anson>();
-
-    // Register AnsonBody
-    entt::meta_factory<anson::AnsonBody>()
-        .type("AnsonBody"_hs)
-        .ctor<const std::string&>()
-        .ctor<const std::string&, const std::string&>()
-        .base<anson::Anson>()
-        .data<&anson::AnsonBody::a>("a"_hs, "a");
-
-    // Register UserReq
-    entt::meta_factory<anson::UserReq>()
-        .type("UserReq"_hs)
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>()
-        .data<&anson::UserReq::data>("data"_hs, "data");
-
-    // Register EchoReq
-    entt::meta_factory<anson::EchoReq>()
-        .type("EchoReq"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>()
-        .data<&anson::EchoReq::echo>("echo"_hs, "echo");
-
-    // Register AnsonResp
-    entt::meta_factory<anson::AnsonResp>()
-        .type("AnsonResp"_hs)
-        .ctor<>()
-        .ctor<const std::string&>()
-        .base<anson::AnsonBody>();
-
-    // Register AnsonMsg template (example for EchoReq)
-    entt::meta_factory<anson::AnsonMsg<anson::EchoReq>>()
-        .type("AnsonMsgEchoReq"_hs)
-        .ctor<anson::Port>()
-        .base<anson::Anson>()
-        .data<&anson::AnsonMsg<anson::EchoReq>::port>("port"_hs, "port")
-        .data<&anson::AnsonMsg<anson::EchoReq>::body>("body"_hs, "body");
-
-    // Register Port enum
-    entt::meta_factory<anson::JavaEnum>()
-        .type("JavaEnumPort"_hs, "JavaEnumPort")
-        .base<IJsonable>()
-        .data<&anson::JavaEnum::enm>("enm"_hs, "enm")
-        ;
-
-    entt::meta_factory<anson::Port>()
-        .type("Port"_hs, "Port")
-        .base<anson::JavaEnum>()
-        .ctor<std::string>() // TODO: Force to check
-        .data<&anson::Port::echo>("echo"_hs, "echo")
-        ;
-
-    /*{
-        Port::decode["query"]   = "r.serv";
-        Port::decode["update"]  = "u.serv";
-        Port::decode["insert"]  = "c.serv";
-        Port::decode["del"]     = "d.serv";
-        Port::decode["echo"]    = "echo.less";
-        Port::decode["file"]    = "file.serv";
-        Port::decode["docstie"] = "docs.tier";
-
-        Port::encode["r.serv"]   = "query";
-        Port::encode["u.serv"]   = "update";
-        Port::encode["c.serv"]   = "insert";
-        Port::encode["d.serv"]   = "del";
-        Port::encode["echo.less"]= "echo";
-        Port::encode["file.serv"]= "file";
-        Port::encode["docs.tier"]= "docstie";
-    }*/
-
-    // Register MsgCode enum
-    entt::meta_factory<anson::MsgCode>()
-        .type("MsgCode"_hs)
-        .data<anson::MsgCode::ok>("ok"_hs)
-        .data<anson::MsgCode::exSession>("exSession"_hs)
-        .data<anson::MsgCode::exSemantic>("exSemantic"_hs)
-        .data<anson::MsgCode::exIo>("exIo"_hs)
-        .data<anson::MsgCode::exTransct>("exTransct"_hs)
-        .data<anson::MsgCode::exDA>("exDA"_hs)
-        .data<anson::MsgCode::exGeneral>("exGeneral"_hs)
-        .data<anson::MsgCode::ext>("ext"_hs);
-
-    map<string, int> *msgCodeMap = new map<string, int>{
-        {"ok", 0}, {"exSession", 1}, {"exSemantic", 2}, {"exIo", 3}, {"exTransct", 4}, {"exDA", 5}, {"exGeneral", 6}, {"ext", 7}
+    ast->fields = map<string, AnsonField>{
+        {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
+        {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
-    enum_vals["MsgCode"] = msgCodeMap;
+    // asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
+    asts.insert(make_pair(anclass, ast));
 }
+
 }

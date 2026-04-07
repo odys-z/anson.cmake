@@ -1,14 +1,16 @@
 { "type": "io.odysz.anson.AnsonJavaEnumAst",
   "dataBase"  : "io.odysz.anson.JavaEnum",
   "dataAnclass": "io.odysz.semantic.jprotocol.Port",
-  "decode" : {
+  "encode" : {
     "heartbeat": "ping.serv",
     "echo": "echo.less",
-    "del": "d.serv"
+    "del": "d.serv",
+    "query": "r.serv"
   },
-  "encode" : {
+  "decode" : {
     "ping.serv": "heartbeat",
     "echo.less": "echo",
-    "d.serv": "del"
+    "d.serv": "del",
+    "r.serv": "query"
   }
 }
