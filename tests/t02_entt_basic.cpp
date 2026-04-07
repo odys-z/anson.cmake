@@ -15,7 +15,7 @@ public:
 
     string txt;
 
-    T_List() : Anson(_type_) {}
+    T_List() : Anson(_type_), txt("By Ctor") {  anlog(string_view("T_List Constructor")); }
 };
 
 class T_List2D : public Anson {
@@ -24,7 +24,7 @@ public:
 
     vector<T_List> vss;
 
-    T_List2D() : Anson(_type_) {}
+    T_List2D() : Anson(_type_) { anlog(string_view("T_List2D Constructor")); }
 };
 
 class T_List2DPtr : public Anson {
@@ -57,12 +57,25 @@ void register_asts(AstMap &asts) {
         .data<&anson::Anson::type>("type")
         ;
 
-    //
+    // using T_List_shared_ptr = shared_ptr<anson::T_List>;
     enttype = hashed_string{T_List::_type_.c_str()};
     entt::meta_factory<anson::T_List>()
         .type(enttype)
         .base<Anson>()
         .ctor<>()
+        .func<+[](const T_List &inst) -> std::shared_ptr<anson::T_List> {
+            anlog(std::format("T_List.func<create_ptr>(const inst)"));
+            return std::make_shared<anson::T_List>(inst);
+        }>("create_ptr")
+
+        // works with EnttSAXParse.end_object() is_list:
+        // success = obj_type.func("create_ptr"_hs).invoke({});
+        //
+        // .func<+[]() -> std::shared_ptr<anson::T_List> {
+        //     anlog(string_view("T_List.func<create_ptr>()"));
+        //     return std::make_shared<anson::T_List>();
+        // }>("create_ptr")
+
         .data<&anson::T_List::val>("val")
         .data<&anson::T_List::txt>("txt")
         ;
@@ -75,9 +88,9 @@ void register_asts(AstMap &asts) {
 
     // ast.fields is only used for serialization?
     ast->fields = map<string, AnsonField>{
-                 {"txt",   {.fieldname="txt", .dataAnclass = "string"}},
-                 {"val",   {.fieldname="val", .dataAnclass = "list<string"}}
-                 };
+        {"txt",   {.fieldname="txt", .dataAnclass = "string"}},
+        {"val",   {.fieldname="val", .dataAnclass = "list<string"}}
+    };
 
     asts[anclass] = unique_ptr<AnsonAst>(ast);
 }
@@ -106,7 +119,9 @@ void register_2Dasts(AstMap &asts) {
 }
 
 void register_2DPtr_asts(AstMap &asts) {
-    //
+    string anclass;
+    hashed_string enttype;
+
     entt::meta_factory<anson::T_List2DPtr>()
         .type(T_List2DPtr::_type_.c_str())
         .base<Anson>()
@@ -114,7 +129,7 @@ void register_2DPtr_asts(AstMap &asts) {
         .data<&anson::T_List2DPtr::vpp>("vpp")
         ;
 
-    string anclass = T_List2DPtr().anclass;
+    anclass = T_List2DPtr().anclass;
     AnsonAst *ast = new AnsonAst{anclass, false};
     ast->dataAnclass = T_List2DPtr::_type_;
     ast->dataBaseAst = AnsonAst::_type_;
@@ -129,7 +144,6 @@ void register_2DPtr_asts(AstMap &asts) {
 }
 }
 
-/*
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace entt::literals;
     using namespace anson;
@@ -287,7 +301,6 @@ TEST(ENTT, T_LIST_2D) {
     ASSERT_EQ(1, anlist.vss[0].val.size()) << "vss[0].val.size";
     ASSERT_EQ((vector<string>{"0"}), anlist.vss[0].val) << "vss[0].val";
 }
-*/
 
 TEST(ENTT, T_LIST_2D_Ptr) {
     using namespace entt::literals;
@@ -302,7 +315,7 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     T_List2DPtr inst_list;
     T_List2DPtr &anlist = inst_list;
 
-    std::string json_input = std::format(R"({{"type": "{}", "vpp": [{{"txt": "y", "val": ["1"]}}] }})",
+    std::string json_input = std::format(R"({{"type": "{}", "vpp": [{{"txt": "y", "val": ["cccc ----"]}}] }})",
                                          T_List2DPtr::_type_);
 
     EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
@@ -319,8 +332,8 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     T_List2DPtr* to_checkList = handler_parse.stack.back().instance.try_cast<anson::T_List2DPtr>();
 
     ASSERT_EQ(1, to_checkList->vpp.size()) << "to_check_list.vss.size";
-    ASSERT_EQ((vector<string>{"0"}), to_checkList->vpp[0]->val) << "to_check_list_pp[0]->val";
-    ASSERT_EQ("x", anlist.vpp[0]->txt) << "vpp[0]->txt";
+    ASSERT_EQ((vector<string>{"cccc ----"}), to_checkList->vpp[0]->val) << "to_check_list_pp[0]->val";
+    ASSERT_EQ("y", anlist.vpp[0]->txt) << "vpp[0]->txt";
     ASSERT_EQ(1, anlist.vpp[0]->val.size()) << "vpp[0]->val->size";
-    ASSERT_EQ((vector<string>{"0"}), anlist.vpp[0]->val) << "vpp[0]->val";
+    ASSERT_EQ((vector<string>{"cccc ----"}), anlist.vpp[0]->val) << "vpp[0]->val";
 }

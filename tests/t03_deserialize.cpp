@@ -19,7 +19,7 @@ AstMap enums;
 map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
-/*
+
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -93,7 +93,6 @@ TEST(Anson, PORT) {
     ASSERT_TRUE(portAst->encode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
 }
-*/
 
 TEST(Anson, AnsonMsg_EchoReq) {
     IJsonable::contxt_ptr = &contxt;

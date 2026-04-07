@@ -189,7 +189,7 @@ public:
         if (body.empty()) {
             throw std::runtime_error("Body list is empty");
         }
-        return body.at(0);
+        return *body.at(0);
     }
 };
 

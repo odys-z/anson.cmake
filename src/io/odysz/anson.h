@@ -853,29 +853,38 @@ public:
                     }
                 }
                 else if (stack.back().is_list) {
-                    // meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
-                    meta_type obj_type = stack.back().instance.type();
+                    meta_type obj_type = top.instance.type();
                     std::string typname{obj_type.info().name()};
                     andebug(string_view(std::format("end_obj(): list-container.type-id() {}, info: {}", obj_type.id(), typname)));
-                    // if (val_type.id() == obj_type.id()) {
                         auto view = stack.back().instance.as_sequence_container();
                         if (view) {
-                            // entt::meta_any key{std::move(stack.back().map_key)};
 
                             meta_any success;
-                            if (top.is_val_ptr)
-                                success = view.insert(view.end(), make_shared<Anson>(top.instance));
+                            if (stack.back().is_val_ptr) {
+                                auto func = obj_type.func("create_ptr"_hs);
+
+                                if (!func) {
+                                    anerror(string_view(std::format("end_obj(): create_ptr({}) is not registered.",
+                                                                    typname)));
+                                    return false;
+                                }
+
+                                andebug(string_view(std::format("end_obj(): Stack back instance's func<create_ptr> arity: {}",
+                                                                func.arity())));
+
+                                success = obj_type.func("create_ptr"_hs).invoke(top.instance);
+                                if (success)
+                                    success = view.insert(view.end(), success);
+                            }
                             else
                                 success = view.insert(view.end(), top.instance);
 
                             if (!success)
                                 anerror(string_view("end_obj(): Setting back the list is failed!"));
                             else
-                                andebug(string_view(std::format("end_obj(): size of the inserted list of obj: {}",
+                                andebug(string_view(std::format("end_obj(): Ok! Size of the inserted list of obj: {}",
                                                                 view.size())));
                         }
-                    // }
-
                 }
             }
             active_key = key0;
@@ -1003,8 +1012,10 @@ public:
         vector<std::string> val_anclass = Regex::parseListValtype(list_type);
         andebug(string_view(std::format("List value data class: {}, ptr {}", val_anclass[0], val_anclass[1])));
 
+        bool is_ptr = val_anclass[1] == "true";
+
         stack.push_back({.instance = ref,
-                         .val_astid=val_anclass[0], .is_val_ptr=(val_anclass[1] == "true"),
+                         .val_astid=val_anclass[0], .is_val_ptr=is_ptr,
                          .is_list=true, .is_map=false,
                          .activekey=active_key});
     }
