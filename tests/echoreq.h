@@ -39,7 +39,7 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
             // .data<&EchoReq::a>("a")
             .data<&EchoReq::echo>("echo")
             .func<+[](const EchoReq &inst) -> std::shared_ptr<anson::EchoReq> {
-                andebug(std::format("EchoReq.func<create_ptr>(const inst)"));
+                andebug("EchoReq.func<create_ptr>(const inst)");
                 return std::make_shared<anson::EchoReq>(inst);
             }>("create_ptr")
             ;

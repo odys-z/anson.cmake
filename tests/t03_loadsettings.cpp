@@ -19,12 +19,12 @@ void register_peersettings(AstMap &asts) {
         .type(enttype)
         .base<Anson>()
         .ctor<>()
-        .data<&anson::PeerSettings::ansons>("ansons"_hs, "ansons")
-        .data<&anson::PeerSettings::scopeEnums>("scopeEnums"_hs, "scopeEnums")
-        .data<&anson::PeerSettings::javaEnums>("javaEnums"_hs, "javaEnums")
-        .data<&anson::PeerSettings::ansonMsg>("ansonMsg"_hs, "ansonMsg")
-        .data<&anson::PeerSettings::ansonBody>("ansonBody"_hs, "ansonBody")
-        .data<&anson::PeerSettings::anRequests>("anRequests"_hs, "anRequests")
+        .data<&anson::PeerSettings::ansons>("ansons")
+        .data<&anson::PeerSettings::scopeEnums>("scopeEnums")
+        .data<&anson::PeerSettings::javaEnums>("javaEnums")
+        .data<&anson::PeerSettings::ansonMsg>("ansonMsg")
+        .data<&anson::PeerSettings::ansonBody>("ansonBody")
+        .data<&anson::PeerSettings::anRequests>("anRequests")
         ;
 
     string anclass = PeerSettings().anclass;
@@ -75,7 +75,6 @@ TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
     AstMap asts;
-    // map<string, meta_type> enttypes;
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 

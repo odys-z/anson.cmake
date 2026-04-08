@@ -47,6 +47,10 @@ public:
         }
         return nullptr;
     }
+
+    bool has_ast(const string &astid) const {
+        return
+    }
 };
 
 class IJsonable {
