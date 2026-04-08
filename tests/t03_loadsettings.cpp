@@ -164,7 +164,7 @@ TEST(Load, AnsonAst_Port) {
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
     ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
-    ASSERT_EQ("", portAst.dataBaseAst) << "portAst.dataBaseAst";
+    ASSERT_EQ("io.odysz.anson.JavaEnum", portAst.dataBaseAst) << "portAst.dataBaseAst";
 
     string port_anclass = Port().anclass;
     andebug(string_view(port_anclass));
