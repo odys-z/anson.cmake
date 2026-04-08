@@ -14,9 +14,19 @@ using namespace anson;
 
 void register_peersettings(AstMap &asts) {
     //
-    hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
+    // hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
+    AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
+        asts, Anson::_type_, map<string, AnsonField>{
+        {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
+        {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
+        {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
+        {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
+        {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
+        {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+    });
+
     entt::meta_factory<anson::PeerSettings>()
-        .type(enttype)
+        .type(ast->enttypeid)
         .base<Anson>()
         .ctor<>()
         .data<&anson::PeerSettings::ansons>("ansons")
@@ -27,23 +37,23 @@ void register_peersettings(AstMap &asts) {
         .data<&anson::PeerSettings::anRequests>("anRequests")
         ;
 
-    string anclass = PeerSettings().anclass;
-    AnsonAst *ast = new AnsonAst{anclass, false};
-    ast->dataAnclass = PeerSettings::_type_;
-    ast->base = Anson::_type_;
-    ast->enttypeid = enttype;
+    // string anclass = PeerSettings().anclass;
+    // AnsonAst *ast = new AnsonAst{anclass, false};
+    // ast->dataAnclass = PeerSettings::_type_;
+    // ast->base = Anson::_type_;
+    // ast->enttypeid = enttype;
 
-    // ast.fields is only used for serialization?
-    ast->fields = map<string, AnsonField>{
-        {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
-        {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
-        {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
-        {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
-        {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
-        {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
-    };
+    // // ast.fields is only used for serialization?
+    // ast->fields = map<string, AnsonField>{
+    //     {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
+    //     {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
+    //     {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
+    //     {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
+    //     {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
+    //     {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+    // };
 
-    asts.insert(make_pair(anclass, ast));
+    // asts.insert(make_pair(anclass, ast));
 }
 
 void register_echoAst(AstMap &asts) {
