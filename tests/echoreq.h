@@ -112,4 +112,12 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 */
+
+inline static vector<string> to_aststring(const AstMap &asts) {
+    vector<string> sv;
+    for (auto& [k, v] : asts) {
+        sv.push_back(std::format("{}: {} -> {}", k, v->dataAnclass, v->dataBaseAst));
+    }
+    return sv;
+}
 }
