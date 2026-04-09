@@ -265,6 +265,29 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
+    entt::meta_factory<std::vector<std::shared_ptr<T>>>()
+        .type(hashed_string{(string("list<shared_ptr<") + T::_type_ + ">>").c_str()})
+        ;
+
+    /**
+     * 1. Cast the base interface to the known concrete type
+     * 2. Resolve the meta type for the concrete class
+     * 3. Get the field data and return the value from this instance
+     */
+    ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {
+        auto& concrete = static_cast<anson::AnsonMsg<T>&>(inst);
+
+        auto type = entt::resolve<anson::AnsonMsg<T>>();
+
+        if (auto data = find_field_recursive(type, key); data) {
+            meta_any d = data.get(concrete);
+            if (d)
+            return d;
+        }
+        anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
+        return {};
+    };
+
     asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
     // asts.insert(make_pair(anclass, ast));
 }
