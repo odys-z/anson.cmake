@@ -79,8 +79,9 @@ TEST(JAVAENUM, PORT) {
     EnTTSaxParser handler(usreq, &contxt);
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<UserReq>::_type_ + "<" + UserReq::_type_, usreq.anclass) << "usreq.anclass";
-    ASSERT_EQ(Port::echo, usreq.port)  << "expecting msg port: " << Port::echo;
+    ASSERT_EQ(AnsonMsg<UserReq>().anclass, usreq.anclass) << "usreq.anclass";
+    ASSERT_EQ("echo", usreq.port)  << "usreq.echo [1]";
+    ASSERT_EQ(Port{Port::echo}, usreq.port)  << "usreq.echo [2]";
 }
 
 // TEST(JAVAENUM, TEST_PORT) {

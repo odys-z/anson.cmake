@@ -305,6 +305,22 @@ public:
     }
 };
 
+inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
+    if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
+        AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
+        return p.enm == ast->encode[s];
+    }
+    return false;
+}
+
+inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
+    return p == s;
+}
+
+inline bool operator==(const anson::JavaEnum& p, const anson::JavaEnum& q) {
+    return p.enm == q.enm;
+}
+
 class AnsonBodyAst : public AnsonAst {
 public:
     inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";

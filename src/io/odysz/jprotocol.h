@@ -80,22 +80,9 @@ public:
     }
 };
 
-inline bool operator==(const Port& p, const JavaEnum& q) {
-    return p.enm == q.enm;
-}
-
-inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
-    if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
-        AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
-        return p.enm == ast->encode[s];
-    }
-    return false;
-}
-
-inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
-    // return p == from_enum_string<Port>(s);
-    return p == s;
-}
+// inline bool operator==(const Port& p, const JavaEnum& q) {
+//     return p.enm == q.enm;
+// }
 
 // template<typename E>
 // std::optional<E> from_enum_string(const std::string& s) {
