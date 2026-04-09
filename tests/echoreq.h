@@ -57,6 +57,7 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
         anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
 }
 
+/*
 template <typename Rq>
 inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
                                        std::function<void(meta_factory<Rq>)> registerFields) {
@@ -110,4 +111,5 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
     else
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
+*/
 }

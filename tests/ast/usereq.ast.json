@@ -1,9 +1,9 @@
 { "type": "io.odysz.anson.AnsonBodyAst",
   "base": "io.odysz.anson.AnsonAst",
-  "A": {"echo":  "echo", "inet":  "inet"},
+  "A": {"test":  "test.only"},
   "dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
   "dataBaseAst": "io.odysz.semantic.jprotocol.AnsonBodyAst",
   "fields" : {
-    "echo": {"dataAnclass": "java.lang.String"}
+    "data": {"fieldname": "data", "dataAnclass": "map<string, string>"}
   }
 }

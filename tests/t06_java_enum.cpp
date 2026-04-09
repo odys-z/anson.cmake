@@ -50,12 +50,16 @@ TEST(JAVAENUM, PORT) {
     register_asts(enums);
     register_port(enums, "ast/port.ast.json");
     register_msg(enums);
+    load_msg_specialAst<UserReq>(enums, "ast/usereq.ast.json",
+        [](meta_factory<UserReq> enttype){
+            enttype.data<&UserReq::data>("data");
+    });
 
     auto p_type = entt::resolve(hashed_string{Port::_type_.c_str()});
     meta_any ptr = p_type.construct();
     Port& port = ptr.cast<anson::Port&>();
     cout << "Port Value: " << port.enm << endl;
-    anlog(format("[1] Port Value: {}", port.enm));
+    anlog(string_view(format("[1] Port Value: {}", port.enm)));
 
     ASSERT_EQ("na", port.enm);
 
@@ -73,7 +77,7 @@ TEST(JAVAENUM, PORT) {
     EnTTSaxParser handler(usreq, &contxt);
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<UserReq>::_type_, usreq.anclass) << "expecting msg {type: " << AnsonMsg<UserReq>::_type_;
+    ASSERT_EQ(AnsonMsg<UserReq>::_type_ + "<" + UserReq::_type_, usreq.anclass) << "usreq.anclass";
     ASSERT_EQ(Port::echo, usreq.port)  << "expecting msg port: " << Port::echo;
 }
 
