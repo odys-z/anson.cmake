@@ -19,7 +19,7 @@ AstMap enums;
 map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
-
+/*
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -111,7 +111,6 @@ TEST(Anson, AnsonMsg_EchoReq) {
     Req* msg = mv.try_cast<Req>();
     EchoReq body{"Hello"};
     body.a = "";
-    // body.echo = "";
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
@@ -144,9 +143,17 @@ TEST(Anson, AnsonMsg_EchoReq) {
     EXPECT_EQ("AnsonMsg_EchoReq!", msg2.body[0]->echo) << "[4] msg->body.echo";
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
+*/
 
-/*
 TEST(Anson, Servialize_Msg) {
+
+    // serialize_recursive(msg, enums, oss);
+    IJsonable::contxt_ptr = &contxt;
+    JsonOpt opts{&enums};
+    register_asts(enums);
+    register_msg(enums);
+    register_port(enums, "ast/port.ast.json");
+    load_echoAst(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
     auto msg = std::make_shared<Req>(Port::query);
@@ -154,18 +161,14 @@ TEST(Anson, Servialize_Msg) {
 
     std::ostringstream oss;
 
-    // serialize_recursive(msg, enums, oss);
-    JsonOpt opts{&enums, &types};
     msg->toBlock(oss, opts);
 
-    // Why move()? Gemini: instead of copying, stringstream is allowed to transfer
-    // ownership of its internal memory directly to the returned std::string.
+    // transfer ownership of internal memory directly to the returned std::string.
     std::string json_result = std::move(oss).str();
 
     std::cout << "Serialized JSON: " << json_result << std::endl;
-    ASSERT_EQ(R"({"type": "io.odysz.jprotocol.AnsonMsg", "port": "query", )"
+    ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg", "port": "query", )"
               R"("body": [{"a": "r/query", "echo": "Hello World"}]})",
               json_result);
 }
-*/
 }

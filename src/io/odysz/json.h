@@ -70,7 +70,7 @@ inline static void register_asts(AstMap &asts) {
 
     anclass = Anson().anclass;
     ast = new AnsonAst{anclass, false};
-    ast->base = "io.odysz.anson.IJsonable";
+    ast->base = IJsonable::_anclass_; //"io.odysz.anson.IJsonable";
     ast->dataAnclass = anclass;
     ast->enttypeid = enttype;
     // asts[anclass] = unique_ptr<AnsonAst>(ast);
@@ -97,6 +97,7 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         .data<&anson::AnsonAst::fields>("fields")
         .data<&anson::AnsonAst::enums>("enums")
+        .data<&anson::AnsonAst::static_val>("static_val")
         ;
 
     anclass = AnsonAst().anclass;
@@ -306,7 +307,7 @@ inline static void register_port(AstMap &asts, string port_ast) {
 
 
 template<typename T>
-inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
+inline static void specialize_msg(AstMap &asts, const AnsonBodyAst *body_ast) {
     AnsonMsg<T> msg_echoreq;
     string anclass = msg_echoreq.anclass;
     hashed_string enttype{anclass.c_str()};

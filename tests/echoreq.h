@@ -36,7 +36,6 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
             .base<AnsonBody>()
             .ctor<>()
             .ctor<string>()
-            // .data<&EchoReq::a>("a")
             .data<&EchoReq::echo>("echo")
             .func<+[](const EchoReq &inst) -> std::shared_ptr<anson::EchoReq> {
                 andebug(std::format("EchoReq.func<create_ptr>(const inst)"));
@@ -51,7 +50,7 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
         echoAst->dataBaseAst = AnsonBodyAst::_type_;
         asts[anclass] = unique_ptr<AnsonBodyAst>(echoAst);
 
-        specialize_req<EchoReq>(asts, echoAst);
+        specialize_msg<EchoReq>(asts, echoAst);
     }
     else
         anerror(string_view(std::format("Could not load AST from {}!", ast_path)));

@@ -7,7 +7,7 @@
 #include <io/odysz/json.h>
 #include <io/odysz/anserializer.h>
 
-#include "t04_java_enum.h"
+#include "t06_java_enum.h"
 
 namespace {
 

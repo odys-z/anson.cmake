@@ -47,6 +47,10 @@ public:
         }
         return nullptr;
     }
+
+    bool has_ast(const string& astid) const {
+        return asts->contains(astid);
+    }
 };
 
 class IJsonable {
@@ -151,11 +155,11 @@ public:
     string type;
 
     Anson() : IJsonable(_type_), type(_type_) {
-        andebug("defalut contructor");
+        // andebug("defalut contructor");
     }
 
     Anson(string t) : IJsonable(t), type(t) {
-        andebug("override constructor, type = "s + t);
+        // andebug("override constructor, type = "s + t);
     }
 
     /**
@@ -164,7 +168,7 @@ public:
      * @param astid can be different if is a template specialized.
      */
     Anson(string t, string anclass) : IJsonable(anclass), type(t) {
-        andebug("override constructor, anclass = " + anclass);
+        // andebug("override constructor, anclass = " + anclass);
     }
 
     template <typename T>
@@ -450,12 +454,12 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
 }
 
 inline static ostream& serialize_fields(ostream &os,
-        const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts) {
+        const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts, bool first) {
 
      if (fields.size() > 0) {
         meta_any instance{anson};
 
-        bool first = true;
+        // bool first = true;
         for (auto[fn, f] : fields) {
             if (first)
                 first = false;
@@ -490,13 +494,19 @@ inline static ostream& serialize_fields(ostream &os,
     return os;
 }
 
-inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
+inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts, bool first=true) {
     // Java class can has only on base class
-    AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    AnsonMsgAst *msgast = opts.ast<AnsonMsgAst>(anson.anclass);
+    AnsonAst *ast       = opts.ast<AnsonAst>(anson.anclass);
+    // AnsonMsgAst *msgast = opts.ast<AnsonMsgAst>(anson.anclass);
     if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
-        auto base_fields = opts.asts->at(ast->dataBaseAst)->fields;
-        serialize_fields(os, base_fields, anson, opts);
+        // auto base_fields = opts.asts->at(ast->dataBaseAst)->fields;
+        AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
+        if (opts.has_ast(base_ast->dataAnclass)) {
+            auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+            serialize_fields(os, base_fields, anson, opts, first);
+
+            first = base_fields.size() == 0;
+        }
     }
 
     auto fields = opts.asts->at(anson.anclass)->fields;
@@ -519,12 +529,12 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
     //     }
     // }
     // return os;
-    return serialize_fields(os, fields, anson, opts);
+    return serialize_fields(os, fields, anson, opts, first);
 }
 
 inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts) {
     os << R"({"type": ")" + anson.type + '"';
-    serialize_kvs(os, anson, opts);
+    serialize_kvs(os, anson, opts, false);
     return  os << '}';
 }
 
