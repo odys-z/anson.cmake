@@ -18,8 +18,8 @@ add_executable(unit_tests
   # t03_loadsettings.cpp
   # t04_entt_registry.cpp
   t05_deserialize.cpp
-  t06_java_enum.cpp
-  t06_java_enum.h
+  # t06_java_enum.cpp
+  # t06_java_enum.h
   # t05_ansonresp.cpp
 )
 

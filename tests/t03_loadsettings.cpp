@@ -14,36 +14,46 @@ using namespace anson;
 
 void register_peersettings(AstMap &asts) {
     //
-    hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
-    entt::meta_factory<anson::PeerSettings>()
-        .type(enttype)
-        .base<Anson>()
-        .ctor<>()
-        .data<&anson::PeerSettings::ansons>("ansons"_hs, "ansons")
-        .data<&anson::PeerSettings::scopeEnums>("scopeEnums"_hs, "scopeEnums")
-        .data<&anson::PeerSettings::javaEnums>("javaEnums"_hs, "javaEnums")
-        .data<&anson::PeerSettings::ansonMsg>("ansonMsg"_hs, "ansonMsg")
-        .data<&anson::PeerSettings::ansonBody>("ansonBody"_hs, "ansonBody")
-        .data<&anson::PeerSettings::anRequests>("anRequests"_hs, "anRequests")
-        ;
-
-    string anclass = PeerSettings().anclass;
-    AnsonAst *ast = new AnsonAst{anclass, false};
-    ast->dataAnclass = PeerSettings::_type_;
-    ast->base = Anson::_type_;
-    ast->enttypeid = enttype;
-
-    // ast.fields is only used for serialization?
-    ast->fields = map<string, AnsonField>{
+    // hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
+    AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
+        asts, Anson::_type_, map<string, AnsonField>{
         {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
         {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
         {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
         {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
         {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
         {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
-    };
+    });
 
-    asts.insert(make_pair(anclass, ast));
+    entt::meta_factory<anson::PeerSettings>()
+        .type(ast->enttypeid)
+        .base<Anson>()
+        .ctor<>()
+        .data<&anson::PeerSettings::ansons>("ansons")
+        .data<&anson::PeerSettings::scopeEnums>("scopeEnums")
+        .data<&anson::PeerSettings::javaEnums>("javaEnums")
+        .data<&anson::PeerSettings::ansonMsg>("ansonMsg")
+        .data<&anson::PeerSettings::ansonBody>("ansonBody")
+        .data<&anson::PeerSettings::anRequests>("anRequests")
+        ;
+
+    // string anclass = PeerSettings().anclass;
+    // AnsonAst *ast = new AnsonAst{anclass, false};
+    // ast->dataAnclass = PeerSettings::_type_;
+    // ast->base = Anson::_type_;
+    // ast->enttypeid = enttype;
+
+    // // ast.fields is only used for serialization?
+    // ast->fields = map<string, AnsonField>{
+    //     {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
+    //     {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
+    //     {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
+    //     {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
+    //     {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
+    //     {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+    // };
+
+    // asts.insert(make_pair(anclass, ast));
 }
 
 void register_echoAst(AstMap &asts) {
@@ -75,7 +85,6 @@ TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
     AstMap asts;
-    // map<string, meta_type> enttypes;
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
@@ -155,7 +164,7 @@ TEST(Load, AnsonAst_Port) {
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
     ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
-    ASSERT_EQ("", portAst.dataBaseAst) << "portAst.dataBaseAst";
+    ASSERT_EQ("io.odysz.anson.JavaEnum", portAst.dataBaseAst) << "portAst.dataBaseAst";
 
     string port_anclass = Port().anclass;
     andebug(string_view(port_anclass));

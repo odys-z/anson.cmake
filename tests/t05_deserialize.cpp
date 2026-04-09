@@ -99,7 +99,10 @@ TEST(Anson, AnsonMsg_EchoReq) {
     register_asts(enums);
     register_msg(enums);
     register_port(enums, "ast/port.ast.json");
-    load_echoAst(enums, "ast/echo.ast.json");
+    // load_echoAst(enums, "ast/echo.ast.json");
+    load_msg_specialAst<EchoReq>(enums, "ast/echo.ast.json", [](meta_factory<EchoReq> enttype) {
+        enttype.data<&EchoReq::echo>("echo"_hs, "echo");
+    });
 
     using Req = AnsonMsg<EchoReq>;
 

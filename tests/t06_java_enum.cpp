@@ -4,8 +4,9 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
-#include <io/odysz/json.h>
-#include <io/odysz/anserializer.h>
+#include "io/odysz/json.h"
+// #include "io/odysz/anserializer.h"
+#include "io/odysz/json.h"
 
 #include "t06_java_enum.h"
 
@@ -16,10 +17,10 @@ using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-map<string, AnsonAst> enums;
+AstMap enums;
 map<string, meta_type> enttypes;
 
-void register_testport(map<string, AnsonAst> &enums) {
+void register_testport(AstMap &enums) {
     // entt::meta_factory<anson::JavaEnum>()
     //     .type("JavaEnumTestPort"_hs, "JavaEnumTestPort")
     //     .base<IJsonable>()
@@ -44,17 +45,21 @@ void register_testport(map<string, AnsonAst> &enums) {
 }
 
 TEST(JAVAENUM, PORT) {
-    register_meta(enums, enttypes);
+    JsonOpt contxt{&enums};
+    IJsonable::contxt_ptr = &contxt;
+    register_asts(enums);
+    register_port(enums, "ast/port.ast.json");
+    register_msg(enums);
+    load_msg_specialAst<UserReq>(enums, "ast/usereq.ast.json",
+        [](meta_factory<UserReq> enttype){
+            enttype.data<&UserReq::data>("data");
+    });
 
-    register_testport(enums);
-
-    JsonOpt contxt{&enums, &enttypes};
-
-    auto p_type = entt::resolve("Port"_hs);
+    auto p_type = entt::resolve(hashed_string{Port::_type_.c_str()});
     meta_any ptr = p_type.construct();
     Port& port = ptr.cast<anson::Port&>();
     cout << "Port Value: " << port.enm << endl;
-    anlog(format("[1] Port Value: {}", port.enm));
+    anlog(string_view(format("[1] Port Value: {}", port.enm)));
 
     ASSERT_EQ("na", port.enm);
 
@@ -64,15 +69,15 @@ TEST(JAVAENUM, PORT) {
     std::string json_input = format(R"({{"type": "{}", "port": "{}"}})",
                                     AnsonMsg<EchoReq>::_type_,
                                     Port::echo);
-    p_type = entt::resolve("AnsonMsgUserReq"_hs);
+    p_type = entt::resolve(hashed_string{AnsonMsg<UserReq>().anclass.c_str()});
     ptr = p_type.construct();
     AnsonMsg<UserReq> usreq = ptr.cast<anson::AnsonMsg<UserReq>&>();
 
     // EnTTSaxParser<AnsonMsg<UserReq>>  handler(usreq, contxt);
-    EnTTSaxParser handler(usreq, contxt);
+    EnTTSaxParser handler(usreq, &contxt);
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<UserReq>::_type_, usreq.anclass) << "expecting msg {type: " << AnsonMsg<UserReq>::_type_;
+    ASSERT_EQ(AnsonMsg<UserReq>::_type_ + "<" + UserReq::_type_, usreq.anclass) << "usreq.anclass";
     ASSERT_EQ(Port::echo, usreq.port)  << "expecting msg port: " << Port::echo;
 }
 

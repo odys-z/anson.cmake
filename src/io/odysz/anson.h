@@ -39,16 +39,17 @@ public:
             {"boolean", "boolean"}, {"Boolean", "boolean"}, {"java.lang.Boolean", "boolean"},
         }) { }
 
-    template<typename T>
-    T* ast(string astid) const {
+    template<typename AST>
+    AST* ast(const string &astid) const {
+        // string astid{AST::_type_ + '<' + dataclass};
         auto it = asts->find(astid);
         if (it != asts->end()) {
-            return dynamic_cast<T*>(it->second.get());
+            return dynamic_cast<AST*>(it->second.get());
         }
         return nullptr;
     }
 
-    bool has_ast(const string& astid) const {
+    bool has_ast(const string &astid) const {
         return asts->contains(astid);
     }
 };
@@ -285,13 +286,18 @@ public:
 
     AnsonJavaEnumAst() : AnsonJavaEnumAst(_type_) {}
 
-    AnsonJavaEnumAst(string anclass) : AnsonAst(anclass, anclass) {
-        // isJavaEnum = true; Ast is not a JavaEnum
+    /**
+     * @brief AnsonJavaEnumAst
+     * @param anclass
+     * @param isEnum This parameter is used only for templatized registration, not used.
+     * (AST is not a JavaEnum)
+     */
+    AnsonJavaEnumAst(string anclass, bool isEnum = true) : AnsonAst(anclass, anclass) {
     }
 };
 
 class AnsonBodyAst : public AnsonAst {
- public:
+public:
     inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";
 
     // ISSUE not adding uri to fields?
@@ -300,7 +306,7 @@ class AnsonBodyAst : public AnsonAst {
 
     AnsonBodyAst() : AnsonAst(_type_, _type_) { }
 
-    AnsonBodyAst(string anclass) : AnsonAst(anclass, _type_) { }
+    AnsonBodyAst(string anclass, bool isEnum = false) : AnsonAst(anclass, _type_) { }
 };
 
 class AnsonMsgAst : public AnsonAst {
@@ -314,7 +320,7 @@ public:
 
     AnsonMsgAst() : AnsonAst() { }
 
-    AnsonMsgAst(string anclass) : AnsonAst(anclass, _type_) { }
+    AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass, _type_) { }
 };
 
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
@@ -634,8 +640,8 @@ private:
                 andebug(std::format("set_value(): setting {}, active_key: {}",
                                 fieldname, active_key));
 
-                if (!contxt->asts->contains(top.val_astid)) {
-                    anerror("set_value(): Cannot find AST "s + top.val_astid);
+                if (!contxt->has_ast(top.val_astid)) {
+                    anerror(string_view("set_value(): Cannot find AST "s + top.val_astid));
                     return;
                 }
 
@@ -645,7 +651,6 @@ private:
                 if (fd_ast != nullptr) {
                     if (fd_ast->isJavaEnum) {
                         std::string string_val;
-
                         if constexpr (std::is_same_v<std::decay_t<V>, std::string>) {
                             string_val = std::forward<V>(val);
                         } else if constexpr (std::is_same_v<std::decay_t<V>, bool>) {
@@ -1007,7 +1012,8 @@ public:
         bool is_ptr = val_anclass[1] == "true";
 
         stack.push_back({.instance = ref,
-                         .val_astid=val_anclass[0], .is_val_ptr=is_ptr,
+                         .val_astid=val_anclass[0],
+                         .is_val_ptr=is_ptr,
                          .is_list=true, .is_map=false,
                          .activekey=active_key});
     }
@@ -1018,7 +1024,8 @@ public:
         andebug(std::format("Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
 
         stack.push_back({.instance = map_inst,
-                         .val_astid=val_anclass[0], .is_val_ptr=(val_anclass[1] == "true"),
+                         .val_astid=val_anclass[0],
+                         .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
                          .resolve_map2fields=resolve_map2fields,
                          .activekey=active_key});
