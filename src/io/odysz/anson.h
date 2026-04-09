@@ -117,6 +117,7 @@ public:
         return enm;
     }
 
+    string valof() const;
     // static JavaEnum& valof(string s, JavaEnum& stub) {
     //     return stub;
     // }
@@ -127,13 +128,13 @@ public:
     }
 
     IJsonable* toJson(string& buf) override {
-        buf += '\"' + enm + '\"';
+        buf += '\"' + valof() + '\"';
         return this;
     }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
-    return os << '\"' << enm.enm << '\"';
+inline static std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
+    return os << '\"' << enm.valof() << '\"';
 }
 
 template<typename T>
@@ -246,14 +247,7 @@ public:
     AnsonAst(string anclass, string type) : Anson(type, anclass),
         isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 
-    // AnsonAst* base_ast(string base_ast_id, const AstMap &asts) {
-    //     string base = base_ast_id;
-    //     if (!asts.contains(base_ast_id))
-    //         anerror(string_view(std::format("{} must be registered after {}", type, base_ast_id)));
-    //     else
-    //         dataBaseAst = asts.at(base_ast_id).get()->dataAnclass;
-    //     return this;
-    // }
+    meta_any get_entt_instance(const IJsonable &jsonable);
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -349,6 +343,7 @@ public:
 };
 
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
+    this->anclass = anclass;
     if (contxt_ptr->asts->contains(anclass)) {
         map<string, string> encode = dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
         if (encode.contains(enm)) {
@@ -357,6 +352,17 @@ inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsona
         }
     }
     andebug("JavaEnum: "s + enm);
+}
+
+inline string JavaEnum::valof() const {
+    if (contxt_ptr->asts->contains(anclass)) {
+        map<string, string> decode = dynamic_cast<AnsonJavaEnumAst*>(
+                            contxt_ptr->asts->at(anclass).get())->decode;
+        if (decode.contains(enm)) {
+        return decode[enm];
+        }
+    }
+    return enm;
 }
 
 inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type key) {
@@ -399,26 +405,54 @@ inline static ostream& serialize_enum(const meta_any &instance, const meta_type 
     return os;
 }
 
-inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const vector<string> &val_ast_id) {
+inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const vector<string> &val_ast_id, const JsonOpt &opts) {
+    os << '[';
+    bool first = true;
+
     if (val_ast_id[0] == "string") {
         vector<string> list = list_any.cast<vector<string>>();
-        os << '[';
-        bool first = true;
         for (string e : list) {
             if (first) first = false; else os << ',';
             os << '"' << e << '"';
         }
-        os << ']';
+    }
+
+    // TODO merge with serialize_field()?
+    else if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_ast_id[0]); ast) {
+        if (!ast->isJsonable)
+            anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
+        else {
+            if ("true" == val_ast_id[1]) {
+                vector<shared_ptr<meta_any>> list = list_any.cast<vector<shared_ptr<meta_any>>>();
+                for (meta_any e : list) {
+                    if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
+                        std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
+                        p->toBlock(os, opts);
+                    }
+                }
+            }
+            else {
+                vector<meta_any> list = list_any.cast<vector<meta_any>>();
+                for (meta_any e : list) {
+                    if (auto* an = e.try_cast<IJsonable>()) {
+                        an->toBlock(os, opts);
+                    }
+                }
+            }
+        }
     }
     else
         anerror("Todo: list of "s + val_ast_id[0] + ", ptr " + val_ast_id[1]);
-    return os;
+
+    return os << ']';
 }
 
 inline static ostream& serialize_map(ostream& os, const meta_any &val, const string &dataclass) {
     // const AnsonAst &fd_map_ast,
-    if ("map<string, string" != dataclass)
+    if ("map<string, string" != dataclass) {
         anerror("TODO: map of " + dataclass);
+        return os;
+    }
 
     if (auto view = val.as_associative_container(); view) {
         os << '{';
@@ -451,44 +485,72 @@ inline static ostream& serialize_map(ostream& os, const meta_any &val, const str
 }
 
 inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
-              const AnsonAst &fd_ast, const meta_type &fd_type, const JsonOpt &opts) {
+              const string &fieldname, const AnsonAst &obj_ast, const meta_type &fd_type, const JsonOpt &opts) {
 
-    entt::meta_any val{entt::forward_as_any(jsonable)};
+    meta_type enttype = resolve(hashed_string{jsonable.anclass.c_str()});
+    hashed_string data_key{fieldname.c_str()};
+    meta_data data = find_field_recursive(enttype, data_key);
 
-    if (fd_ast.isList) {
+    entt::meta_any obj = enttype.from_void(&jsonable);
+    meta_any val = data.get(obj);
+    if (!obj || !val) {
+        hashed_string k{jsonable.anclass.c_str()};
+        anerror(string_view(std::format("Cannot retieve field {} from {} : {}",
+                            fieldname, jsonable.anclass, k.data())));
+        return os;
+    }
+
+    if (obj_ast.isList) {
         anerror("There is not ast of list, and list should be handled in serialize_field, so why reached here?");
         // serialize_list(os, val, fd_ast, fd_type); // Not Reachable
     }
-    else if (fd_ast.isMap)
+
+    if (obj_ast.isMap)
         // serialize_map(os, val, fd_ast, fd_type, opts);
-        serialize_map(os, val, fd_ast.dataAnclass);
-    else if (fd_ast.isEnum)
-        serialize_enum(val, fd_type, fd_ast, os);
-    else if (fd_ast.isJavaEnum)
-        os << val.try_cast<JavaEnum>();
-    else if (fd_ast.istring) {
+        return serialize_map(os, val, obj_ast.dataAnclass);
+
+    if (obj_ast.isEnum)
+        return serialize_enum(val, fd_type, obj_ast, os);
+
+    if (obj_ast.isJavaEnum) {
+        JavaEnum x{"x", "x"};
+        cout << x;
+        // return os << val.try_cast<JavaEnum>();
+        if (auto* je = val.try_cast<JavaEnum>()) {
+            return os << *je;
+        } else {
+            return os << "null";
+        }
+    }
+
+    if (obj_ast.istring) {
         auto s = val.try_cast<std::string>();
-        os << '\"' << *s << '\"';
+        return os << '\"' << *s << '\"';
     }
-    else if (fd_ast.isJsonable)
+
+    if (obj_ast.isJsonable) {
         jsonable.toBlock(os, opts);
-    else if (fd_ast.isInt) {
+        return os;
+    }
+
+    if (obj_ast.isInt) {
         auto s = val.try_cast<int>();
-        os << '\"' << s << '\"';
+        return os << '\"' << s << '\"';
     }
-    else if (fd_ast.isDouble) {
+
+    if (obj_ast.isDouble) {
         auto s = val.try_cast<std::double_t>();
-        os << '\"' << s << '\"';
+        return os << '\"' << s << '\"';
     }
-    else  os << R"("Cannot handle value of )" << fd_ast.anclass << '\"';
-    return os;
+
+    return os << R"("Cannot handle value of )" << obj_ast.anclass << '\"';
 }
 
 inline static ostream& serialize_fields(ostream &os,
-        const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts, bool first) {
+        const map<string, AnsonField> &fields, anson::Anson& anson, bool first, const JsonOpt &opts) {
 
      if (fields.size() > 0) {
-        meta_any instance{anson};
+        // meta_any instance{anson};
 
         // bool first = true;
         for (auto[fn, f] : fields) {
@@ -502,20 +564,53 @@ inline static ostream& serialize_fields(ostream &os,
                 AnsonAst* fd_ast = opts.ast<AnsonAst>(f.dataAnclass);
                 meta_type fd_type = resolve(hashed_string{f.dataAnclass.c_str()});
 
-                serialize_field(os, anson, *fd_ast, fd_type, opts);
+                serialize_field(os, anson, fn, *fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
                 meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
+                AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
+                bool it_is = ast->enttypeid == hashed_string{anson.anclass.c_str()};;
                 vector<string> valtype = Regex::parseListValtype(f.dataAnclass);
                 hashed_string data_key{fn.c_str()};
                 meta_data data = find_field_recursive(enttype, data_key);
                 string fn = data.name();
-                meta_any list = data.get(instance);
 
+                // entt::meta_any instance = enttype.from_void(&anson);
+                entt::meta_any instance = forward_as_meta(anson);
+
+                entt::meta_any meta_inst = ast->get_instance(anson);
+                meta_any meta_list = data.get(meta_inst);
+
+                /** entt::meta_any meta_inst = ast->get_instance(anson);
+                 *  meta_any meta_list = data.get(meta_inst);
+                 *
+                 *  Gemini:
+                    fail—is because of Type Erasure and Registration Mismatch.
+
+                    In EnTT, forward_as_meta is a template function. Its behavior depends entirely on
+                    the static type of the argument passed to it at the call site.
+
+                    The Static Type Problem
+
+                    In your serialize_fields function, the parameter anson is likely defined as a
+                    reference to the base class: anson::Anson& anson.
+
+                    When you call forward_as_meta(anson), the compiler resolves this to
+                    forward_as_meta<anson::Anson>(anson).
+
+                    EnTT then looks for the metadata registered for the base class anson::Anson.
+                    If you have not explicitly registered anson::Anson with a .type() call in your meta system,
+                    EnTT cannot create a valid meta-handle, resulting in a null node.
+                 */
+
+                meta_any list = data.get(instance);
                 if (list)
-                    serialize_list(os, anson, valtype);
+                    serialize_list(os, list, valtype, opts);
                 else
                     os << "null";
+            }
+            else if (f.dataAnclass.starts_with("map<")) {
+                os << "TODO: " << f.dataAnclass;
             }
             else {
                 os << '\"' << f << '\"';
@@ -525,44 +620,26 @@ inline static ostream& serialize_fields(ostream &os,
     return os;
 }
 
-inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts, bool first=true) {
+inline static ostream& serialize_kvs(ostream &os, Anson& anson, bool first, const JsonOpt &opts) {
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
+    // if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
+    if (opts.has_ast(ast->dataBaseAst)) {
         AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
             auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
-            serialize_fields(os, base_fields, anson, opts, first);
+            serialize_fields(os, base_fields, anson, first, opts);
 
-            first = base_fields.size() == 0;
+            first &= base_fields.size() == 0;
         }
     }
 
     auto fields = opts.asts->at(anson.anclass)->fields;
-
-    // if (fields.size() > 0) {
-    //     meta_type enttype = opts.types->at(anson.anclass);
-    //     entt::meta_any instance{entt::forward_as_any(anson)};
-
-    //     bool first = true;
-    //     for (auto[fn, f] : fields) {
-    //     if (first) first = false;
-    //     else os << ",";
-
-    //     os << '\"' << fn << R"(": ")";
-
-    //     AnsonAst fd_ast = opts.asts->at(f.astid);
-    //     meta_type fd_type = opts.types->at(fn);
-
-    //     serialize_field(os, anson, fd_ast, fd_type, opts);
-    //     }
-    // }
-    // return os;
-    return serialize_fields(os, fields, anson, opts, first);
+    return serialize_fields(os, fields, anson, first, opts);
 }
 
 inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts) {
     os << R"({"type": ")" + anson.type + '"';
-    serialize_kvs(os, anson, opts, false);
+    serialize_kvs(os, anson, false, opts);
     return  os << '}';
 }
 

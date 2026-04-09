@@ -411,6 +411,11 @@ public:
         return {LangExt::trim(val_type), "false"};
     }
 
+    /**
+     * @brief parseMapValtype
+     * @param map_type
+     * @return [list-element-type, is-shared_ptr]
+     */
     inline static vector<string> parseMapValtype(const string &map_type) {
         // map<string, val_type
         vector<string_view> tss = LangExt::split(map_type, '<');

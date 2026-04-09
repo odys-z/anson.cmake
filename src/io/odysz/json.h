@@ -109,6 +109,8 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::fields>("fields")
         .data<&anson::AnsonAst::enums>("enums")
         .data<&anson::AnsonAst::static_val>("static_val")
+        .data<&anson::AnsonAst::dataBaseAst>("dataBaseAst")
+        .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         ;
 
     //
@@ -122,8 +124,6 @@ inline static void register_asts(AstMap &asts) {
         .type(jeast->enttypeid)
         .base<AnsonAst>()
         .ctor<string>()
-        .data<&anson::AnsonJavaEnumAst::dataBaseAst>("dataBaseAst")
-        .data<&anson::AnsonJavaEnumAst::dataAnclass>("dataAnclass")
         .data<&anson::AnsonJavaEnumAst::encode>("encode")
         .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
@@ -256,7 +256,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         .template data<&anson::AnsonMsg<T>::body>("body");
 
     AnsonMsgAst *ast = new AnsonMsgAst(anclass);
-    ast->dataBaseAst = AnsonAst::_type_;
+    ast->dataBaseAst = Anson::_type_;
     ast->enttypeid = enttype;
     ast->dataAnclass = anclass;
 
@@ -301,7 +301,7 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
         registerFields(protype);
 
         bodyAst->enttypeid = enttype;
-        bodyAst->dataBaseAst = AnsonBodyAst::_type_;
+        // bodyAst->dataBaseAst = AnsonBodyAst::_type_;
         asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
 
         specialize_req<Rq>(asts, bodyAst);
