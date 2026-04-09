@@ -132,7 +132,7 @@ void register_2DPtr_asts(AstMap &asts) {
     anclass = T_List2DPtr().anclass;
     AnsonAst *ast = new AnsonAst{anclass, false};
     ast->dataAnclass = T_List2DPtr::_type_;
-    ast->dataBaseAst = AnsonAst::_type_;
+    ast->dataBaseAst = Anson::_type_;
     ast->base = Anson::_type_;
     ast->enttypeid = hashed_string{T_List2DPtr::_type_.c_str()};
 
@@ -336,4 +336,6 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     ASSERT_EQ("y", anlist.vpp[0]->txt) << "vpp[0]->txt";
     ASSERT_EQ(1, anlist.vpp[0]->val.size()) << "vpp[0]->val->size";
     ASSERT_EQ((vector<string>{"cccc ----"}), anlist.vpp[0]->val) << "vpp[0]->val";
+
+
 }
