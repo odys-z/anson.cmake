@@ -13,13 +13,13 @@ include(GoogleTest)
 add_executable(unit_tests
   semantier.h
   echoreq.h
-  t01_common.cpp
-  t02_entt_basic.cpp
-  t03_loadsettings.cpp
-  t04_entt_registry.cpp
-  t05_deserialize.cpp
-  # t06_java_enum.cpp
-  # t06_java_enum.h
+  # t01_common.cpp
+  # t02_entt_basic.cpp
+  # t03_loadsettings.cpp
+  # t04_entt_registry.cpp
+  # t05_deserialize.cpp
+  t06_java_enum.cpp
+  t06_java_enum.h
   # t05_ansonresp.cpp
 )
 
