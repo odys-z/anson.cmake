@@ -247,7 +247,7 @@ public:
     AnsonAst(string anclass, string type) : Anson(type, anclass),
         isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 
-    meta_any get_entt_instance(const IJsonable &jsonable);
+    std::function<meta_any(IJsonable&, id_type)> get_entt_instance;
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -423,21 +423,42 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
             anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
         else {
             if ("true" == val_ast_id[1]) {
-                vector<shared_ptr<meta_any>> list = list_any.cast<vector<shared_ptr<meta_any>>>();
-                for (meta_any e : list) {
-                    if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
-                        std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
-                        p->toBlock(os, opts);
+                if (auto view = list_any.as_sequence_container(); view) {
+                    // You can now iterate over the vector even if you don't know the exact T here
+                    for (auto e : view) {
+                        if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
+                            std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
+                            p->toBlock(os, opts);
+                        }
+                        if (auto* base_sh_ptr = e.try_cast<std::shared_ptr<Anson>>()) {
+                            Anson& body = **base_sh_ptr;
+                            // Now you can call virtual methods or access common fields
+                        }
                     }
                 }
+                // vector<shared_ptr<meta_any>> list = list_any.cast<vector<shared_ptr<meta_any>>>();
+                // for (meta_any e : list) {
+                //     if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
+                //         std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
+                //         p->toBlock(os, opts);
+                //     }
+                // }
             }
             else {
-                vector<meta_any> list = list_any.cast<vector<meta_any>>();
-                for (meta_any e : list) {
-                    if (auto* an = e.try_cast<IJsonable>()) {
-                        an->toBlock(os, opts);
+                if (auto view = list_any.as_sequence_container(); view) {
+                    for (auto e : view) {
+                        if (auto* p = e.try_cast<IJsonable>()) {
+                            p->toBlock(os, opts);
+                        }
                     }
                 }
+
+                // vector<meta_any> list = list_any.cast<vector<meta_any>>();
+                // for (meta_any e : list) {
+                //     if (auto* an = e.try_cast<IJsonable>()) {
+                //         an->toBlock(os, opts);
+                //     }
+                // }
             }
         }
     }
@@ -578,8 +599,8 @@ inline static ostream& serialize_fields(ostream &os,
                 // entt::meta_any instance = enttype.from_void(&anson);
                 entt::meta_any instance = forward_as_meta(anson);
 
-                entt::meta_any meta_inst = ast->get_instance(anson);
-                meta_any meta_list = data.get(meta_inst);
+                entt::meta_any meta_list = ast->get_entt_instance(anson, data_key);
+                // meta_any meta_list = data.get(meta_inst);
 
                 /** entt::meta_any meta_inst = ast->get_instance(anson);
                  *  meta_any meta_list = data.get(meta_inst);
@@ -604,8 +625,8 @@ inline static ostream& serialize_fields(ostream &os,
                  */
 
                 meta_any list = data.get(instance);
-                if (list)
-                    serialize_list(os, list, valtype, opts);
+                if (meta_list)
+                    serialize_list(os, meta_list, valtype, opts);
                 else
                     os << "null";
             }
