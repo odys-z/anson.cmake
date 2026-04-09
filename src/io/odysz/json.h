@@ -31,8 +31,9 @@ inline static AST* createAST(AstMap &asts, const string &base_type,
     ast->dataAnclass = anson.anclass;
     ast->fields = fields;
 
-    // string astid = AST::_type_ + '<' + antype;
-    string astid = AN().anclass;
+    // e.g. asid of AnsonMsg<EchoReq> is "io..AnsonMsgAst<io..AnsonMsg<io..EchoReq"
+    string astid = AST::_type_ + '<' + AN().anclass;
+
     anlog(string_view{std::format("create AST: {}", astid)});
     asts[astid] = unique_ptr<AST>(ast);
     return ast;

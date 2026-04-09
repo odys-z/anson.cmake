@@ -156,7 +156,11 @@ TEST(Anson, Servialize_Msg) {
     register_asts(enums);
     register_msg(enums);
     register_port(enums, "ast/port.ast.json");
-    load_echoAst(enums, "ast/echo.ast.json");
+    // load_echoAst(enums, "ast/echo.ast.json");
+
+    load_msg_specialAst<EchoReq>(enums, "ast/echo.ast.json", [](meta_factory<EchoReq> entf) {
+        entf.data<&EchoReq::echo>("echo");
+    });
 
     using Req = AnsonMsg<EchoReq>;
     auto msg = std::make_shared<Req>(Port::query);

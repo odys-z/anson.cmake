@@ -501,11 +501,8 @@ inline static ostream& serialize_fields(ostream &os,
 }
 
 inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts, bool first=true) {
-    // Java class can has only on base class
-    AnsonAst *ast       = opts.ast<AnsonAst>(anson.anclass);
-    // AnsonMsgAst *msgast = opts.ast<AnsonMsgAst>(anson.anclass);
+    AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
-        // auto base_fields = opts.asts->at(ast->dataBaseAst)->fields;
         AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
             auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
