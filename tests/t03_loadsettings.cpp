@@ -8,6 +8,7 @@
 #include "io/odysz/json.h"
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/semantier.h"
+#include "echoreq.h"
 
 using json = nlohmann::json;
 using namespace anson;
@@ -149,6 +150,7 @@ TEST(Load, AnsonAst_Port) {
 
     register_asts(asts);
     register_port(asts, "ast/port.ast.json");
+    anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string ast_port = "ast/port.ast.json";
     std::ifstream ifstream(ast_port);

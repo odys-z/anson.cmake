@@ -245,6 +245,15 @@ public:
 
     AnsonAst(string anclass, string type) : Anson(type, anclass),
         isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
+
+    // AnsonAst* base_ast(string base_ast_id, const AstMap &asts) {
+    //     string base = base_ast_id;
+    //     if (!asts.contains(base_ast_id))
+    //         anerror(string_view(std::format("{} must be registered after {}", type, base_ast_id)));
+    //     else
+    //         dataBaseAst = asts.at(base_ast_id).get()->dataAnclass;
+    //     return this;
+    // }
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";

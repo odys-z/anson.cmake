@@ -8,6 +8,7 @@
 // #include "io/odysz/anserializer.h"
 #include "io/odysz/json.h"
 
+#include "echoreq.h"
 #include "t06_java_enum.h"
 
 namespace {
@@ -54,6 +55,7 @@ TEST(JAVAENUM, PORT) {
         [](meta_factory<UserReq> enttype){
             enttype.data<&UserReq::data>("data");
     });
+    anlog(to_aststring(enums));
 
     auto p_type = entt::resolve(hashed_string{Port::_type_.c_str()});
     meta_any ptr = p_type.construct();

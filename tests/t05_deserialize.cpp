@@ -162,6 +162,8 @@ TEST(Anson, Servialize_Msg) {
         entf.data<&EchoReq::echo>("echo");
     });
 
+    anlog(to_aststring(enums), PrintFormat{.sep="\n"});
+
     using Req = AnsonMsg<EchoReq>;
     auto msg = std::make_shared<Req>(Port::query);
     msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
