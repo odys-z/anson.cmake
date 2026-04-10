@@ -296,7 +296,6 @@ template <typename Rq>
 inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
                                        std::function<void(meta_factory<Rq>)> registerFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
-    // bodyAst->dataAnclass = Rq::_type_;
     EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
 
     std::ifstream ifstream(ast_pth);

@@ -247,7 +247,11 @@ public:
     AnsonAst(string anclass, string type) : Anson(type, anclass),
         isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
 
-    std::function<meta_any(IJsonable&, id_type)> get_entt_instance;
+    std::function<meta_any(IJsonable&, id_type)> get_entt_instance = [](IJsonable& j, id_type t) -> meta_any {
+        return {};
+    };
+
+    std::function<meta_any(const IJsonable&, const string& fieldname)> get_field_instance = [](const IJsonable&, string) -> meta_any{ return meta_any{false}; };
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -405,15 +409,36 @@ inline static ostream& serialize_enum(const meta_any &instance, const meta_type 
     return os;
 }
 
+inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable, const AnsonField &f, const JsonOpt &opts) {
+    if (!opts.primtypes.contains(f.dataAnclass)) return os;
+
+    AnsonAst *obj_ast = opts.ast<AnsonAst>(jsonable.anclass);
+    if ("string" == opts.primtypes.at(f.dataAnclass)) {
+        meta_any inst = obj_ast->get_field_instance(jsonable, f.fieldname);
+        if (inst) {
+            auto *s = inst.try_cast<const std::string>();
+            if (s) return os << '"' << *s << '"';
+        }
+    }
+
+    return os << "deserialize error: " << f.fieldname << ", " << f.dataAnclass;
+}
+
 inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const vector<string> &val_ast_id, const JsonOpt &opts) {
     os << '[';
     bool first = true;
 
     if (val_ast_id[0] == "string") {
-        vector<string> list = list_any.cast<vector<string>>();
-        for (string e : list) {
-            if (first) first = false; else os << ',';
-            os << '"' << e << '"';
+        if (auto view = list_any.as_sequence_container(); view) {
+            bool first = true;
+            for (auto e : view) {
+                if (first) first = false; else os << ',';
+
+                if (e.type() == entt::resolve<std::string>()) {
+                    const std::string& s = e.cast<const std::string&>();
+                    os << '"' << s << '"';
+                }
+            }
         }
     }
 
@@ -424,41 +449,37 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
         else {
             if ("true" == val_ast_id[1]) {
                 if (auto view = list_any.as_sequence_container(); view) {
-                    // You can now iterate over the vector even if you don't know the exact T here
                     for (auto e : view) {
-                        if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
-                            std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
-                            p->toBlock(os, opts);
-                        }
-                        if (auto* base_sh_ptr = e.try_cast<std::shared_ptr<Anson>>()) {
-                            Anson& body = **base_sh_ptr;
-                            // Now you can call virtual methods or access common fields
+                        if (first) first = false; else os << ',';
+                        // if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
+                        //     std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
+                        //     p->toBlock(os, opts);
+                        // }
+                        // if (auto* base_sh_ptr = e.try_cast<Anson>()) {
+                        //     Anson& body = *base_sh_ptr;
+                        //     // Now you can call virtual methods or access common fields
+                        //     andebug("Visiting Anson of type: " + body.anclass);
+                        // }
+                        entt::meta_any element_obj = *e;
+                        if (element_obj) {
+                            if (auto* anson_inst = element_obj.try_cast<anson::Anson>()) {
+                                anson_inst->toBlock(os, opts);
+                            } else {
+                                anerror("Element in list does not inherit from Anson!");
+                            }
                         }
                     }
                 }
-                // vector<shared_ptr<meta_any>> list = list_any.cast<vector<shared_ptr<meta_any>>>();
-                // for (meta_any e : list) {
-                //     if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
-                //         std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
-                //         p->toBlock(os, opts);
-                //     }
-                // }
             }
             else {
                 if (auto view = list_any.as_sequence_container(); view) {
                     for (auto e : view) {
+                        if (first) first = false; else os << ',';
                         if (auto* p = e.try_cast<IJsonable>()) {
                             p->toBlock(os, opts);
                         }
                     }
                 }
-
-                // vector<meta_any> list = list_any.cast<vector<meta_any>>();
-                // for (meta_any e : list) {
-                //     if (auto* an = e.try_cast<IJsonable>()) {
-                //         an->toBlock(os, opts);
-                //     }
-                // }
             }
         }
     }
@@ -567,17 +588,43 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
     return os << R"("Cannot handle value of )" << obj_ast.anclass << '\"';
 }
 
+/**
+ * @brief serialize_fields
+ * @param os
+ * @param fields
+ * @param anson
+ * @param first
+ * @param opts
+ * @return os
+ *
+ * Debug Notes:
+ * 1. forward_as_meta() resolves type at compile time, will fail converting Anson to subclasses.
+ *
+ * entt::meta_any meta_inst = ast->get_instance(anson);
+ * meta_any meta_list = data.get(meta_inst);
+ * *  Gemini:
+ * *  fail—is because of Type Erasure and Registration Mismatch.
+ * * In EnTT, forward_as_meta is a template function. Its behavior depends entirely on
+ * * the static type of the argument passed to it at the call site.
+ * * In your serialize_fields function, the parameter anson is likely defined as a
+ * * reference to the base class: anson::Anson& anson.
+ * * When you call forward_as_meta(anson), the compiler resolves this to
+ * * forward_as_meta<anson::Anson>(anson).
+ *
+ * 2. The debugger observer effect.
+ * code: meta_any meta_list2 = ast->get_field_instance(anson, fn);
+ * Now meta_list2.node can be '0x0' in debugger view.
+ * To observe the spooky entanglement, use this code and see the instance address:
+ * * if (meta_list2.type() == entt::resolve(ast->enttypeid)) {
+ * *     andebug("vector<shared_ptr< ...        ...");
+ * * }
+ */
 inline static ostream& serialize_fields(ostream &os,
         const map<string, AnsonField> &fields, anson::Anson& anson, bool first, const JsonOpt &opts) {
 
      if (fields.size() > 0) {
-        // meta_any instance{anson};
-
-        // bool first = true;
         for (auto[fn, f] : fields) {
-            if (first)
-                first = false;
-            else os << ",";
+            if (first) first = false; else os << ",";
 
             os << '\"' << fn << R"(": )";
 
@@ -588,53 +635,51 @@ inline static ostream& serialize_fields(ostream &os,
                 serialize_field(os, anson, fn, *fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
-                meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
+                // meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
                 AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-                bool it_is = ast->enttypeid == hashed_string{anson.anclass.c_str()};;
                 vector<string> valtype = Regex::parseListValtype(f.dataAnclass);
-                hashed_string data_key{fn.c_str()};
-                meta_data data = find_field_recursive(enttype, data_key);
-                string fn = data.name();
+                bool it_is = ast->enttypeid == hashed_string{anson.anclass.c_str()};
+                // hashed_string data_key{fn.c_str()};
+                // meta_data data = find_field_recursive(enttype, data_key);
+                // string fdn = data.name();
 
-                // entt::meta_any instance = enttype.from_void(&anson);
-                entt::meta_any instance = forward_as_meta(anson);
+                // entt::meta_any instance = forward_as_meta(anson);
 
-                entt::meta_any meta_list = ast->get_entt_instance(anson, data_key);
-                // meta_any meta_list = data.get(meta_inst);
+                // entt::meta_any meta_list = ast->get_entt_instance(anson, data_key);
+                // if (meta_list)
+                //     serialize_list(os, meta_list, valtype, opts);
+                // else
+                //     os << "null";
 
-                /** entt::meta_any meta_inst = ast->get_instance(anson);
-                 *  meta_any meta_list = data.get(meta_inst);
-                 *
-                 *  Gemini:
-                    fail—is because of Type Erasure and Registration Mismatch.
+                // meta_any list = data.get(instance);
 
-                    In EnTT, forward_as_meta is a template function. Its behavior depends entirely on
-                    the static type of the argument passed to it at the call site.
+                // entt::meta_any obj = enttype.from_void(&anson);
+                // meta_any val = data.get(obj);
 
-                    The Static Type Problem
+                // if (meta_list)
+                //     serialize_list(os, meta_list, valtype, opts);
+                // else
+                //     os << "null";
 
-                    In your serialize_fields function, the parameter anson is likely defined as a
-                    reference to the base class: anson::Anson& anson.
+                entt::meta_any meta_list2 = ast->get_field_instance(anson, fn);
+                // Want to observe the spooky entanglement?
+                // if (meta_list2.type() == entt::resolve(ast->enttypeid)) {
+                //     andebug("vector<shared_ptr< ...        ...");
+                // }
 
-                    When you call forward_as_meta(anson), the compiler resolves this to
-                    forward_as_meta<anson::Anson>(anson).
-
-                    EnTT then looks for the metadata registered for the base class anson::Anson.
-                    If you have not explicitly registered anson::Anson with a .type() call in your meta system,
-                    EnTT cannot create a valid meta-handle, resulting in a null node.
-                 */
-
-                meta_any list = data.get(instance);
-                if (meta_list)
-                    serialize_list(os, meta_list, valtype, opts);
+                if (meta_list2)
+                    serialize_list(os, meta_list2, valtype, opts);
                 else
                     os << "null";
             }
             else if (f.dataAnclass.starts_with("map<")) {
                 os << "TODO: " << f.dataAnclass;
             }
+            else if (opts.primtypes.contains(f.dataAnclass)) {
+                serialize_primtype(os, anson, f, opts);
+            }
             else {
-                os << '\"' << f << '\"';
+                os << '\"' << f.dataAnclass << '\"';
             }
         }
     }

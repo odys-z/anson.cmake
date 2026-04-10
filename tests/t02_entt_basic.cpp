@@ -142,6 +142,45 @@ void register_2DPtr_asts(AstMap &asts) {
 
     asts[anclass] = unique_ptr<AnsonAst>(ast);
 }
+
+void register_2DPtr_asts_callback(AstMap &asts) {
+    string anclass;
+    hashed_string enttype;
+
+    entt::meta_factory<anson::T_List2DPtr>()
+        .type(T_List2DPtr::_type_.c_str())
+        .base<Anson>()
+        .ctor<>()
+        .data<&anson::T_List2DPtr::vpp>("vpp")
+        ;
+
+    anclass = T_List2DPtr().anclass;
+    AnsonAst *ast = new AnsonAst{anclass, false};
+    ast->dataAnclass = T_List2DPtr::_type_;
+    ast->dataBaseAst = Anson::_type_;
+    ast->base = Anson::_type_;
+    ast->enttypeid = hashed_string{T_List2DPtr::_type_.c_str()};
+
+    ast->fields = map<string, AnsonField>{
+      {"vpp",   {.fieldname="vpp", .dataAnclass = "list<shared_ptr<"s + T_List::_type_}},
+    };
+
+    ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {
+        auto& concrete = static_cast<T_List2DPtr&>(inst);
+
+        auto type = entt::resolve<T_List2DPtr>();
+
+        if (auto data = find_field_recursive(type, key); data) {
+            meta_any d = data.get(concrete);
+            if (d)
+            return d;
+        }
+        anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
+        return {};
+    };
+
+    asts[anclass] = unique_ptr<AnsonAst>(ast);
+}
 }
 
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
@@ -336,6 +375,33 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     ASSERT_EQ("y", anlist.vpp[0]->txt) << "vpp[0]->txt";
     ASSERT_EQ(1, anlist.vpp[0]->val.size()) << "vpp[0]->val->size";
     ASSERT_EQ((vector<string>{"cccc ----"}), anlist.vpp[0]->val) << "vpp[0]->val";
+}
 
+TEST(ENTT, Serialize_V_Ptr) {
+    using namespace entt::literals;
+    using namespace anson;
 
+    AstMap asts;
+    JsonOpt contxt{&asts};
+    IJsonable::contxt_ptr = &contxt;
+    register_asts(asts);
+    register_2DPtr_asts_callback(asts);
+
+    T_List2DPtr inst_list;
+    T_List2DPtr &anlist = inst_list;
+
+    T_List tl0;
+    tl0.txt = "t-0";
+    tl0.val = vector<string>{"0.0", "0.1"};
+    T_List tl1;
+    tl1.txt = "t-1";
+    tl1.val = vector<string>{"1.0", "1.1"};
+
+    inst_list.vpp = vector<shared_ptr<T_List>>{
+        std::make_shared<T_List>(tl0),
+        std::make_shared<T_List>(tl1) };
+
+    string json = inst_list.toBlock(contxt);
+
+    cout << json;
 }
