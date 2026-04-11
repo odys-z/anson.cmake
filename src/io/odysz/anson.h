@@ -1098,11 +1098,11 @@ public:
             if (data) {
                 std::string fieldname = data.name();
                 andebug(std::format("start_array(): starting, field key {}, name {}",
-                                                active_key, fieldname));
+                                    active_key, fieldname));
 
                 std::string val_astid;
                 AnsonAst *ast = contxt->ast<AnsonAst>(stack.back().val_astid);
-                if (!ast->fields.contains(fieldname))
+                if (!ast || !ast->fields.contains(fieldname))
                     anerror(std::format(
                         "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
                         ast->anclass, ast->dataAnclass, fieldname));
@@ -1148,8 +1148,8 @@ public:
 
                     if (res) {
                         andebug(std::format("end_array(): The reference of this list is found. size: {}, field: {}, key-id: {}",
-                                                        data.get(stack.back().instance).as_sequence_container().size(),
-                                                        data.name(), key_to_update));
+                                            data.get(stack.back().instance).as_sequence_container().size(),
+                                            data.name(), key_to_update));
                     }
                     else
                         anerror("end_array(): Failed to set back (copy) "s + data.name());

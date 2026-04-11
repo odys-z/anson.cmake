@@ -56,62 +56,6 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
         anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
 }
 
-/*
-template <typename Rq>
-inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
-                                       std::function<void(meta_factory<Rq>)> registerFields) {
-    // hashed_string enttype{Rq::_type_.c_str()};
-    // entt::meta_factory<anson::EchoReq>()
-    //     .type(EchoReq::_type_.c_str())
-    //     .base<AnsonBody>()
-    //     .ctor<>()
-    //     .ctor<string>()
-    //     .data<&anson::EchoReq::echo>("echo"_hs, "echo")
-    //     ;
-
-    AnsonBodyAst *bodyAst = new AnsonBodyAst{};
-    // bodyAst->dataAnclass = Rq::_type_;
-    EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
-
-    std::ifstream ifstream(ast_pth);
-    if (!ifstream.is_open()) {
-        anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
-    }
-
-    bool result = nlohmann::json::sax_parse(ifstream, &handler);
-    if (result) {
-        string anclass = bodyAst->dataAnclass;
-        hashed_string enttype = hashed_string{anclass.c_str()};
-
-        meta_factory<Rq> protype =
-        entt::meta_factory<Rq>()
-            .type(enttype)
-            .template base<AnsonBody>()
-            .template ctor<>()
-            .template ctor<string>()
-            // .data<&EchoReq::echo>("echo")
-            .func<+[](const Rq &inst) -> std::shared_ptr<Rq> {
-                andebug(string_view(std::format("{}.func<create_ptr>(const inst)", Rq::_type_)));
-                return std::make_shared<Rq>(inst);
-            }>("create_ptr")
-            ;
-
-        registerFields(protype);
-        // for field in portAst.fields
-        //    type.data<field.name().for_class>();
-        // e. g. protype.data<&EchoReq::echo>("echo")
-
-        bodyAst->enttypeid = enttype;
-        bodyAst->dataBaseAst = AnsonBodyAst::_type_;
-        asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
-
-        specialize_req<EchoReq>(asts, bodyAst);
-    }
-    else
-        anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
-}
-*/
-
 inline static vector<string> to_aststring(const AstMap &asts) {
     vector<string> sv;
     sv.push_back("astid: ast.dataAnclass -> ast.dataBaseAst");
