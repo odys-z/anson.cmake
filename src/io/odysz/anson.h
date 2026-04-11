@@ -432,7 +432,7 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
                         }
                         if (auto* base_sh_ptr = e.try_cast<std::shared_ptr<Anson>>()) {
                             Anson& body = **base_sh_ptr;
-                            // Now you can call virtual methods or access common fields
+                            body.toBlock(os, opts);
                         }
                     }
                 }
@@ -624,11 +624,18 @@ inline static ostream& serialize_fields(ostream &os,
                     EnTT cannot create a valid meta-handle, resulting in a null node.
                  */
 
-                meta_any list = data.get(instance);
                 if (meta_list)
                     serialize_list(os, meta_list, valtype, opts);
                 else
                     os << "null";
+
+                meta_any list = data.get(instance);
+
+                entt::meta_any obj = enttype.from_void(&anson);
+                meta_any val = data.get(obj);
+
+                if (val)
+                    serialize_list(os, val, valtype, opts);
             }
             else if (f.dataAnclass.starts_with("map<")) {
                 os << "TODO: " << f.dataAnclass;
