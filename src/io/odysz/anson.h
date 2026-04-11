@@ -671,6 +671,14 @@ inline static ostream& serialize_fields(ostream &os,
                     serialize_list(os, meta_list2, valtype, opts);
                 else
                     os << "null";
+
+                meta_any list = data.get(instance);
+
+                entt::meta_any obj = enttype.from_void(&anson);
+                meta_any val = data.get(obj);
+
+                if (val)
+                    serialize_list(os, val, valtype, opts);
             }
             else if (f.dataAnclass.starts_with("map<")) {
                 os << "TODO: " << f.dataAnclass;
