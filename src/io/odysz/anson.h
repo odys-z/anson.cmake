@@ -1191,5 +1191,17 @@ inline static bool parse(const string& json, T &an, const JsonOpt *opts) {
     EnTTSaxParser handler{an, opts};
     return nlohmann::json::sax_parse(json, &handler);
 }
+
+inline static vector<string> to_aststring(const AstMap &asts) {
+    vector<string> sv;
+    sv.push_back("astid: ast.dataAnclass -> ast.dataBaseAst");
+    for (auto& [k, v] : asts) {
+        string fields;
+        for (auto& [fn, f] : v->fields)
+            fields += std::format("\n\t{}: {}", f.fieldname, f.dataAnclass);
+        sv.push_back(std::format("{}: {} -> {} [{}\n\t]", k, v->dataAnclass, v->dataBaseAst, fields));
+    }
+    return sv;
+}
 }
 

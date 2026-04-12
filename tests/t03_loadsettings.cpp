@@ -8,7 +8,6 @@
 #include "io/odysz/json.h"
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/semantier.h"
-#include "echoreq.h"
 
 using json = nlohmann::json;
 using namespace anson;
@@ -37,24 +36,6 @@ void register_peersettings(AstMap &asts) {
         .data<&anson::PeerSettings::ansonBody>("ansonBody")
         .data<&anson::PeerSettings::anRequests>("anRequests")
         ;
-
-    // string anclass = PeerSettings().anclass;
-    // AnsonAst *ast = new AnsonAst{anclass, false};
-    // ast->dataAnclass = PeerSettings::_type_;
-    // ast->base = Anson::_type_;
-    // ast->enttypeid = enttype;
-
-    // // ast.fields is only used for serialization?
-    // ast->fields = map<string, AnsonField>{
-    //     {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
-    //     {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
-    //     {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
-    //     {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
-    //     {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
-    //     {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
-    // };
-
-    // asts.insert(make_pair(anclass, ast));
 }
 
 void register_echoAst(AstMap &asts) {

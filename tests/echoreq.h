@@ -80,24 +80,4 @@ inline static void load_echoAst(AstMap &asts, string ast_path) {
 //         anerror(string_view(std::format("Could not load AST from {}!", ast_path)));
 // }
 
-inline static vector<string> to_aststring(const AstMap &asts) {
-    vector<string> sv;
-    sv.push_back("astid: ast.dataAnclass -> ast.dataBaseAst");
-    for (auto& [k, v] : asts) {
-        // if (!v) {
-        //     sv.push_back("Cannot convert string of "s + k);
-        //     continue;
-        // }
-        // string fields;
-        // for (auto& [fn, f] : v->fields)
-        //     fields += " " + fn;
-        // sv.push_back(std::format("{}: {} -> {} [{}]", k, v->dataAnclass, v->dataBaseAst, fields));
-        cout << k << endl;
-        cout << "  " << v << endl;
-        cout << "  " << v->dataAnclass << endl;
-        cout << "  " << v->dataBaseAst << endl;
-        sv.push_back(std::format("{}: {} -> {}", k, v->dataAnclass, v->dataBaseAst));
-    }
-    return sv;
-}
 }

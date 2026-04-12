@@ -19,7 +19,7 @@ AstMap enums;
 map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
-/*
+
 TEST(Anson, Base) {
     register_asts(enums);
     IJsonable::contxt_ptr = &contxt;
@@ -99,10 +99,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     register_asts(enums);
     register_msg(enums);
     register_port(enums, "ast/port.ast.json");
-    // load_echoAst(enums, "ast/echo.ast.json");
-    load_msg_specialAst<EchoReq>(enums, "ast/echo.ast.json", [](meta_factory<EchoReq> enttype) {
-        enttype.data<&EchoReq::echo>("echo"_hs, "echo");
-    });
+    load_echoAst(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
 
@@ -146,7 +143,6 @@ TEST(Anson, AnsonMsg_EchoReq) {
     EXPECT_EQ("AnsonMsg_EchoReq!", msg2.body[0]->echo) << "[4] msg->body.echo";
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
-*/
 
 TEST(Anson, Servialize_Msg) {
 
@@ -157,7 +153,6 @@ TEST(Anson, Servialize_Msg) {
     register_msg(enums);
     register_port(enums, "ast/port.ast.json");
     load_echoAst(enums, "ast/echo.ast.json");
-    // anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
