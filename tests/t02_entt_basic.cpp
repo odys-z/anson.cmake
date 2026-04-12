@@ -375,32 +375,3 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     ASSERT_EQ(1, anlist.vpp[0]->val.size()) << "vpp[0]->val->size";
     ASSERT_EQ((vector<string>{"cccc ----"}), anlist.vpp[0]->val) << "vpp[0]->val";
 }
-
-// TEST(ENTT, Serialize_V_Ptr) {
-//     using namespace entt::literals;
-//     using namespace anson;
-
-//     AstMap asts;
-//     JsonOpt contxt{&asts};
-//     IJsonable::contxt_ptr = &contxt;
-//     register_asts(asts);
-//     register_2DPtr_asts_callback(asts);
-
-//     T_List2DPtr inst_list;
-//     T_List2DPtr &anlist = inst_list;
-
-//     T_List tl0;
-//     tl0.txt = "t-0";
-//     tl0.val = vector<string>{"0.0", "0.1"};
-//     T_List tl1;
-//     tl1.txt = "t-1";
-//     tl1.val = vector<string>{"1.0", "1.1"};
-
-//     inst_list.vpp = vector<shared_ptr<T_List>>{
-//         std::make_shared<T_List>(tl0),
-//         std::make_shared<T_List>(tl1) };
-
-//     string json = inst_list.toBlock(contxt);
-
-//     cout << json;
-// }

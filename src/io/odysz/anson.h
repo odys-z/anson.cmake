@@ -46,6 +46,8 @@ public:
         if (it != asts->end()) {
             return dynamic_cast<AST*>(it->second.get());
         }
+        if (!primtypes.contains(astid))
+            anerror(std::format("JsonOpt.ast(): cannot find ast with id: {}.", astid));
         return nullptr;
     }
 
@@ -409,7 +411,9 @@ inline static ostream& serialize_enum(const meta_any &instance, const meta_type 
     return os;
 }
 
-inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable, const AnsonField &f, const JsonOpt &opts) {
+inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable,
+                       const AnsonField &f, const JsonOpt &opts) {
+
     if (!opts.primtypes.contains(f.dataAnclass)) return os;
 
     AnsonAst *obj_ast = opts.ast<AnsonAst>(jsonable.anclass);
@@ -635,31 +639,11 @@ inline static ostream& serialize_fields(ostream &os,
                 serialize_field(os, anson, fn, *fd_ast, fd_type, opts);
             }
             else if (f.dataAnclass.starts_with("list<")) {
-                // meta_type enttype = resolve(hashed_string{anson.anclass.c_str()});
                 AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
                 vector<string> valtype = Regex::parseListValtype(f.dataAnclass);
-                bool it_is = ast->enttypeid == hashed_string{anson.anclass.c_str()};
-                // hashed_string data_key{fn.c_str()};
-                // meta_data data = find_field_recursive(enttype, data_key);
-                // string fdn = data.name();
-
-                // entt::meta_any instance = forward_as_meta(anson);
-
-                // entt::meta_any meta_list = ast->get_entt_instance(anson, data_key);
-                // if (meta_list)
-                //     serialize_list(os, meta_list, valtype, opts);
-                // else
-                //     os << "null";
-
-                // meta_any list = data.get(instance);
-
-                // entt::meta_any obj = enttype.from_void(&anson);
-                // meta_any val = data.get(obj);
-
-                // if (meta_list)
-                //     serialize_list(os, meta_list, valtype, opts);
-                // else
-                //     os << "null";
+                if (ast->enttypeid != hashed_string{anson.anclass.c_str()})
+                    anerror(std::format("serialize_fields(): entt type_id mismatch: {} {}",
+                                        std::to_string(ast->enttypeid), anson.anclass));
 
                 entt::meta_any meta_list2 = ast->get_field_instance(anson, fn);
                 // Want to observe the spooky entanglement?
@@ -671,14 +655,6 @@ inline static ostream& serialize_fields(ostream &os,
                     serialize_list(os, meta_list2, valtype, opts);
                 else
                     os << "null";
-
-                meta_any list = data.get(instance);
-
-                entt::meta_any obj = enttype.from_void(&anson);
-                meta_any val = data.get(obj);
-
-                if (val)
-                    serialize_list(os, val, valtype, opts);
             }
             else if (f.dataAnclass.starts_with("map<")) {
                 os << "TODO: " << f.dataAnclass;
@@ -695,8 +671,8 @@ inline static ostream& serialize_fields(ostream &os,
 }
 
 inline static ostream& serialize_kvs(ostream &os, Anson& anson, bool first, const JsonOpt &opts) {
+
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    // if (opts.asts->find(ast->dataBaseAst) != opts.asts->end()) {
     if (opts.has_ast(ast->dataBaseAst)) {
         AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
@@ -1110,7 +1086,11 @@ public:
 
                 std::string val_astid;
                 AnsonAst *ast = contxt->ast<AnsonAst>(stack.back().val_astid);
-                if (!ast || !ast->fields.contains(fieldname))
+                if (!ast) {
+                    anerror(std::format("start_array(): Cannot find list value type {}.",
+                                        stack.back().val_astid));
+                }
+                else if (!ast->fields.contains(fieldname))
                     anerror(std::format(
                         "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
                         ast->anclass, ast->dataAnclass, fieldname));

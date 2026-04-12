@@ -77,6 +77,8 @@ public:
             }
             start = end + 1;
         }
+        if (result.size() == 0)
+            result.push_back(str);
 
         return result;
     }

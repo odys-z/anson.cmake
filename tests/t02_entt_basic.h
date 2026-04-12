@@ -134,6 +134,21 @@ inline static void register_2Dasts(AstMap &asts) {
     ast->fields = map<string, AnsonField>{
         {"vss",   {.fieldname="vss", .dataAnclass = "list<"s + T_List::_type_}},
     };
+
+    ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        if (!ast->fields.contains(fieldname))
+            return meta_any{false};
+
+        auto& concrete = static_cast<const T_List2D&>(ans);
+
+        if ("vss" == fieldname)
+            return entt::forward_as_meta(concrete.vss);
+
+        anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
+        return {};
+    };
+
+    asts[ast->dataAnclass] = unique_ptr<AnsonAst>(ast);
 }
 
 inline static void register_2DPtr_asts_callback(AstMap &asts) {
