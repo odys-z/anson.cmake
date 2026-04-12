@@ -38,31 +38,6 @@ void register_peersettings(AstMap &asts) {
         ;
 }
 
-// void register_echoAst(AstMap &asts) {
-//     hashed_string enttype{EchoReq::_type_.c_str()};
-//     entt::meta_factory<anson::EchoReq>()
-//         .type(enttype)
-//         .base<AnsonBody>()
-//         .ctor<>()
-//         .ctor<string>()
-//         .data<&anson::EchoReq::echo>("echo"_hs, "echo")
-//         ;
-
-//     string astclass = AnsonBodyAst().anclass;
-//     string echoclass = EchoReq().anclass;
-//     AnsonBodyAst *echoast = new AnsonBodyAst{astclass};
-//     echoast->dataAnclass = echoclass;
-//     echoast->enttypeid = enttype;
-
-//     echoast->A["echo"] = "echo";
-//     echoast->A["inet"] = "inet";
-
-//     echoast->fields = map<string, AnsonField>{
-//         {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
-//     };
-//     asts.insert(make_pair(echoclass, echoast));
-// }
-
 TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
 
