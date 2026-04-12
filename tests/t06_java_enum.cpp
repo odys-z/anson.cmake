@@ -21,29 +21,29 @@ using namespace entt;
 AstMap enums;
 map<string, meta_type> enttypes;
 
-void register_testport(AstMap &enums) {
-    // entt::meta_factory<anson::JavaEnum>()
-    //     .type("JavaEnumTestPort"_hs, "JavaEnumTestPort")
-    //     .base<IJsonable>()
-    //     .data<&anson::JavaEnum::enm>("enm"_hs, "enm")
-    //     ;
+// void register_testport(AstMap &enums) {
+//     // entt::meta_factory<anson::JavaEnum>()
+//     //     .type("JavaEnumTestPort"_hs, "JavaEnumTestPort")
+//     //     .base<IJsonable>()
+//     //     .data<&anson::JavaEnum::enm>("enm"_hs, "enm")
+//     //     ;
 
-    entt::meta_factory<anson::TestPort>()
-        .type("TestPort"_hs, "TestPort")
-        .base<anson::JavaEnum>()
-        .ctor<std::string>()
-        ;
+//     entt::meta_factory<anson::TestPort>()
+//         .type("TestPort"_hs, "TestPort")
+//         .base<anson::JavaEnum>()
+//         .ctor<std::string>()
+//         ;
 
-    // {
-    //     TestPort::decode["echo"]     = "echo.test";
-    //     TestPort::decode["t_query"]  = "r.test";
-    //     TestPort::decode["t_update"] = "u.test";
+//     // {
+//     //     TestPort::decode["echo"]     = "echo.test";
+//     //     TestPort::decode["t_query"]  = "r.test";
+//     //     TestPort::decode["t_update"] = "u.test";
 
-    //     TestPort::encode["echo.test"]= "echo";
-    //     TestPort::encode["r.test"]   = "t_query";
-    //     TestPort::encode["u.test"]   = "t_update";
-    // }
-}
+//     //     TestPort::encode["echo.test"]= "echo";
+//     //     TestPort::encode["r.test"]   = "t_query";
+//     //     TestPort::encode["u.test"]   = "t_update";
+//     // }
+// }
 
 TEST(JAVAENUM, PORT) {
     JsonOpt contxt{&enums};
@@ -51,10 +51,12 @@ TEST(JAVAENUM, PORT) {
     register_asts(enums);
     register_port(enums, "ast/port.ast.json");
     register_msg(enums);
-    load_msg_specialAst<UserReq>(enums, "ast/usereq.ast.json",
-        [](meta_factory<UserReq> enttype){
-            enttype.data<&UserReq::data>("data");
-    });
+    // load_msg_specialAst<UserReq>(enums, "ast/usereq.ast.json",
+    //     [](meta_factory<UserReq> enttype){
+    //         enttype.data<&UserReq::data>("data");
+    // });
+    load_usereqAst(enums, "ast/usereq.ast.json");
+
     anlog(to_aststring(enums));
 
     auto p_type = entt::resolve(hashed_string{Port::_type_.c_str()});
