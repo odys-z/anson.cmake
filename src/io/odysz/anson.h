@@ -29,7 +29,7 @@ public:
     const AstMap *asts;
 
     JsonOpt(const AstMap *asts)
-        : asts(asts), primtypes({
+        : asts(asts), primtypes{
             {"String", "string"}, {"string", "string"}, {"java.lang.String", "string"},
             {"int", "int"}, {"Integer", "int"}, {"java.lang.Integer", "int"},
             {"short", "int"}, {"Short", "int"}, {"java.lang.Short", "int"},
@@ -37,7 +37,7 @@ public:
             {"float", "float"}, {"Float", "float"}, {"java.lang.Float", "float"},
             {"double", "double"}, {"Double", "double"}, {"java.lang.Double", "double"},
             {"boolean", "boolean"}, {"Boolean", "boolean"}, {"java.lang.Boolean", "boolean"},
-        }) { }
+        }{};
 
     template<typename AST>
     AST* ast(const string &astid) const {
@@ -154,6 +154,8 @@ inline static bool parse(const string& json, T &an, const JsonOpt *opts);
  */
 class Anson : public IJsonable {
 public:
+    virtual ~Anson() = default;
+
     inline static const string _type_ = "io.odysz.anson.Anson";
 
     string type;
@@ -253,7 +255,16 @@ public:
         return {};
     };
 
-    std::function<meta_any(const IJsonable&, const string& fieldname)> get_field_instance = [](const IJsonable&, string) -> meta_any{ return meta_any{false}; };
+    std::function<meta_any(const IJsonable&, const string& fieldname)> get_field_instance =
+        [this] (const IJsonable& ans, string fn) -> meta_any{
+        if ("type" == fn) {
+            auto& concrete = static_cast<const Anson&>(ans);
+            return entt::forward_as_meta(concrete.type);
+        }
+        anwarn(std::format("[WARN] AnsonAst({}): Requring field '{}.{}', this is supposed to be overriden by AST {}.",
+                            this->dataAnclass, ans.anclass, fn, ans.anclass));
+        return meta_any{false};
+    };
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -425,7 +436,7 @@ inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable
         }
     }
 
-    return os << "deserialize error: " << f.fieldname << ", " << f.dataAnclass;
+    return os << "\"deserialize error: " << f.fieldname << ", " << f.dataAnclass << '"';
 }
 
 inline static ostream& serialize_list(ostream& os, const meta_any &list_any, const vector<string> &val_ast_id, const JsonOpt &opts) {
@@ -454,17 +465,7 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
             if ("true" == val_ast_id[1]) {
                 if (auto view = list_any.as_sequence_container(); view) {
                     for (auto e : view) {
-                        if (first) first = false; else os << ',';
-                        // if (auto* sh_ptr_ptr = e.try_cast<std::shared_ptr<IJsonable>>()) {
-                        //     std::shared_ptr<IJsonable> p = *sh_ptr_ptr;
-                        //     p->toBlock(os, opts);
-                        // }
-                        // if (auto* base_sh_ptr = e.try_cast<Anson>()) {
-                        //     Anson& body = *base_sh_ptr;
-                        //     // Now you can call virtual methods or access common fields
-                        //     andebug("Visiting Anson of type: " + body.anclass);
-                        // }
-                        entt::meta_any element_obj = *e;
+                        if (first) first = false; else os << ',';                        entt::meta_any element_obj = *e;
                         if (element_obj) {
                             if (auto* anson_inst = element_obj.try_cast<anson::Anson>()) {
                                 anson_inst->toBlock(os, opts);
@@ -693,8 +694,8 @@ inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonO
     return  os << '}';
 }
 
-template <typename ValT>
-inline static string serialize_map_str(const map<string, ValT> &m, const string & map_type) {
+template <typename V_T>
+inline static string serialize_map_str(const map<string, V_T> &m, const string & map_type) {
     stringstream ss;
     serialize_map(ss, forward_as_meta(m), map_type);
     return ss.str();

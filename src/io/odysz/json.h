@@ -79,7 +79,9 @@ inline static void register_asts(AstMap &asts) {
     asts[AnsonField_type] = unique_ptr<AnsonAst>(ast);
 
     //
-    ast = createAST<Anson, AnsonAst>(asts, IJsonable::_anclass_, map<string, AnsonField>{});
+    ast = createAST<Anson, AnsonAst>(asts, IJsonable::_anclass_, map<string, AnsonField>{
+        // {"type", {.fieldname="type", .dataAnclass="string"}},
+    });
     entt::meta_factory<anson::Anson>()
         .type(ast->enttypeid)
         .base<IJsonable>()
@@ -115,6 +117,7 @@ inline static void register_asts(AstMap &asts) {
 
     //
     createAST<AnsonAst, AnsonAst>(asts, "", map<string, AnsonField>{});
+    //
     AnsonJavaEnumAst *jeast = createAST<AnsonJavaEnumAst, AnsonJavaEnumAst>(
         asts, AnsonAst::_type_, map<string, AnsonField>{
             {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
@@ -130,9 +133,10 @@ inline static void register_asts(AstMap &asts) {
 
     //
     AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
-        {"uri", {.fieldname="uri", .dataAnclass = "string"}},
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
+    // asts[bdast->dataAnclass] = unique_ptr<AnsonAst>(bdast);
+
     entt::meta_factory<anson::AnsonBodyAst>()
         .type(bdast->enttypeid)
         .base<AnsonAst>()
@@ -176,8 +180,30 @@ inline static void register_msg(AstMap &asts) {
 
     //
     ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{
+        {"uri", {.fieldname="uri", .dataAnclass = "string"}},
         {"a", {.fieldname="a", .dataAnclass = "string"}}
     });
+
+    ast->get_field_instance
+        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const AnsonBody&>(ans);
+            if ("a" == fieldname)
+                return entt::forward_as_meta(concrete.a);
+            else if ("uri" == fieldname)
+                return entt::forward_as_meta(concrete.uri);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<AnsonBody>(): Failed to get entt instance (meta_any)");
+        return {};
+    };
+
     entt::meta_factory<anson::AnsonBody>()
         .type(ast->enttypeid)
         .base<anson::Anson>()
@@ -265,6 +291,17 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
+    ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        auto& concrete = static_cast<const AnsonMsg<T>&>(ans);
+        if ("port" == fieldname)
+            return entt::forward_as_meta(concrete.port);
+        else if ("body" == fieldname)
+            return entt::forward_as_meta(concrete.body);
+
+        anerror(std::format("get_entt_instance<AnsonMsg{}>(): Failed to get entt instance (meta_any)", T::_type_));
+        return {};
+    };
+
     entt::meta_factory<std::vector<std::shared_ptr<T>>>()
         .type(hashed_string{(string("list<shared_ptr<") + T::_type_ + ">>").c_str()})
         ;
@@ -274,27 +311,26 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
      * 2. Resolve the meta type for the concrete class
      * 3. Get the field data and return the value from this instance
      */
-    ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {
-        auto& concrete = static_cast<anson::AnsonMsg<T>&>(inst);
+    // ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {
+    //     auto& concrete = static_cast<anson::AnsonMsg<T>&>(inst);
 
-        auto type = entt::resolve<anson::AnsonMsg<T>>();
+    //     auto type = entt::resolve<anson::AnsonMsg<T>>();
 
-        if (auto data = find_field_recursive(type, key); data) {
-            meta_any d = data.get(concrete);
-            if (d)
-            return d;
-        }
-        anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
-        return {};
-    };
+    //     if (auto data = find_field_recursive(type, key); data) {
+    //         meta_any d = data.get(concrete);
+    //         if (d)
+    //         return d;
+    //     }
+    //     anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
+    //     return {};
+    // };
 
     asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
-    // asts.insert(make_pair(anclass, ast));
 }
 
 template <typename Rq>
 inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
-                                       std::function<void(meta_factory<Rq>)> registerFields) {
+                   std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> registerBodyFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
     EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
 
@@ -305,6 +341,15 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
 
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {
+        // andebug(bodyAst->fields);
+        for (auto& [fn, f] : bodyAst->fields)
+            if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+                anwarn(std::format("Error fields configuration in {} : {} (fieldname: {}, dataAnclass: {})",
+                                   ast_pth, fn, f.dataAnclass, f.fieldname));
+                if (LangExt::isblank(f.fieldname))
+                    f.fieldname = fn;
+            }
+
         string anclass = bodyAst->dataAnclass;
         hashed_string enttype = hashed_string{anclass.c_str()};
 
@@ -320,10 +365,9 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
             }>("create_ptr")
             ;
 
-        registerFields(protype);
-
         bodyAst->enttypeid = enttype;
-        // bodyAst->dataBaseAst = AnsonBodyAst::_type_;
+        registerBodyFields(protype, bodyAst);
+
         asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
 
         specialize_req<Rq>(asts, bodyAst);

@@ -27,6 +27,7 @@ public:
     virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
     string a;
+    string uri;
 
     AnsonBody() : Anson(_type_) {}
 
