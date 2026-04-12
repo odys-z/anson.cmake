@@ -8,13 +8,13 @@
 #include "io/odysz/json.h"
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/semantier.h"
+#include "echoreq.h"
 
 using json = nlohmann::json;
 using namespace anson;
 
 void register_peersettings(AstMap &asts) {
     //
-    // hashed_string enttype = hashed_string{PeerSettings::_type_.c_str()};
     AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
         asts, Anson::_type_, map<string, AnsonField>{
         {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
@@ -38,30 +38,30 @@ void register_peersettings(AstMap &asts) {
         ;
 }
 
-void register_echoAst(AstMap &asts) {
-    hashed_string enttype{EchoReq::_type_.c_str()};
-    entt::meta_factory<anson::EchoReq>()
-        .type(enttype)
-        .base<AnsonBody>()
-        .ctor<>()
-        .ctor<string>()
-        .data<&anson::EchoReq::echo>("echo"_hs, "echo")
-        ;
+// void register_echoAst(AstMap &asts) {
+//     hashed_string enttype{EchoReq::_type_.c_str()};
+//     entt::meta_factory<anson::EchoReq>()
+//         .type(enttype)
+//         .base<AnsonBody>()
+//         .ctor<>()
+//         .ctor<string>()
+//         .data<&anson::EchoReq::echo>("echo"_hs, "echo")
+//         ;
 
-    string astclass = AnsonBodyAst().anclass;
-    string echoclass = EchoReq().anclass;
-    AnsonBodyAst *echoast = new AnsonBodyAst{astclass};
-    echoast->dataAnclass = echoclass;
-    echoast->enttypeid = enttype;
+//     string astclass = AnsonBodyAst().anclass;
+//     string echoclass = EchoReq().anclass;
+//     AnsonBodyAst *echoast = new AnsonBodyAst{astclass};
+//     echoast->dataAnclass = echoclass;
+//     echoast->enttypeid = enttype;
 
-    echoast->A["echo"] = "echo";
-    echoast->A["inet"] = "inet";
+//     echoast->A["echo"] = "echo";
+//     echoast->A["inet"] = "inet";
 
-    echoast->fields = map<string, AnsonField>{
-        {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
-    };
-    asts.insert(make_pair(echoclass, echoast));
-}
+//     echoast->fields = map<string, AnsonField>{
+//         {"echo",   {.fieldname="echo", .dataAnclass = "string"}}
+//     };
+//     asts.insert(make_pair(echoclass, echoast));
+// }
 
 TEST(Load, PeerSettings) {
     aninfo(string_view(filesystem::current_path().string()));
@@ -177,7 +177,8 @@ TEST(Load, EchoReq) {
     register_asts(asts);
     register_port(asts, "ast/port.ast.json");
     register_msg(asts);
-    register_echoAst(asts);
+    // register_echoAst(asts);
+    load_echoAst(asts, "ast/echo.ast.json");
 
     string t02_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t02_echo_json);

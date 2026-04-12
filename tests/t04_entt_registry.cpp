@@ -34,13 +34,6 @@ TEST(ENTT_META, JSON_REGISTRY) {
 
     msg.toBlock(cout, jsonopts);
 
-    /** to be fixed
-    EXPECT_EQ(std::format(R"({{"type": "{}", )", AnsonMsg<EchoReq>::_type_) +
-              R"("port": "echo", "body": [{"a": "r/query", "echo": "echo msg ..."}]})",
-              msg.toBlock(jsonopts))
-        << "static _type_ must be ignored, port name must used as the enum value...";
-    */
-
     entt::hashed_string echo_type_hs{EchoReq::_type_.c_str()};
     auto echo_type = entt::resolve(echo_type_hs);
 

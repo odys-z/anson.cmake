@@ -31,8 +31,6 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
     ast->dataAnclass = anson.anclass;
     ast->fields = fields;
 
-    // e.g. asid of AnsonMsg<EchoReq> is "io..AnsonMsgAst<io..AnsonMsg<io..EchoReq"
-    // string astid = AST::_type_ + '<' + AN().anclass;
     string astid = AN().anclass;
 
     anlog(string_view{std::format("create AST: {}", astid)});
@@ -79,9 +77,7 @@ inline static void register_asts(AstMap &asts) {
     asts[AnsonField_type] = unique_ptr<AnsonAst>(ast);
 
     //
-    ast = createAST<Anson, AnsonAst>(asts, IJsonable::_anclass_, map<string, AnsonField>{
-        // {"type", {.fieldname="type", .dataAnclass="string"}},
-    });
+    ast = createAST<Anson, AnsonAst>(asts, IJsonable::_anclass_, map<string, AnsonField>{});
     entt::meta_factory<anson::Anson>()
         .type(ast->enttypeid)
         .base<IJsonable>()
@@ -135,7 +131,6 @@ inline static void register_asts(AstMap &asts) {
     AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
-    // asts[bdast->dataAnclass] = unique_ptr<AnsonAst>(bdast);
 
     entt::meta_factory<anson::AnsonBodyAst>()
         .type(bdast->enttypeid)
@@ -165,9 +160,6 @@ inline static void register_asts(AstMap &asts) {
 }
 
 inline static void register_msg(AstMap &asts) {
-    //
-    // string anclass = SemanticObject().anclass;
-    // hashed_string enttype{anclass.c_str()};
     AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"data", {.fieldname="data", .dataAnclass = "map<string, TODO"}}
     });
@@ -322,7 +314,6 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
 
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {
-        // andebug(bodyAst->fields);
         for (auto& [fn, f] : bodyAst->fields)
             if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
                 anwarn(std::format("Error fields configuration in {} : {} (fieldname: {}, dataAnclass: {})",

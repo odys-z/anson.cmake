@@ -10,7 +10,6 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace anson;
 
     AstMap asts;
-    // map<string, meta_type> enttypes;
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     anson::register_asts(asts);
@@ -28,8 +27,6 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
 
     if (view) {
         entt::meta_any newValue = std::string("Generic Insert");
-
-        // This now modifies the vector inside 'instance'
         view.insert(view.end(), std::move(newValue));
         andebug(string_view(std::format("{}, {}", view.size(), tlist.val.size())));
     }
@@ -84,7 +81,6 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     EXPECT_EQ(6, vec.size());
     EXPECT_EQ(6, stub3.val.size());
     EXPECT_EQ("D", stub3.val[5]);
-
 }
 
 TEST(ENTT, T_LIST_PARSE) {
