@@ -18,7 +18,7 @@ JsonOpt contxt{&asts};
 
 TEST(AnsonRespons, Deserialize) {
 
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     // register_asts(asts);
     // register_msg(asts);
     // register_port(asts, "ast/port.ast.json");
