@@ -13,7 +13,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(/utf-8)
-
 # I can't solve the MSVC mojibake problem. You might be better remove any MSVC kit's language packs other than English.
 # add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # if(MSVC)

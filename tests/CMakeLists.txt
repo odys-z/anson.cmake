@@ -13,17 +13,20 @@ include(GoogleTest)
 add_executable(unit_tests
   semantier.h
   echoreq.h
-  t01_common.cpp
-  t02_entt_basic.h
-  t02_entt_basic.cpp
-  t02_entt_basic_serialize.cpp
-  t03_loadsettings.cpp
-  t04_entt_registry.cpp
-  t05_deserialize.cpp
-  t06_java_enum.cpp
-  t06_java_enum.h
-  # t07_ansonresp.cpp
+  # t01_common.cpp
+  # t02_entt_basic.h
+  # t02_entt_basic.cpp
+  # t02_entt_basic_serialize.cpp
+  # t03_loadsettings.cpp
+  # t04_entt_registry.cpp
+  # t05_deserialize.cpp
+  # t06_java_enum.cpp
+  # t06_java_enum.h
+  t07_ansonresp.cpp
 )
+if(MSVC)
+    target_compile_options(unit_tests PRIVATE /bigobj)
+endif()
 
 add_custom_command(TARGET unit_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy

@@ -8,13 +8,25 @@
 namespace anson {
 
 class AnResultset : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.module.rs.AnResultset";
+
     struct Column {
+        inline static const string _type_ = AnResultset::_type_ + ".Column";
         int colx;
         string col_id;
     };
 
     vector<vector<vector<string>>> rows;
-    map<string, Column> colmuns;
+    map<string, Column> colnames;
+
+    /** start at 0 */
+    int rowIdx;
+    int rowCnt;
+    int colcnt;
+    long total;
+
+    AnResultset() : Anson(_type_), rowIdx(-1), rowCnt(0), colcnt(0), total(0){}
 };
 
 /**
@@ -81,28 +93,22 @@ public:
     }
 };
 
-// inline bool operator==(const Port& p, const JavaEnum& q) {
-//     return p.enm == q.enm;
-// }
+inline static const string MsgCode_anclass_ = "io.odysz.semantic.jprotocol.MsgCode";
+enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
 
-// template<typename E>
-// std::optional<E> from_enum_string(const std::string& s) {
-//     using namespace entt::literals;
-//     auto type = entt::resolve<E>();
-
-//     if (type) {
-//         for (auto [id, data] : type.data()) {
-//             if (auto prop = data.name()) {
-//                 if (prop == s) {
-//                     return data.get({}).template cast<E>();
-//                 }
-//             }
-//         }
-//     }
-//     return std::nullopt;
-// }
-
-enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext };
+constexpr bool operator==(MsgCode code, std::string_view s) {
+    switch (code) {
+    case MsgCode::ok:        return s == "ok";
+    case MsgCode::exSession: return s == "exSession";
+    case MsgCode::exSemantic:return s == "exSemantic";
+    case MsgCode::exIo:      return s == "exIo";
+    case MsgCode::exTransct: return s == "exTransact";
+    case MsgCode::exDA:      return s == "exDA";
+    case MsgCode::exGeneral: return s == "exGeneral";
+    case MsgCode::ext:       return s == "ext";
+    default:                 return false;
+    }
+};
 
 class AnsonResp : public AnsonBody{
 public:
@@ -126,6 +132,8 @@ public:
         this->m = std::move(m);
         return this;
     }
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 template <
@@ -138,6 +146,8 @@ public:
     vector<shared_ptr<T>> body;
 
     Port port;
+
+    MsgCode code;
 
     AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") { }
 

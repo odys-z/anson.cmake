@@ -391,7 +391,7 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
     // Check base classes (requires entt::meta<Derived>().base<Base>() registration)
     for (auto [id, base] : type.base()) {
         if (auto data = find_field_recursive(base, key); data) {
-        return data;
+            return data;
         }
     }
 
@@ -532,7 +532,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &val, const str
 }
 
 inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
-              const string &fieldname, const AnsonAst &obj_ast, const meta_type &fd_type, const JsonOpt &opts) {
+              const string &fieldname, const AnsonAst &fld_ast, const meta_type &fd_type, const JsonOpt &opts) {
 
     meta_type enttype = resolve(hashed_string{jsonable.anclass.c_str()});
     hashed_string data_key{fieldname.c_str()};
@@ -547,19 +547,19 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
         return os;
     }
 
-    if (obj_ast.isList) {
+    if (fld_ast.isList) {
         anerror("There is not ast of list, and list should be handled in serialize_field, so why reached here?");
         // serialize_list(os, val, fd_ast, fd_type); // Not Reachable
     }
 
-    if (obj_ast.isMap)
+    if (fld_ast.isMap)
         // serialize_map(os, val, fd_ast, fd_type, opts);
-        return serialize_map(os, val, obj_ast.dataAnclass);
+        return serialize_map(os, val, fld_ast.dataAnclass);
 
-    if (obj_ast.isEnum)
-        return serialize_enum(val, fd_type, obj_ast, os);
+    if (fld_ast.isEnum)
+        return serialize_enum(val, fd_type, fld_ast, os);
 
-    if (obj_ast.isJavaEnum) {
+    if (fld_ast.isJavaEnum) {
         JavaEnum x{"x", "x"};
         cout << x;
         // return os << val.try_cast<JavaEnum>();
@@ -570,27 +570,34 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
         }
     }
 
-    if (obj_ast.istring) {
+    if (fld_ast.istring) {
         auto s = val.try_cast<std::string>();
         return os << '\"' << *s << '\"';
     }
 
-    if (obj_ast.isJsonable) {
-        jsonable.toBlock(os, opts);
+    if (fld_ast.isJsonable) {
+        // jsonable.toBlock(os, opts);
+        IJsonable *jsonval = val.try_cast<IJsonable>();
+        IJsonable *anson = val.try_cast<Anson>();
+        if(jsonval)
+            jsonable.toBlock(os, opts);
+        else
+            anerror(std::format("Connot convert from meta_any to IJasonalbe: {}.{}",
+                                jsonable.anclass, data.name()));
         return os;
     }
 
-    if (obj_ast.isInt) {
+    if (fld_ast.isInt) {
         auto s = val.try_cast<int>();
         return os << '\"' << s << '\"';
     }
 
-    if (obj_ast.isDouble) {
+    if (fld_ast.isDouble) {
         auto s = val.try_cast<std::double_t>();
         return os << '\"' << s << '\"';
     }
 
-    return os << R"("Cannot handle value of )" << obj_ast.anclass << '\"';
+    return os << R"("Cannot handle value of )" << fld_ast.anclass << '\"';
 }
 
 /**
@@ -718,10 +725,9 @@ struct ParseNode {
 
     bool is_list = false;
     bool is_map = false;
-    bool resolve_map2fields = false;
 
-    // map<string, string> shadow_fields;
-    // vector<string> shadow_list;
+    // TODO ISSUE FIXME why this?
+    bool resolve_map2fields = false;
 
     id_type activekey = 0;
     string map_key;
@@ -733,7 +739,6 @@ private:
     const JsonOpt *contxt;
 
     id_type active_key{0};
-
 
     AnsonAst* find_field_ast(const AnsonAst *inst_ast, const std::string &fieldname) {
         if (inst_ast->fields.contains(fieldname))
@@ -762,7 +767,6 @@ private:
             }
             else
                 anerror(std::format("set_value(): Failed to set list value: {}", val));
-            // top.shadow_list.push_back(std::any_cast<string_t&>(val));
             return;
         }// not the branch of is_map?
         else if (active_key != 0) {
@@ -795,11 +799,7 @@ private:
                     return;
                 }
 
-                AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
-                AnsonAst *fd_ast = find_field_ast(ast, fieldname);
 
-                if (fd_ast != nullptr) {
-                    if (fd_ast->isJavaEnum) {
                         std::string string_val;
                         if constexpr (std::is_same_v<std::decay_t<V>, std::string>) {
                             string_val = std::forward<V>(val);
@@ -809,6 +809,12 @@ private:
                             // This handles ints, floats, etc., safely
                             string_val = std::to_string(val);
                         }
+
+                AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
+                AnsonAst *fd_ast = find_field_ast(ast, fieldname);
+
+                if (fd_ast != nullptr) {
+                    if (fd_ast->isJavaEnum) {
                         auto v = data.type().construct(string_val);
 
 
@@ -817,20 +823,24 @@ private:
                         return;
                     }
                     if (fd_ast->isEnum) { // TODO
-                        anerror("TODO: "s + fd_ast->dataAnclass);
+                        // anerror("TODO: "s + fd_ast->dataAnclass);
+                        AnsonJavaEnumAst *enum_ast = (AnsonJavaEnumAst*)fd_ast;
+                        data.set(top.instance, enum_ast->encode[string_val]);
                         return;
                     }
                 }
                 else {
                     bool res = data.set(top.instance, std::forward<V>(val));
                     if (!res)
-                        anerror("set_value(): failed to set"s + fieldname);
+                        anerror("set_value(): failed to set "s + fieldname);
                 }
             }
             else {
                 // Debug Notes: to avoid error: SEH exception, don't call top.instance.type().name()
-                anerror(std::format(
-                    "set_value(): Cannot find field by key-id: {}", active_key));
+                anerror(std::format("set_value(): Cannot find field by key-id: {}",
+                                    active_key));
+
+                auto debug_agin = find_field_recursive(top.instance.type(), active_key);
             }
         }
     }
@@ -1013,7 +1023,7 @@ public:
                                 auto func = obj_type.func("create_ptr"_hs);
 
                                 if (!func) {
-                                    anerror(std::format("end_obj(): create_ptr({}) is not registered.", typname));
+                                    anerror(std::format("end_obj(): function create_ptr({}) is not registered.", typname));
                                     return false;
                                 }
 

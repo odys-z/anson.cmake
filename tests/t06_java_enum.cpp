@@ -5,11 +5,9 @@
 #include <iostream>
 #include <io/odysz/jprotocol.h>
 #include "io/odysz/json.h"
-// #include "io/odysz/anserializer.h"
 #include "io/odysz/json.h"
 
 #include "echoreq.h"
-#include "t06_java_enum.h"
 
 namespace {
 
@@ -58,7 +56,5 @@ TEST(JAVAENUM, PORT) {
     ASSERT_EQ(Port{Port::echo}, usreq.port)  << "usreq.echo [2]";
 }
 
-// TEST(JAVAENUM, TEST_PORT) {
-// }
 
 }
