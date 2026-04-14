@@ -11,18 +11,11 @@
 using namespace anson;
 using namespace std;
 
-AstMap asts;
-map<string, meta_type> types;
+static AstMap asts;
 
-JsonOpt contxt{&asts};
+static JsonOpt contxt{&asts};
 
 TEST(AnsonRespons, Deserialize) {
-
-    // IJsonable::contxt_ptr = &contxt;
-    // register_asts(asts);
-    // register_msg(asts);
-    // register_port(asts, "ast/port.ast.json");
-
     register_jserv(asts, &contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
@@ -45,14 +38,14 @@ TEST(AnsonRespons, Deserialize) {
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, resp.type);
 
     EXPECT_EQ("query", resp.port.valof()) << "[3] resp->port.valof()";
-    EXPECT_EQ(Port::query, resp.port) << "[3.1] resp->port";
+    EXPECT_EQ(Port::query, resp.port.url()) << "[3.1] resp->port";
     EXPECT_EQ("query", resp.port) << "[3.2] resp->port";
 
     AnsonResp repbd = resp.Body();
 
     cout << "[4] body: " << resp.body.size() << ", type: " << repbd.anclass << endl;// ", code: " << repbd.code << endl;
-    EXPECT_EQ("ok", repbd.code) << "[4] body[0].code = 'ok'";
-    EXPECT_EQ(MsgCode::ok, repbd.code) << "[4] body[0].code = ok";
+    EXPECT_EQ("ok", AnsonJavaEnumAst::name<MsgCode>(resp.code)) << "[4] body[0].code = 'ok'";
+    EXPECT_EQ(MsgCode::Code::ok, resp.code) << "[4] body[0].code = ok";
 }
 
 // TEST(AnsonRespons, Serialize) {

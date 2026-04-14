@@ -45,7 +45,7 @@ TEST(Anson, Base) {
 }
 
 TEST(Anson, AnsonBody) {
-    register_msg(enums);
+    register_msgs(enums);
     IJsonable::contxt_ptr = &contxt;
 
     AnsonBody testbody{"test"}; // instantatiate abstract class?
@@ -95,10 +95,11 @@ TEST(Anson, PORT) {
 }
 
 TEST(Anson, AnsonMsg_EchoReq) {
-    IJsonable::contxt_ptr = &contxt;
-    register_asts(enums);
-    register_msg(enums);
-    register_port(enums, "ast/port.ast.json");
+    // IJsonable::contxt_ptr = &contxt;
+    // register_asts(enums);
+    // register_msg(enums);
+    // register_port(enums, "ast/port.ast.json");
+    register_jserv(enums, &contxt);
     load_echoAst(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
@@ -147,11 +148,12 @@ TEST(Anson, AnsonMsg_EchoReq) {
 TEST(Anson, Servialize_Msg) {
 
     // serialize_recursive(msg, enums, oss);
-    IJsonable::contxt_ptr = &contxt;
     JsonOpt opts{&enums};
-    register_asts(enums);
-    register_msg(enums);
-    register_port(enums, "ast/port.ast.json");
+    // IJsonable::contxt_ptr = &contxt;
+    // register_asts(enums);
+    // register_msg(enums);
+    // register_port(enums, "ast/port.ast.json");
+    register_jserv(enums, &opts);
     load_echoAst(enums, "ast/echo.ast.json");
 
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
@@ -170,7 +172,7 @@ TEST(Anson, Servialize_Msg) {
     std::cout << "Serialized JSON: " << json_result << std::endl;
     ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
               R"("body": [{"type": "io.odysz.semantic.jserv.echo.EchoReq","a": "r/query","uri": "","echo": "Hello World"}],)"
-              R"("port": "query"})"
+              R"("code": "null","port": "query"})"
               , json_result);
 }
 }

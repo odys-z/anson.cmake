@@ -102,7 +102,7 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::isMap>("isMap")
         .data<&anson::AnsonAst::istring>("istring")
         .data<&anson::AnsonAst::isJsonable>("isJsonable")
-        .data<&anson::AnsonAst::isJavaEnum>("isJavaEnum")
+        .data<&anson::AnsonAst::isPortEnum>("isJavaEnum")
         .data<&anson::AnsonAst::enttypeid>("enttypeid")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         .data<&anson::AnsonAst::fields>("fields")
@@ -341,6 +341,7 @@ inline static void register_msgs(AstMap &asts) {
         ;
 }
 
+/*
 template<typename C>
 inline static void register_enums(AstMap& asts, const string &anclass) {
     AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(anclass, true);
@@ -351,7 +352,6 @@ inline static void register_enums(AstMap& asts, const string &anclass) {
     ast->dataAnclass = anclass;
 
     anlog(string_view{std::format("create AST: {}", anclass)});
-    asts[anclass] = unique_ptr<AnsonAst>(ast);
 
     //
     ast->get_field_instance = [ast](const IJsonable &j, const string &fieldname) -> meta_any {
@@ -362,11 +362,43 @@ inline static void register_enums(AstMap& asts, const string &anclass) {
         anerror(std::format("Cannot find {} in {}.", fieldname, ast->dataAnclass));
         return static_cast<C>(C::_sentinel_);
     };
+    asts[anclass] = unique_ptr<AnsonAst>(ast);
+}
+*/
+
+template<typename C>
+inline static void register_enums(AstMap& asts) {
+    string anclass = C::_type_;
+    using EType = typename C::Code;
+
+    AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(anclass, true);
+
+    hashed_string enttype{anclass.c_str()};
+    // ast->dataBaseAst = "";
+    ast->enttypeid = enttype;
+    ast->dataAnclass = anclass;
+    anlog(string_view{std::format("create AST: {}", anclass)});
+
+    ast->get_field_instance = [ast](const IJsonable &j, const string &fieldname) -> meta_any {
+        for (size_t ix = 0; ix < C::compter; ix++) {
+            if (C::noms[ix] == fieldname) {
+                return { static_cast<EType>(ix) };
+            }
+        }
+        return { static_cast<EType>(C::compter) }; // sentinel
+    };
 
     ast->name_of = [ast](const meta_any val_inst) -> string {
-
+        if (auto* val = val_inst.try_cast<EType>()) {
+            size_t idx = static_cast<size_t>(*val);
+            if (idx < C::compter) {
+                return string(C::noms[idx]);
+            }
+        }
         return "null";
     };
+
+    asts[anclass] = unique_ptr<AnsonJavaEnumAst>(ast);
 }
 
 inline static void register_port(AstMap &asts, const string &port_ast_pth) {
@@ -377,9 +409,7 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
 
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     portAst->dataAnclass = Port::_type_;
-    portAst->isJavaEnum = true;
-
-    // portAst = loadAST("");
+    portAst->isPortEnum = true;
 
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
@@ -387,16 +417,12 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
         string anclass = portAst->dataAnclass; // Port::_type_
         hashed_string enttype = hashed_string{anclass.c_str()};
 
-        // meta_type portype =
         entt::meta_factory<anson::Port>()
             .type(enttype)
             .base<JavaEnum>()
             .ctor<>()
             .ctor<std::string>()
             ;
-
-        // for field in portAst.fields
-        //    type.data<Port::type.name()>();
 
         portAst->enttypeid = enttype;
 
@@ -410,7 +436,7 @@ inline static void register_jserv(AstMap &asts, JsonOpt * ctx_opt) {
     IJsonable::contxt_ptr = ctx_opt;
 
     register_msgs(asts);
-    register_enums<MsgCode::C>(asts, MsgCode::_type_);
+    register_enums<MsgCode>(asts);
     register_port(asts, "ast/port.ast.json");
     specialize_respmsg(asts);
 }

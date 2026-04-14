@@ -226,7 +226,7 @@ public:
     bool isMap = false;
     bool istring = false;
     bool isJsonable = false;
-    bool isJavaEnum = false;
+    bool isPortEnum = false;
     string base = "io.odysz.anson.Anson";
 
     string dataBaseAst;
@@ -243,13 +243,13 @@ public:
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
     AnsonAst() : Anson(_type_),
-        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
+        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     AnsonAst(string anclass, bool isEnum = false) : Anson(_type_, anclass),
-        isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
+        isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     AnsonAst(string anclass, string type) : Anson(type, anclass),
-        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isJavaEnum(false) { }
+        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     std::function<meta_any(IJsonable&, id_type)> get_entt_instance = [](IJsonable& j, id_type t) -> meta_any {
         return {};
@@ -312,14 +312,23 @@ public:
      * @param isEnum This parameter is used only for templatized registration, not used.
      * (AST is not a JavaEnum)
      */
-    AnsonJavaEnumAst(string anclass, bool isEnum = true) : AnsonAst(anclass, isEnum) {
+    AnsonJavaEnumAst(string anclass, bool isEnum = false) : AnsonAst(anclass, isEnum) {
     }
 
     std::function<string(const meta_any& val)> name_of =
         [this] (const meta_any& val) -> string{
-            anerror("Must be overriden by auto-generated code.");
+            anerror("The <funcion>name_of must be overriden by auto-generated code.");
         return "null";
     };
+
+    template <typename C>
+    static inline string name(C e) {
+        if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->has_ast(C::_type_)) {
+            AnsonJavaEnumAst * jeast = IJsonable::contxt_ptr->ast<AnsonJavaEnumAst>(C::_type_);
+            return jeast->name_of({e.valeur});
+        }
+        return "null";
+    }
 };
 
 inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
@@ -412,30 +421,30 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
  * @param os
  * @return os
  */
-inline static ostream& serialize_enum(const meta_any &instance, const meta_type &type,
-              const AnsonJavaEnumAst &ast, std::ostream &os) {
-    if (ast.isEnum) {
-        // if (auto value = instance.try_cast<int>(); value) {
-        //     os << *value;
-        // } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
-        //     os << *u_value;
-        // } else {
-        //     // Fallback: try to convert via the meta system to a type we can print
-        //     // This works if the enum is registered as a meta type
-        //     os << instance.cast<int>();
-        // }
+// inline static ostream& serialize_enum(const meta_any &instance, const meta_type &type,
+//               const AnsonJavaEnumAst &ast, std::ostream &os) {
+//     if (ast.isEnum) {
+//         // if (auto value = instance.try_cast<int>(); value) {
+//         //     os << *value;
+//         // } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
+//         //     os << *u_value;
+//         // } else {
+//         //     // Fallback: try to convert via the meta system to a type we can print
+//         //     // This works if the enum is registered as a meta type
+//         //     os << instance.cast<int>();
+//         // }
 
-        // if (auto value = instance.try_cast<int>(); value) {
-            string res = ast.name_of(instance);
-            return os << '"' << res << '"';
-        // }
-        // else {
-        //     anerror(std::format("serialize_enum(): cannot convert value of {}", ast.anclass));
-        //     os << "null";
-        // }
-    }
-    return os;
-}
+//         // if (auto value = instance.try_cast<int>(); value) {
+//             string res = ast.name_of(instance);
+//             return os << '"' << res << '"';
+//         // }
+//         // else {
+//         //     anerror(std::format("serialize_enum(): cannot convert value of {}", ast.anclass));
+//         //     os << "null";
+//         // }
+//     }
+//     return os;
+// }
 
 inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable,
                        const AnsonField &f, const JsonOpt &opts) {
@@ -571,10 +580,7 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
         // serialize_map(os, val, fd_ast, fd_type, opts);
         return serialize_map(os, val, fld_ast.dataAnclass);
 
-    if (fld_ast.isEnum)
-        return serialize_enum(val, fd_type, (AnsonJavaEnumAst&)fld_ast, os);
-
-    if (fld_ast.isJavaEnum) {
+    if (fld_ast.isPortEnum) {
         JavaEnum x{"x", "x"};
         cout << x;
         // return os << val.try_cast<JavaEnum>();
@@ -583,6 +589,13 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
         } else {
             return os << "null";
         }
+    }
+
+    if (fld_ast.isEnum) {
+        // return serialize_enum(val, fd_type, (AnsonJavaEnumAst&)fld_ast, os);
+        const AnsonJavaEnumAst * east = static_cast<const AnsonJavaEnumAst*>(&fld_ast);
+        string res = east->name_of(val);
+        return os << '"' << res << '"';
     }
 
     if (fld_ast.istring) {
@@ -828,7 +841,7 @@ private:
                 AnsonAst *fd_ast = find_field_ast(ast, fieldname);
 
                 if (fd_ast != nullptr) {
-                    if (fd_ast->isJavaEnum) {
+                    if (fd_ast->isPortEnum) {
                         auto v = data.type().construct(string_val);
                         JavaEnum *je = v.template try_cast<JavaEnum>();
                         bool res = data.set(top.instance, v);
