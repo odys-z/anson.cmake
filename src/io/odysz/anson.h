@@ -312,8 +312,14 @@ public:
      * @param isEnum This parameter is used only for templatized registration, not used.
      * (AST is not a JavaEnum)
      */
-    AnsonJavaEnumAst(string anclass, bool isEnum = true) : AnsonAst(anclass, anclass) {
+    AnsonJavaEnumAst(string anclass, bool isEnum = true) : AnsonAst(anclass, isEnum) {
     }
+
+    std::function<string(const meta_any& val)> name_of =
+        [this] (const meta_any& val) -> string{
+            anerror("Must be overriden by auto-generated code.");
+        return "null";
+    };
 };
 
 inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
@@ -407,17 +413,26 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
  * @return os
  */
 inline static ostream& serialize_enum(const meta_any &instance, const meta_type &type,
-              const AnsonAst &ast, std::ostream &os) {
+              const AnsonJavaEnumAst &ast, std::ostream &os) {
     if (ast.isEnum) {
-        if (auto value = instance.try_cast<int>(); value) {
-            os << *value;
-        } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
-            os << *u_value;
-        } else {
-            // Fallback: try to convert via the meta system to a type we can print
-            // This works if the enum is registered as a meta type
-            os << instance.cast<int>();
-        }
+        // if (auto value = instance.try_cast<int>(); value) {
+        //     os << *value;
+        // } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
+        //     os << *u_value;
+        // } else {
+        //     // Fallback: try to convert via the meta system to a type we can print
+        //     // This works if the enum is registered as a meta type
+        //     os << instance.cast<int>();
+        // }
+
+        // if (auto value = instance.try_cast<int>(); value) {
+            string res = ast.name_of(instance);
+            return os << '"' << res << '"';
+        // }
+        // else {
+        //     anerror(std::format("serialize_enum(): cannot convert value of {}", ast.anclass));
+        //     os << "null";
+        // }
     }
     return os;
 }
@@ -557,7 +572,7 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
         return serialize_map(os, val, fld_ast.dataAnclass);
 
     if (fld_ast.isEnum)
-        return serialize_enum(val, fd_type, fld_ast, os);
+        return serialize_enum(val, fd_type, (AnsonJavaEnumAst&)fld_ast, os);
 
     if (fld_ast.isJavaEnum) {
         JavaEnum x{"x", "x"};
@@ -799,7 +814,6 @@ private:
                     return;
                 }
 
-
                         std::string string_val;
                         if constexpr (std::is_same_v<std::decay_t<V>, std::string>) {
                             string_val = std::forward<V>(val);
@@ -816,17 +830,14 @@ private:
                 if (fd_ast != nullptr) {
                     if (fd_ast->isJavaEnum) {
                         auto v = data.type().construct(string_val);
-
-
                         JavaEnum *je = v.template try_cast<JavaEnum>();
                         bool res = data.set(top.instance, v);
                         return;
                     }
-                    if (fd_ast->isEnum) { // TODO
-                        // anerror("TODO: "s + fd_ast->dataAnclass);
+                    if (fd_ast->isEnum) {
                         AnsonJavaEnumAst *enum_ast = (AnsonJavaEnumAst*)fd_ast;
-                        data.set(top.instance, enum_ast->encode[string_val]);
-                        return;
+                        bool res = data.set(top.instance, enum_ast->get_field_instance(Anson(), string_val));
+                        if (res) return;
                     }
                 }
                 else {

@@ -38,14 +38,15 @@ TEST(AnsonRespons, Deserialize) {
 
     cout << "[1] " << json_input << endl;
     bool result = Anson::from_json(json_input, resp);
-    cout << "[2] ok: " << result << ", anclass: " << resp.anclass << ", port: " << resp.port << endl;
+    anlog(std::format("[2] ok: {}, anclass: {}, port: {}", result, resp.anclass, resp.port.valof()));
 
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonResp()._type_special(AnsonMsg<AnsonResp>::_type_), resp.anclass) << "[2]msg->anclass";
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, resp.type);
 
-    EXPECT_EQ(Port::query, resp.port.url()) << "[3] resp->port";
-    EXPECT_EQ("query", resp.port) << "[3] resp->port";
+    EXPECT_EQ("query", resp.port.valof()) << "[3] resp->port.valof()";
+    EXPECT_EQ(Port::query, resp.port) << "[3.1] resp->port";
+    EXPECT_EQ("query", resp.port) << "[3.2] resp->port";
 
     AnsonResp repbd = resp.Body();
 

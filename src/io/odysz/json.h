@@ -182,7 +182,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
 
     ast->fields = map<string, AnsonField>{
         {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
-        {"code", {.fieldname = "code", .dataAnclass=MsgCode_anclass_}},
+        {"code", {.fieldname = "code", .dataAnclass=MsgCode::_type_}},
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
@@ -217,7 +217,7 @@ inline static void specialize_respmsg(AstMap & asts) {
     AnsonBodyAst *ast = createAST<AnsonResp, AnsonBodyAst>(asts, AnsonBody::_type_,
         map<string, AnsonField>{
             {"m", {.fieldname="m", .dataAnclass = "string"}},
-            {"rs", {.fieldname="rs", .dataAnclass = "list<"s + AnResultset::_anclass_}},
+            {"rs", {.fieldname="rs", .dataAnclass = "list<"s + AnResultset::_type_}},
             {"map", {.fieldname="map", .dataAnclass = "map<string,string"}}
         });
 
@@ -341,13 +341,32 @@ inline static void register_msgs(AstMap &asts) {
         ;
 }
 
-template<typename E>
-inline static void register_enums(AstMap& asts) {
-    vector<E> vals;
-    for (int i = 0; i < static_cast<int>(E::_sentinel_); ++i) {
-        vals.push_back(static_cast<E>(i));
-        // std::cout << "Processing item at index: " << i << std::endl;
-    }
+template<typename C>
+inline static void register_enums(AstMap& asts, const string &anclass) {
+    AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(anclass, true);
+    hashed_string enttype{anclass.c_str()};
+
+    // ast->dataBaseAst = "";
+    ast->enttypeid = enttype;
+    ast->dataAnclass = anclass;
+
+    anlog(string_view{std::format("create AST: {}", anclass)});
+    asts[anclass] = unique_ptr<AnsonAst>(ast);
+
+    //
+    ast->get_field_instance = [ast](const IJsonable &j, const string &fieldname) -> meta_any {
+        for (int ix = 0; ix < C::_sentinel_; ix++)
+            if (static_cast<C>(ix) == fieldname)
+                return {static_cast<C>(ix)};
+
+        anerror(std::format("Cannot find {} in {}.", fieldname, ast->dataAnclass));
+        return static_cast<C>(C::_sentinel_);
+    };
+
+    ast->name_of = [ast](const meta_any val_inst) -> string {
+
+        return "null";
+    };
 }
 
 inline static void register_port(AstMap &asts, const string &port_ast_pth) {
@@ -387,12 +406,11 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
         anerror(string_view(std::format("Could not load AST from {}!", port_ast_pth)));
 }
 
-inline static void register_jserv(AstMap asts, JsonOpt * ctx_opt) {
+inline static void register_jserv(AstMap &asts, JsonOpt * ctx_opt) {
     IJsonable::contxt_ptr = ctx_opt;
 
-    using enum MsgCode;
     register_msgs(asts);
-    register_enums<MsgCode>(asts);
+    register_enums<MsgCode::C>(asts, MsgCode::_type_);
     register_port(asts, "ast/port.ast.json");
     specialize_respmsg(asts);
 }

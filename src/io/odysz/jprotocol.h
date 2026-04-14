@@ -93,28 +93,72 @@ public:
     }
 };
 
-inline static const string MsgCode_anclass_ = "io.odysz.semantic.jprotocol.MsgCode";
-enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
+// inline static const string MsgCode_anclass_ = "io.odysz.semantic.jprotocol.MsgCode";
+// enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
 
-constexpr bool operator==(MsgCode code, std::string_view s) {
-    switch (code) {
-    case MsgCode::ok:        return s == "ok";
-    case MsgCode::exSession: return s == "exSession";
-    case MsgCode::exSemantic:return s == "exSemantic";
-    case MsgCode::exIo:      return s == "exIo";
-    case MsgCode::exTransct: return s == "exTransact";
-    case MsgCode::exDA:      return s == "exDA";
-    case MsgCode::exGeneral: return s == "exGeneral";
-    case MsgCode::ext:       return s == "ext";
-    default:                 return false;
+// constexpr bool operator==(MsgCode code, std::string_view s) {
+//     switch (code) {
+//     case MsgCode::ok:        return s == "ok";
+//     case MsgCode::exSession: return s == "exSession";
+//     case MsgCode::exSemantic:return s == "exSemantic";
+//     case MsgCode::exIo:      return s == "exIo";
+//     case MsgCode::exTransct: return s == "exTransact";
+//     case MsgCode::exDA:      return s == "exDA";
+//     case MsgCode::exGeneral: return s == "exGeneral";
+//     case MsgCode::ext:       return s == "ext";
+//     default:                 return false;
+//     }
+// };
+
+/**
+ * Design Notes:
+ *
+ * As this module is used for converting string to enumeration back
+ * and forth, the bare c++ enum is not enough.
+ *
+ * Usage:
+ *
+ * MsgCode::Enm code = MsgCode::ok;  // Clean syntax
+ *
+ * auto s = MsgCode::toString(code);   // Accesses the "member" logic
+ */
+namespace MsgCode {
+    static inline const string _type_ = "io.odysz.semantic.jprotocol.MsgCode";
+
+    /**
+     * Usage:
+     *
+     * MsgCode::Enm code = MsgCode::ok;
+     *
+     * auto s = MsgCode::toString(code);
+     */
+    enum C { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
+
+    static constexpr std::array names
+        {"ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext"};
+
+    inline constexpr std::string_view toString(C v) {
+        auto idx = static_cast<size_t>(v);
+        return (idx < names.size()) ? names[idx] : "null";
     }
-};
+
+    constexpr bool operator==(C code, std::string_view s) {
+        auto idx = static_cast<size_t>(code);
+        if (idx < names.size())
+            return names[idx] == s;
+        return false;
+    }
+
+    constexpr bool operator==(std::string_view s, C code) {
+        return code == s;
+    }
+}
 
 class AnsonResp : public AnsonBody{
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
-    MsgCode code;
+    MsgCode::C code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;
@@ -123,7 +167,7 @@ public:
 
     AnsonResp(string a) : AnsonBody(a, _type_) {}
 
-    AnsonResp& Code(MsgCode c) {
+    AnsonResp& Code(MsgCode::C c) {
         code = c;
         return *this;
     }
@@ -147,7 +191,7 @@ public:
 
     Port port;
 
-    MsgCode code;
+    MsgCode::C code;
 
     AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") { }
 
@@ -222,7 +266,7 @@ class OnOk {
 //     // virtual void err(MsgCode c, string& e, string... args);
 //     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
 // };
-using OnError = std::function<void(MsgCode code, std::string_view msg, vector<std::string_view> &args)>;
+using OnError = std::function<void(MsgCode::C code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
     virtual void progess(const string& path, std::string status);
