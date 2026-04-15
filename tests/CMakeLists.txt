@@ -14,6 +14,7 @@ add_executable(unit_tests
   semantier.h
   echoreq.h
   t01_common.cpp
+  t01_try_typed_enum.cpp
   t02_entt_basic.h
   t02_entt_basic.cpp
   t02_entt_basic_serialize.cpp
@@ -22,8 +23,11 @@ add_executable(unit_tests
   t05_deserialize.cpp
   t06_java_enum.cpp
   t06_java_enum.h
-  # t07_ansonresp.cpp
+  t07_ansonresp.cpp
 )
+if(MSVC)
+    target_compile_options(unit_tests PRIVATE /bigobj)
+endif()
 
 add_custom_command(TARGET unit_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -53,4 +57,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=5)
+add_compile_definitions(ANSON_VERBOSE=4)

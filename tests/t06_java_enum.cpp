@@ -5,11 +5,9 @@
 #include <iostream>
 #include <io/odysz/jprotocol.h>
 #include "io/odysz/json.h"
-// #include "io/odysz/anserializer.h"
 #include "io/odysz/json.h"
 
 #include "echoreq.h"
-#include "t06_java_enum.h"
 
 namespace {
 
@@ -23,10 +21,11 @@ map<string, meta_type> enttypes;
 
 TEST(JAVAENUM, PORT) {
     JsonOpt contxt{&enums};
-    IJsonable::contxt_ptr = &contxt;
-    register_asts(enums);
-    register_port(enums, "ast/port.ast.json");
-    register_msg(enums);
+    // IJsonable::contxt_ptr = &contxt;
+    // register_asts(enums);
+    // register_port(enums, "ast/port.ast.json");
+    // register_msg(enums);
+    register_jserv(enums, contxt);
     load_usereqAst(enums, "ast/usereq.ast.json");
 
     anlog(to_aststring(enums));
@@ -58,7 +57,5 @@ TEST(JAVAENUM, PORT) {
     ASSERT_EQ(Port{Port::echo}, usreq.port)  << "usreq.echo [2]";
 }
 
-// TEST(JAVAENUM, TEST_PORT) {
-// }
 
 }

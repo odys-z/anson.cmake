@@ -8,13 +8,25 @@
 namespace anson {
 
 class AnResultset : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.module.rs.AnResultset";
+
     struct Column {
+        inline static const string _type_ = AnResultset::_type_ + ".Column";
         int colx;
         string col_id;
     };
 
     vector<vector<vector<string>>> rows;
-    map<string, Column> colmuns;
+    map<string, Column> colnames;
+
+    /** start at 0 */
+    int rowIdx;
+    int rowCnt;
+    int colcnt;
+    long total;
+
+    AnResultset() : Anson(_type_), rowIdx(-1), rowCnt(0), colcnt(0), total(0){}
 };
 
 /**
@@ -81,34 +93,108 @@ public:
     }
 };
 
-// inline bool operator==(const Port& p, const JavaEnum& q) {
-//     return p.enm == q.enm;
-// }
+// inline static const string MsgCode_anclass_ = "io.odysz.semantic.jprotocol.MsgCode";
+// enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
 
-// template<typename E>
-// std::optional<E> from_enum_string(const std::string& s) {
-//     using namespace entt::literals;
-//     auto type = entt::resolve<E>();
-
-//     if (type) {
-//         for (auto [id, data] : type.data()) {
-//             if (auto prop = data.name()) {
-//                 if (prop == s) {
-//                     return data.get({}).template cast<E>();
-//                 }
-//             }
-//         }
+// constexpr bool operator==(MsgCode code, std::string_view s) {
+//     switch (code) {
+//     case MsgCode::ok:        return s == "ok";
+//     case MsgCode::exSession: return s == "exSession";
+//     case MsgCode::exSemantic:return s == "exSemantic";
+//     case MsgCode::exIo:      return s == "exIo";
+//     case MsgCode::exTransct: return s == "exTransact";
+//     case MsgCode::exDA:      return s == "exDA";
+//     case MsgCode::exGeneral: return s == "exGeneral";
+//     case MsgCode::ext:       return s == "ext";
+//     default:                 return false;
 //     }
-//     return std::nullopt;
+// };
+
+/**
+ * Design Notes:
+ *
+ * As this module is used for converting string to enumeration back
+ * and forth, the bare c++ enum is not enough.
+ *
+ * Usage:
+ *
+ * MsgCode::Enm code = MsgCode::ok;  // Clean syntax
+ *
+ * auto s = MsgCode::toString(code);   // Accesses the "member" logic
+namespace MsgCode {
+    static inline const string _type_ = "io.odysz.semantic.jprotocol.MsgCode";
+
+    / **
+     * Usage:
+     *
+     * MsgCode::Enm code = MsgCode::ok;
+     *
+     * auto s = MsgCode::toString(code);
+     * /
+    enum C { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
+
+    static constexpr std::array names
+        {"ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext"};
+
+    inline constexpr std::string_view toString(C v) {
+        auto idx = static_cast<size_t>(v);
+        return (idx < names.size()) ? names[idx] : "null";
+    }
+
+    constexpr bool operator==(C code, std::string_view s) {
+        auto idx = static_cast<size_t>(code);
+        if (idx < names.size())
+            return names[idx] == s;
+        return false;
+    }
+
+    constexpr bool operator==(std::string_view s, C code) {
+        return code == s;
+    }
+}
+ */
+
+// MsgCode
+template <typename E, size_t N>
+struct EnEnregistrement {
+    using Code = E;
+    Code valeur;
+    static const string _type_;
+    static constexpr size_t compter = N;
+    static const std::array<std::string_view, N> noms;
+
+    EnEnregistrement(E v) : valeur(v) {}
+
+    constexpr bool operator==(std::string_view s) const {
+        for (int i = 0; i < compter; i++) {
+            if (noms[i] == s) return true;
+        }
+        return false;
+    }
+
+    constexpr bool operator==(E v) const {
+        return valeur == v;
+    }
+};
+
+// template <typename E, size_t N>
+// bool operator==(E v, const EnEnregistrement<E, N>& e) {
+//     return e.valeur == v;
 // }
 
-enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext };
+enum class MsgCodeEnum { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
+using MsgCode = EnEnregistrement<MsgCodeEnum, static_cast<size_t>(MsgCodeEnum::_sentinel_) + 1>;
+template<> const string MsgCode::_type_ = "io.odysz.semantic.jprotocol.MsgCode";
+
+template<> constexpr std::array<std::string_view, 9> MsgCode::noms = {
+    "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinal_"
+};
 
 class AnsonResp : public AnsonBody{
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
-    MsgCode code;
+    // MsgCode code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;
@@ -117,29 +203,38 @@ public:
 
     AnsonResp(string a) : AnsonBody(a, _type_) {}
 
-    AnsonResp& Code(MsgCode c) {
-        code = c;
-        return *this;
-    }
+    // AnsonResp& Code(MsgCode c) {
+    //     code = c;
+    //     return *this;
+    // }
 
     AnsonResp* msg(string_view m) {
         this->m = std::move(m);
         return this;
     }
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
-template <
-    typename T //anson::AnsonBody
-    >
+template <typename T //anson::AnsonBody
+         >
 class AnsonMsg: public Anson {
 public:
-    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
-
+    /**
+     * Bodies are proected as the error of a unique-ptr will result in
+     * memory error for deletion.
+     *
+     * Public only as needed for entt registration.
+     */
     vector<shared_ptr<T>> body;
+
+    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
     Port port;
 
-    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("NA") { }
+    MsgCode::Code code;
+
+    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
 
     AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
         cout << port.enm;
@@ -179,6 +274,10 @@ public:
         }
         return *body.at(0);
     }
+
+    size_t body_size() {
+        return body.size();
+    }
 };
 
 class JServUrl : public HttpParts {
@@ -212,7 +311,7 @@ class OnOk {
 //     // virtual void err(MsgCode c, string& e, string... args);
 //     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
 // };
-using OnError = std::function<void(MsgCode code, std::string_view msg, vector<std::string_view> &args)>;
+using OnError = std::function<void(MsgCode::Code code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
     virtual void progess(const string& path, std::string status);

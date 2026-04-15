@@ -149,10 +149,11 @@ TEST(Load, EchoReq) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
 
-    register_asts(asts);
-    register_port(asts, "ast/port.ast.json");
-    register_msg(asts);
+    // register_asts(asts);
+    // register_port(asts, "ast/port.ast.json");
+    // register_msg(asts);
     // register_echoAst(asts);
+    register_jserv(asts, contxt);
     load_echoAst(asts, "ast/echo.ast.json");
 
     string t02_echo_json = "t03_echo.body.json";
