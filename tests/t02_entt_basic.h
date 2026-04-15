@@ -41,25 +41,7 @@ public:
 inline static void register_T_List(AstMap &asts) {
     hashed_string enttype;
     string anclass;
-    // //
-    // enttype = hashed_string{"io.odysz.anson.IJasonable"};
-    // entt::meta_factory<IJsonable>()
-    //     // .type(enttype)
-    //     .type(IJsonable::_anclass_.c_str())
-    //     .data<&anson::IJsonable::anclass>("anclass")
-    //     ;
 
-    // //
-    // enttype = hashed_string{Anson::_type_.c_str()};
-    // entt::meta_factory<anson::Anson>()
-    //     .type(Anson::_type_.c_str())
-    //     .base<IJsonable>()
-    //     .ctor<>()
-    //     .ctor<const std::string&>()
-    //     .data<&anson::Anson::type>("type")
-    //     ;
-
-    // using T_List_shared_ptr = shared_ptr<anson::T_List>;
     enttype = hashed_string{T_List::_type_.c_str()};
     entt::meta_factory<anson::T_List>()
         .type(T_List::_type_.c_str())
