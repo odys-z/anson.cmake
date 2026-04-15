@@ -432,9 +432,10 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
         anerror(string_view(std::format("Could not load AST from {}!", port_ast_pth)));
 }
 
-inline static void register_jserv(AstMap &asts, JsonOpt * ctx_opt) {
-    IJsonable::contxt_ptr = ctx_opt;
+inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
+    IJsonable::contxt_ptr = &ctx_opt;
 
+    register_asts(asts);
     register_msgs(asts);
     register_enums<MsgCode>(asts);
     register_port(asts, "ast/port.ast.json");

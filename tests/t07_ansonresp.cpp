@@ -16,7 +16,7 @@ static AstMap asts;
 static JsonOpt contxt{&asts};
 
 TEST(AnsonRespons, Deserialize) {
-    register_jserv(asts, &contxt);
+    register_jserv(asts, contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     using Rep = AnsonMsg<AnsonResp>;
@@ -48,30 +48,31 @@ TEST(AnsonRespons, Deserialize) {
     EXPECT_EQ(MsgCode::Code::ok, resp.code) << "[4] body[0].code = ok";
 }
 
-// TEST(AnsonRespons, Serialize) {
-//     IJsonable::contxt_ptr = &contxt;
-//     JsonOpt opts{&asts};
-//     register_asts(asts);
-//     register_msg(asts);
-//     register_port(asts, "ast/port.ast.json");
+TEST(AnsonRespons, Serialize) {
+    // IJsonable::contxt_ptr = &contxt;
+    // JsonOpt opts{&asts};
+    // register_asts(asts);
+    // register_msg(asts);
+    // register_port(asts, "ast/port.ast.json");
+    register_jserv(asts, contxt);
 
-//     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
+    anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-//     using Req = AnsonMsg<AnsonResp>;
-//     auto msg = std::make_shared<Req>(Port::query);
-//     AnsonResp bd;
-//     bd.Code(MsgCode::ok);
-//     bd.m = "TEST AnsonResps.Serialize";
-//     msg->body.push_back(unique_ptr<AnsonResp>(&bd));
+    using Req = AnsonMsg<AnsonResp>;
+    auto msg = std::make_shared<Req>(Port::query);
+    AnsonResp bd;
+    msg->code = MsgCode::Code::ok;
+    bd.m = "TEST AnsonResps.Serialize";
+    msg->body.push_back(unique_ptr<AnsonResp>(&bd));
 
-//     std::ostringstream oss;
+    std::ostringstream oss;
 
-//     msg->toBlock(oss, opts);
-//     std::string json_result = std::move(oss).str();
+    msg->toBlock(oss, contxt);
+    std::string json_result = std::move(oss).str();
 
-//     std::cout << "Serialized JSON: " << json_result << std::endl;
-//     ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
-//               R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp","m": "TEST AnsonResp.Serialize"}],)"
-//               R"("code": "ok"})"
-//               , json_result) << "serialzied josn string";
-// }
+    std::cout << "Serialized JSON: " << json_result << std::endl;
+    ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
+              R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp","m": "TEST AnsonResp.Serialize"}],)"
+              R"("code": "ok"})"
+              , json_result) << "serialzied josn string";
+}
