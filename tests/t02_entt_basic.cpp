@@ -3,6 +3,7 @@
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
 #include "io/odysz/anson.h"
+#include "io/odysz/json.h"
 #include "t02_entt_basic.h"
 
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
@@ -13,6 +14,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     anson::register_asts(asts);
+    anson::register_T_List(asts);
 
     auto type = entt::resolve<anson::T_List>();
     entt::meta_any instance = type.construct();
@@ -91,13 +93,12 @@ TEST(ENTT, T_LIST_PARSE) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
+    register_T_List(asts);
 
     T_List inst_list;
     T_List &anlist = inst_list;
 
     std::string json_input = std::format(R"({{"type": "{}", "txt": "text", "val": ["a", "b"]}})", T_List::_type_);
-    // or switch the order
-    // std::string json_input = std::format(R"({{"type": "{}", "val": ["a", "b"], "txt": "text"}})", T_List::_type_);
 
     EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
 
@@ -131,6 +132,7 @@ TEST(ENTT, T_LIST_2D) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
+    register_T_List(asts);
     register_2Dasts(asts);
 
     T_List2D inst_list;
@@ -166,6 +168,7 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
+    register_T_List(asts);
     register_2DPtr_asts_callback(asts);
 
     T_List2DPtr inst_list;

@@ -38,32 +38,30 @@ public:
     T_List2DPtr() : Anson(_type_) {}
 };
 
-inline static void register_asts(AstMap &asts) {
+inline static void register_T_List(AstMap &asts) {
     hashed_string enttype;
     string anclass;
-    //
-    enttype = hashed_string{"io.odysz.anson.IJasonable"};
-    entt::meta_factory<IJsonable>()
-        // .type(enttype)
-        .type(IJsonable::_anclass_.c_str())
-        .data<&anson::IJsonable::anclass>("anclass")
-        ;
+    // //
+    // enttype = hashed_string{"io.odysz.anson.IJasonable"};
+    // entt::meta_factory<IJsonable>()
+    //     // .type(enttype)
+    //     .type(IJsonable::_anclass_.c_str())
+    //     .data<&anson::IJsonable::anclass>("anclass")
+    //     ;
 
-    //
-    enttype = hashed_string{Anson::_type_.c_str()};
-    entt::meta_factory<anson::Anson>()
-        // .type(enttype)
-        .type(Anson::_type_.c_str())
-        .base<IJsonable>()
-        .ctor<>()
-        .ctor<const std::string&>()
-        .data<&anson::Anson::type>("type")
-        ;
+    // //
+    // enttype = hashed_string{Anson::_type_.c_str()};
+    // entt::meta_factory<anson::Anson>()
+    //     .type(Anson::_type_.c_str())
+    //     .base<IJsonable>()
+    //     .ctor<>()
+    //     .ctor<const std::string&>()
+    //     .data<&anson::Anson::type>("type")
+    //     ;
 
     // using T_List_shared_ptr = shared_ptr<anson::T_List>;
     enttype = hashed_string{T_List::_type_.c_str()};
     entt::meta_factory<anson::T_List>()
-        // .type(enttype)
         .type(T_List::_type_.c_str())
         .base<Anson>()
         .ctor<>()
@@ -71,15 +69,6 @@ inline static void register_asts(AstMap &asts) {
             anlog(std::format("T_List.func<create_ptr>(const inst)"));
             return std::make_shared<anson::T_List>(inst);
         }>("create_ptr")
-
-        // works with EnttSAXParse.end_object() is_list:
-        // success = obj_type.func("create_ptr"_hs).invoke({});
-        //
-        // .func<+[]() -> std::shared_ptr<anson::T_List> {
-        //     anlog(string_view("T_List.func<create_ptr>()"));
-        //     return std::make_shared<anson::T_List>();
-        // }>("create_ptr")
-
         .data<&anson::T_List::val>("val")
         .data<&anson::T_List::txt>("txt")
         ;
@@ -103,7 +92,6 @@ inline static void register_asts(AstMap &asts) {
         auto& concrete = static_cast<const T_List&>(ans);
 
         if ("txt" == fieldname)
-            // return {concrete.txt}; -> auto *s = return-meta.try_cast<stirng>(); os << *s;
             return entt::forward_as_meta(concrete.txt);
         if ("val" == fieldname)
             return entt::forward_as_meta(concrete.val);

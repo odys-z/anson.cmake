@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "io/odysz/json.h"
 #include "t02_entt_basic.h"
 
 TEST(ENTT, Serialize_T_List) {
@@ -9,6 +10,7 @@ TEST(ENTT, Serialize_T_List) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
+    register_T_List(asts);
     register_2DPtr_asts_callback(asts);
 
     T_List inst_list;
@@ -28,6 +30,7 @@ TEST(ENTT, Serialize_2DPtr) {
     JsonOpt contxt{&asts};
     IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
+    register_T_List(asts);
     register_2DPtr_asts_callback(asts);
 
     T_List2DPtr inst_list;

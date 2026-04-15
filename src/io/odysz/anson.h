@@ -791,14 +791,13 @@ private:
                     return;
                 }
 
-                        std::string string_val;
-                        if constexpr (std::is_same_v<std::decay_t<V>, std::string>) {
-                            string_val = std::forward<V>(val);
-                        } else if constexpr (std::is_same_v<std::decay_t<V>, bool>) {
-                            string_val = val ? "true" : "false";
-                        } else {
-                            string_val = std::to_string(val);
-                        }
+                std::string string_val;
+                if constexpr (std::is_same_v<std::decay_t<V>, std::string>)
+                    string_val = std::forward<V>(val);
+                else if constexpr (std::is_same_v<std::decay_t<V>, bool>)
+                    string_val = val ? "true" : "false";
+                else
+                    string_val = std::to_string(val);
 
                 AnsonAst* ast = contxt->ast<AnsonAst>(top.val_astid);
                 AnsonAst *fd_ast = find_field_ast(ast, fieldname);
