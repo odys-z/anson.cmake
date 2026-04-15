@@ -2,32 +2,12 @@
 
 #include <entt/meta/factory.hpp>
 #include <entt/meta/meta.hpp>
-#include "anson.h"
+
 #include "common.h"
+#include "anson.h"
+#include "module/rs.h"
 
 namespace anson {
-
-class AnResultset : public Anson {
-public:
-    inline static const string _type_ = "io.odysz.module.rs.AnResultset";
-
-    struct Column {
-        inline static const string _type_ = AnResultset::_type_ + ".Column";
-        int colx;
-        string col_id;
-    };
-
-    vector<vector<vector<string>>> rows;
-    map<string, Column> colnames;
-
-    /** start at 0 */
-    int rowIdx;
-    int rowCnt;
-    int colcnt;
-    long total;
-
-    AnResultset() : Anson(_type_), rowIdx(-1), rowCnt(0), colcnt(0), total(0){}
-};
 
 /**
  * @brief The AnsonBody class

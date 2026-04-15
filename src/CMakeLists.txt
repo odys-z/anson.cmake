@@ -29,6 +29,7 @@ target_sources(anson INTERFACE
         # io/odysz/json.hpp
         io/odysz/utils.h
         io/odysz/common.h
+        io/odysz/module/rs.h
 )
 
 target_include_directories(anson INTERFACE

@@ -155,6 +155,14 @@ public:
         return false;
     }
 
+    inline static string upper_case(const string s) {
+        std::string result = s; // Make a copy
+        for (auto &c : result) {
+            c = std::toupper(static_cast<unsigned char>(c));
+        }
+        return result;
+    }
+
     /**
      * @brief ifnull
      * @return string_view for hard copying
