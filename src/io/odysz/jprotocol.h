@@ -220,9 +220,15 @@ template <typename T //anson::AnsonBody
          >
 class AnsonMsg: public Anson {
 public:
-    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
-
+    /**
+     * Bodies are proected as the error of a unique-ptr will result in
+     * memory error for deletion.
+     *
+     * Public only as needed for entt registration.
+     */
     vector<shared_ptr<T>> body;
+
+    inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
     Port port;
 
@@ -267,6 +273,10 @@ public:
             throw std::runtime_error("Body list is empty");
         }
         return *body.at(0);
+    }
+
+    size_t body_size() {
+        return body.size();
     }
 };
 

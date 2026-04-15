@@ -33,7 +33,7 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
 
     string astid = AN().anclass;
 
-    anlog(string_view{std::format("create AST: {}", astid)});
+    andebug(string_view{std::format("create AST: {}", astid)});
     asts[astid] = unique_ptr<AST>(ast);
     return ast;
 }

@@ -99,7 +99,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     // register_asts(enums);
     // register_msg(enums);
     // register_port(enums, "ast/port.ast.json");
-    register_jserv(enums, &contxt);
+    register_jserv(enums, contxt);
     load_echoAst(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
@@ -153,7 +153,7 @@ TEST(Anson, Servialize_Msg) {
     // register_asts(enums);
     // register_msg(enums);
     // register_port(enums, "ast/port.ast.json");
-    register_jserv(enums, &opts);
+    register_jserv(enums, opts);
     load_echoAst(enums, "ast/echo.ast.json");
 
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
