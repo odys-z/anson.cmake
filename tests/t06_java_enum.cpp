@@ -21,10 +21,6 @@ map<string, meta_type> enttypes;
 
 TEST(JAVAENUM, PORT) {
     JsonOpt contxt{&enums};
-    // IJsonable::contxt_ptr = &contxt;
-    // register_asts(enums);
-    // register_port(enums, "ast/port.ast.json");
-    // register_msg(enums);
     register_jserv(enums, contxt);
     load_usereqAst(enums, "ast/usereq.ast.json");
 
@@ -39,7 +35,6 @@ TEST(JAVAENUM, PORT) {
     ASSERT_EQ("na", port.enm);
 
     port = Port{Port::update};
-    // ASSERT_EQ(Port::update, serialize_jsonable(port, enums));
 
     std::string json_input = format(R"({{"type": "{}", "port": "{}"}})",
                                     AnsonMsg<EchoReq>::_type_,
@@ -48,7 +43,6 @@ TEST(JAVAENUM, PORT) {
     ptr = p_type.construct();
     AnsonMsg<UserReq> usreq = ptr.cast<anson::AnsonMsg<UserReq>&>();
 
-    // EnTTSaxParser<AnsonMsg<UserReq>>  handler(usreq, contxt);
     EnTTSaxParser handler(usreq, &contxt);
     bool result = nlohmann::json::sax_parse(json_input, &handler);
     ASSERT_TRUE(result);
@@ -56,6 +50,4 @@ TEST(JAVAENUM, PORT) {
     ASSERT_EQ("echo", usreq.port)  << "usreq.echo [1]";
     ASSERT_EQ(Port{Port::echo}, usreq.port)  << "usreq.echo [2]";
 }
-
-
 }

@@ -341,31 +341,6 @@ inline static void register_msgs(AstMap &asts) {
         ;
 }
 
-/*
-template<typename C>
-inline static void register_enums(AstMap& asts, const string &anclass) {
-    AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(anclass, true);
-    hashed_string enttype{anclass.c_str()};
-
-    // ast->dataBaseAst = "";
-    ast->enttypeid = enttype;
-    ast->dataAnclass = anclass;
-
-    anlog(string_view{std::format("create AST: {}", anclass)});
-
-    //
-    ast->get_field_instance = [ast](const IJsonable &j, const string &fieldname) -> meta_any {
-        for (int ix = 0; ix < C::_sentinel_; ix++)
-            if (static_cast<C>(ix) == fieldname)
-                return {static_cast<C>(ix)};
-
-        anerror(std::format("Cannot find {} in {}.", fieldname, ast->dataAnclass));
-        return static_cast<C>(C::_sentinel_);
-    };
-    asts[anclass] = unique_ptr<AnsonAst>(ast);
-}
-*/
-
 template<typename C>
 inline static void register_enums(AstMap& asts) {
     string anclass = C::_type_;
@@ -374,7 +349,6 @@ inline static void register_enums(AstMap& asts) {
     AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(anclass, true);
 
     hashed_string enttype{anclass.c_str()};
-    // ast->dataBaseAst = "";
     ast->enttypeid = enttype;
     ast->dataAnclass = anclass;
     anlog(string_view{std::format("create AST: {}", anclass)});
@@ -414,7 +388,7 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {
-        string anclass = portAst->dataAnclass; // Port::_type_
+        string anclass = portAst->dataAnclass;
         hashed_string enttype = hashed_string{anclass.c_str()};
 
         entt::meta_factory<anson::Port>()
@@ -489,3 +463,4 @@ inline static void load_msg_specialAst(AstMap &asts, string ast_pth,
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 }
+

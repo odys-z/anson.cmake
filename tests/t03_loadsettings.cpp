@@ -147,12 +147,6 @@ TEST(Load, AnsonAst_Port) {
 TEST(Load, EchoReq) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
-
-    // register_asts(asts);
-    // register_port(asts, "ast/port.ast.json");
-    // register_msg(asts);
-    // register_echoAst(asts);
     register_jserv(asts, contxt);
     load_echoAst(asts, "ast/echo.ast.json");
 
@@ -190,7 +184,6 @@ TEST(Load, EchoAst) {
     bool result = nlohmann::json::sax_parse(ifmsgstream, &handler);
     ASSERT_TRUE(result);
 
-    // string ast_echo = echomsgAst.json  "ast/echo.ast.json";
     ASSERT_EQ("ast/echo.ast.json", echomsgAst.bodyAst) << "echo-msg.json";
     ASSERT_EQ(AnsonMsgAst::_type_, echomsgAst.type) << "echo-msg.type";
     ASSERT_EQ(AnsonMsgAst().anclass, echomsgAst.anclass) << "echo-msg.anclass";
@@ -208,7 +201,6 @@ TEST(Load, EchoAst) {
     ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
     ASSERT_EQ(AnsonBodyAst().anclass, echoAst.anclass) << "echoAst.anclass";
     ASSERT_EQ(Anson::_type_, echoAst.base) << "echoAst.base";
-    // ASSERT_EQ(EchoReq().anclass, echoAst.dataAnclass) << "echoAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
                 {"echo", "echo"}, {"inet", "inet"}

@@ -466,42 +466,6 @@ inline static int default_port(const string &scheme) {
 }
 
 /**
- *  This is a short cut to the java Regex.asJserv(...).
-inline static string asJserv(const string& url) {
-    string s = url.starts_with("//") ? "http://" + url.substr(2) : url;
-    cout << s << endl;
-    return url.starts_with("//") ? "http://" + url.substr(2) : url;
-}
-
-inline static bool getHttpParts(string const& input, HttpParts& parts) {
-    namespace urls = boost::urls;
-
-    auto result = urls::parse_uri(input);   // or parse_uri_reference if relative URIs allowed
-
-    if (!result) {
-        std::cerr << "Invalid URI: " << result.error().message() << ' ' << input << "\n";
-        return false;
-    }
-
-    urls::url_view u = *result;
-
-    // Basic components
-    parts.scheme = u.scheme();
-    parts.https = u.scheme() == "https";
-    parts.host   = u.host();
-    parts.port   = u.port_number();
-
-    if (parts.port == 0)
-        parts.port = default_port(u.scheme());
-
-    for (auto seg : u.segments())
-        parts.paths.push_back(std::string(seg));
-
-    return true;
-}
- */
-
-/**
  * Validates if the port is within an allowed list/range.
  */
 inline static bool validUrlPort(int port, const std::vector<int>& range) {
@@ -548,5 +512,4 @@ private:
     uint64_t options_;
     std::unordered_set<std::string> allowed_schemes_;
 };
-
 }

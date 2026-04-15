@@ -41,7 +41,6 @@ public:
 
     template<typename AST>
     AST* ast(const string &astid) const {
-        // string astid{AST::_type_ + '<' + dataclass};
         auto it = asts->find(astid);
         if (it != asts->end()) {
             return dynamic_cast<AST*>(it->second.get());
@@ -161,7 +160,6 @@ public:
     string type;
 
     Anson() : IJsonable(_type_), type(_type_) {
-        // andebug("defalut contructor");
     }
 
     Anson(string t) : IJsonable(t), type(t) {
@@ -174,7 +172,6 @@ public:
      * @param astid can be different if is a template specialized.
      */
     Anson(string t, string anclass) : IJsonable(anclass), type(t) {
-        // andebug("override constructor, anclass = " + anclass);
     }
 
     template <typename T>
@@ -412,39 +409,6 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
 
     return {}; // Null handle
 }
-
-/**
- * @brief serialize_enum
- * @param instance any type as enum in cpp has no base class
- * @param type
- * @param ast
- * @param os
- * @return os
- */
-// inline static ostream& serialize_enum(const meta_any &instance, const meta_type &type,
-//               const AnsonJavaEnumAst &ast, std::ostream &os) {
-//     if (ast.isEnum) {
-//         // if (auto value = instance.try_cast<int>(); value) {
-//         //     os << *value;
-//         // } else if (auto u_value = instance.try_cast<unsigned int>(); u_value) {
-//         //     os << *u_value;
-//         // } else {
-//         //     // Fallback: try to convert via the meta system to a type we can print
-//         //     // This works if the enum is registered as a meta type
-//         //     os << instance.cast<int>();
-//         // }
-
-//         // if (auto value = instance.try_cast<int>(); value) {
-//             string res = ast.name_of(instance);
-//             return os << '"' << res << '"';
-//         // }
-//         // else {
-//         //     anerror(std::format("serialize_enum(): cannot convert value of {}", ast.anclass));
-//         //     os << "null";
-//         // }
-//     }
-//     return os;
-// }
 
 inline static ostream& serialize_primtype(ostream &os, const IJsonable &jsonable,
                        const AnsonField &f, const JsonOpt &opts) {
@@ -833,7 +797,6 @@ private:
                         } else if constexpr (std::is_same_v<std::decay_t<V>, bool>) {
                             string_val = val ? "true" : "false";
                         } else {
-                            // This handles ints, floats, etc., safely
                             string_val = std::to_string(val);
                         }
 

@@ -9,67 +9,14 @@
 
 using namespace std;
 namespace anson {
-
-// using AstMap = map<string, unique_ptr<AnsonAst>>;
-
-// template <typename E, size_t N>
-// struct EnEnregistrement {
-//     using EnumTaper = E;
-//     static const string _type_;
-//     static constexpr size_t compter = N;
-//     static const std::array<std::string_view, N> noms;
-// };
-
-// 1. Define the actual enum
-// enum class MsgCodeEnum { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
 enum class SampleCodeEnum { ok, restore, exchange, init, exError, _sentinel_ };
-
-// 2. Wrap it in our template structure
-// using MsgCode = EnEnregistrement<MsgCodeEnum, static_cast<size_t>(MsgCodeEnum::_sentinel_) + 1>;
-// template<> const string MsgCode::_type_ = "MsgCode.type";
 
 using SampleCode = EnEnregistrement<SampleCodeEnum, static_cast<size_t>(SampleCodeEnum::_sentinel_) + 1>;
 template<> const string SampleCode::_type_ = "SampleCode.type";
 
-// 3. Initialize the names (Global or static)
-// template<>
-// constexpr std::array<std::string_view, 9> MsgCode::noms = {
-//     "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinal_"
-// };
-
 template<>
 constexpr std::array<std::string_view, 6> SampleCode::noms = {
     "ok", "restore", "exchange", "init", "exError", "_sentinel_ "};
-
-/*
-template<typename C>
-inline static void register_enums(AstMap& asts) {
-    using EType = typename C::EnumTaper;
-
-    AnsonJavaEnumAst *ast = new AnsonJavaEnumAst(C::_type_, true);
-    // ... same initialization code ...
-
-    ast->get_field_instance = [ast](const IJsonable &j, const string &fieldname) -> meta_any {
-        for (size_t ix = 0; ix < C::compter; ix++) {
-            if (C::noms[ix] == fieldname) {
-                return { static_cast<EType>(ix) };
-            }
-        }
-        return { static_cast<EType>(C::compter) }; // sentinel
-    };
-
-    ast->name_of = [ast](const meta_any val_inst) -> string {
-        if (auto* val = val_inst.try_cast<EType>()) {
-            size_t idx = static_cast<size_t>(*val);
-            if (idx < C::compter) {
-                return string(C::noms[idx]);
-            }
-        }
-        return "null";
-    };
-
-    asts[C::_type_] = unique_ptr<AnsonJavaEnumAst>(ast);
-} */
 }
 
 

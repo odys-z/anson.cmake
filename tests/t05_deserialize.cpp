@@ -95,10 +95,6 @@ TEST(Anson, PORT) {
 }
 
 TEST(Anson, AnsonMsg_EchoReq) {
-    // IJsonable::contxt_ptr = &contxt;
-    // register_asts(enums);
-    // register_msg(enums);
-    // register_port(enums, "ast/port.ast.json");
     register_jserv(enums, contxt);
     load_echoAst(enums, "ast/echo.ast.json");
 
@@ -146,16 +142,9 @@ TEST(Anson, AnsonMsg_EchoReq) {
 }
 
 TEST(Anson, Servialize_Msg) {
-
-    // serialize_recursive(msg, enums, oss);
     JsonOpt opts{&enums};
-    // IJsonable::contxt_ptr = &contxt;
-    // register_asts(enums);
-    // register_msg(enums);
-    // register_port(enums, "ast/port.ast.json");
     register_jserv(enums, opts);
     load_echoAst(enums, "ast/echo.ast.json");
-
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<EchoReq>;
@@ -166,7 +155,6 @@ TEST(Anson, Servialize_Msg) {
 
     msg->toBlock(oss, opts);
 
-    // transfer ownership of internal memory directly to the returned std::string.
     std::string json_result = std::move(oss).str();
 
     std::cout << "Serialized JSON: " << json_result << std::endl;

@@ -20,7 +20,6 @@ inline static void load_usereqAst(AstMap &asts, const string &ast_path) {
         }
 
         if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            // AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
             AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
             return bast->get_field_instance(ans, fieldname);
         }
@@ -32,7 +31,7 @@ inline static void load_usereqAst(AstMap &asts, const string &ast_path) {
 }
 
 inline static void load_echoAst(AstMap &asts, const string &ast_path) {
-    load_msg_specialAst<EchoReq>(asts, ast_path, // "ast/echo.ast.json",
+    load_msg_specialAst<EchoReq>(asts, ast_path,
       [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
 
         entf.data<&EchoReq::echo>("echo");
@@ -45,7 +44,6 @@ inline static void load_echoAst(AstMap &asts, const string &ast_path) {
             }
 
             if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                // AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
                 AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
                 return bast->get_field_instance(ans, fieldname);
             }

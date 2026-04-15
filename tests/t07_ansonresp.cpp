@@ -49,13 +49,7 @@ TEST(AnsonRespons, Deserialize) {
 }
 
 TEST(AnsonResponse, Serialize) {
-    // IJsonable::contxt_ptr = &contxt;
-    // JsonOpt opts{&asts};
-    // register_asts(asts);
-    // register_msg(asts);
-    // register_port(asts, "ast/port.ast.json");
     register_jserv(asts, contxt);
-
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<AnsonResp>;

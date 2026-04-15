@@ -93,67 +93,6 @@ public:
     }
 };
 
-// inline static const string MsgCode_anclass_ = "io.odysz.semantic.jprotocol.MsgCode";
-// enum class MsgCode { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
-
-// constexpr bool operator==(MsgCode code, std::string_view s) {
-//     switch (code) {
-//     case MsgCode::ok:        return s == "ok";
-//     case MsgCode::exSession: return s == "exSession";
-//     case MsgCode::exSemantic:return s == "exSemantic";
-//     case MsgCode::exIo:      return s == "exIo";
-//     case MsgCode::exTransct: return s == "exTransact";
-//     case MsgCode::exDA:      return s == "exDA";
-//     case MsgCode::exGeneral: return s == "exGeneral";
-//     case MsgCode::ext:       return s == "ext";
-//     default:                 return false;
-//     }
-// };
-
-/**
- * Design Notes:
- *
- * As this module is used for converting string to enumeration back
- * and forth, the bare c++ enum is not enough.
- *
- * Usage:
- *
- * MsgCode::Enm code = MsgCode::ok;  // Clean syntax
- *
- * auto s = MsgCode::toString(code);   // Accesses the "member" logic
-namespace MsgCode {
-    static inline const string _type_ = "io.odysz.semantic.jprotocol.MsgCode";
-
-    / **
-     * Usage:
-     *
-     * MsgCode::Enm code = MsgCode::ok;
-     *
-     * auto s = MsgCode::toString(code);
-     * /
-    enum C { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
-
-    static constexpr std::array names
-        {"ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext"};
-
-    inline constexpr std::string_view toString(C v) {
-        auto idx = static_cast<size_t>(v);
-        return (idx < names.size()) ? names[idx] : "null";
-    }
-
-    constexpr bool operator==(C code, std::string_view s) {
-        auto idx = static_cast<size_t>(code);
-        if (idx < names.size())
-            return names[idx] == s;
-        return false;
-    }
-
-    constexpr bool operator==(std::string_view s, C code) {
-        return code == s;
-    }
-}
- */
-
 // MsgCode
 template <typename E, size_t N>
 struct EnEnregistrement {
@@ -177,11 +116,6 @@ struct EnEnregistrement {
     }
 };
 
-// template <typename E, size_t N>
-// bool operator==(E v, const EnEnregistrement<E, N>& e) {
-//     return e.valeur == v;
-// }
-
 enum class MsgCodeEnum { ok, exSession, exSemantic, exIo, exTransct, exDA, exGeneral, ext, _sentinel_ };
 using MsgCode = EnEnregistrement<MsgCodeEnum, static_cast<size_t>(MsgCodeEnum::_sentinel_) + 1>;
 template<> const string MsgCode::_type_ = "io.odysz.semantic.jprotocol.MsgCode";
@@ -202,11 +136,6 @@ public:
     AnsonResp() : AnsonBody("NA", _type_) {}
 
     AnsonResp(string a) : AnsonBody(a, _type_) {}
-
-    // AnsonResp& Code(MsgCode c) {
-    //     code = c;
-    //     return *this;
-    // }
 
     AnsonResp* msg(string_view m) {
         this->m = std::move(m);
