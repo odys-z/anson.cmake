@@ -733,9 +733,11 @@ private:
     id_type active_key{0};
 
     AnsonAst* find_field_ast(const AnsonAst *inst_ast, const std::string &fieldname) {
+        AnsonAst *base_ast;
         if (inst_ast->fields.contains(fieldname))
             return contxt->ast<AnsonAst>(inst_ast->fields.at(fieldname).dataAnclass);
-        else if (AnsonAst *base_ast = contxt->ast<AnsonAst>(inst_ast->dataBaseAst); base_ast)
+        else if (!LangExt::isblank(inst_ast->dataBaseAst) &&
+                (base_ast = contxt->ast<AnsonAst>(inst_ast->dataBaseAst)))
             return find_field_ast(base_ast, fieldname);
 
         return nullptr;
