@@ -82,7 +82,9 @@ struct EnEnregistrement {
     static constexpr size_t compter = N;
     static const std::array<std::string_view, N> noms;
 
-    EnEnregistrement(E v) : valeur(v) {}
+    EnEnregistrement(E v) : valeur(v) {
+        andebug("EnEnregistrement Constructeur: "s + _type_);
+    }
 
     constexpr bool operator==(std::string_view s) const {
         for (int i = 0; i < compter; i++) {
@@ -141,7 +143,7 @@ public:
 
     Port port;
 
-    MsgCode::Code code;
+    // MsgCode::Code code;
 
     AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
 

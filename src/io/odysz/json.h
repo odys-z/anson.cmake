@@ -173,7 +173,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         .template ctor<anson::Port>()
         .template base<anson::Anson>()
         .template data<&anson::AnsonMsg<T>::port>("port")
-        .template data<&anson::AnsonMsg<T>::code>("code")
+        // .template data<&anson::AnsonMsg<T>::code>("code")
         .template data<&anson::AnsonMsg<T>::body>("body");
 
     AnsonMsgAst *ast = new AnsonMsgAst(anclass);
@@ -183,7 +183,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
 
     ast->fields = map<string, AnsonField>{
         {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
-        {"code", {.fieldname = "code", .dataAnclass=MsgCode::_type_}},
+        // {"code", {.fieldname = "code", .dataAnclass=MsgCode::_type_}},
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
@@ -192,7 +192,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         if ("port" == fieldname)
             return entt::forward_as_meta(concrete.port);
         else if ("code" == fieldname)
-            return entt::forward_as_meta(concrete.code);
+            ; //return entt::forward_as_meta(concrete.code);
         else if ("body" == fieldname)
             return entt::forward_as_meta(concrete.body);
 

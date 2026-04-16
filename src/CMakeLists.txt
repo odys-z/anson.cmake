@@ -14,6 +14,7 @@ add_library(anson INTERFACE
     io/odysz/utils.h
     io/odysz/semantier.h
     io/odysz/anserializer.h
+    io/odysz/module/rs.h
 )
 
 add_library(anson::anson ALIAS anson)
