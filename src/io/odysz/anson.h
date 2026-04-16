@@ -142,7 +142,7 @@ template<typename T>
 class EnTTSaxParser;
 class Anson;
 
-inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts);
+// inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts);
 
 template<typename T>
 inline static bool parse(const string& json, T &an, const JsonOpt *opts);
@@ -185,10 +185,11 @@ public:
         return std::move(ss).str();
     }
 
-    IJsonable* toBlock(ostream& os, const JsonOpt& opts) override {
-        serialize_envelope(os, *this, opts);
-        return this;
-    }
+    IJsonable* toBlock(ostream& os, const JsonOpt& opts) override;
+    // {
+    //     serialize_envelope(os, *this, opts);
+    //     return this;
+    // }
 
     IJsonable* toJson(string& buf) override {
         anerror("Don't call this in cpp");
@@ -394,6 +395,7 @@ inline string JavaEnum::valof() const {
     return enm;
 }
 
+/*
 inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type key) {
     // Check current type
     if (auto data = type.data(key); data) {
@@ -453,7 +455,8 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
             if ("true" == val_ast_id[1]) {
                 if (auto view = list_any.as_sequence_container(); view) {
                     for (auto e : view) {
-                        if (first) first = false; else os << ',';                        entt::meta_any element_obj = *e;
+                        if (first) first = false; else os << ',';
+                        entt::meta_any element_obj = *e;
                         if (element_obj) {
                             if (auto* anson_inst = element_obj.try_cast<anson::Anson>()) {
                                 anson_inst->toBlock(os, opts);
@@ -483,7 +486,6 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any, con
 }
 
 inline static ostream& serialize_map(ostream& os, const meta_any &val, const string &dataclass) {
-    // const AnsonAst &fd_map_ast,
     if ("map<string, string" != dataclass) {
         anerror("TODO: map of " + dataclass);
         return os;
@@ -500,8 +502,6 @@ inline static ostream& serialize_map(ostream& os, const meta_any &val, const str
             std::string k = key.cast<std::string>();
             os << '\"' << k << "\": ";
 
-            // std::string v = value.cast<std::string>();
-            // if (auto* str_ptr = value.try_cast<std::string>()) {
             if (value.type() == entt::resolve<std::string>()) {
                 os << '\"' << value.cast<const std::string&>() << '\"';
             }
@@ -622,7 +622,7 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
  * * if (meta_list2.type() == entt::resolve(ast->enttypeid)) {
  * *     andebug("vector<shared_ptr< ...        ...");
  * * }
- */
+ * /
 inline static ostream& serialize_fields(ostream &os,
         const map<string, AnsonField> &fields, anson::Anson& anson, bool first, const JsonOpt &opts) {
 
@@ -683,7 +683,6 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, bool first, cons
         }
     }
 
-    // auto fields = opts.asts->at(anson.anclass)->fields;
     auto fields = ast->fields;
     return serialize_fields(os, fields, anson, first, opts);
 }
@@ -693,13 +692,14 @@ inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonO
     serialize_kvs(os, anson, false, opts);
     return  os << '}';
 }
+*/
 
-template <typename V_T>
-inline static string serialize_map_str(const map<string, V_T> &m, const string & map_type) {
-    stringstream ss;
-    serialize_map(ss, forward_as_meta(m), map_type);
-    return ss.str();
-}
+// template <typename V_T>
+// inline static string serialize_map_str(const map<string, V_T> &m, const string & map_type) {
+//     stringstream ss;
+//     serialize_map(ss, forward_as_meta(m), map_type);
+//     return ss.str();
+// }
 
 class SemanticObject : public Anson {
 public:
@@ -710,6 +710,7 @@ public:
     SemanticObject() : Anson(_type_) { }
 };
 
+/*
 struct ParseNode {
     meta_any instance;
 
@@ -845,7 +846,7 @@ public:
      * @param obj
      * @param ast_id
      * @param opts
-     */
+     * /
     EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts = nullptr) : contxt(opts) {
         push(obj, ast_id);
         contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
@@ -1202,5 +1203,6 @@ inline static vector<string> to_aststring(const AstMap &asts) {
     }
     return sv;
 }
+*/
 }
 

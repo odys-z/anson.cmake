@@ -11,6 +11,7 @@
 #include <fstream>
 #include "anson.h"
 #include "jprotocol.h"
+#include "anserializer.h"
 
 namespace anson {
 inline static int cnt = 0;
