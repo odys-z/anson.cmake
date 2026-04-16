@@ -475,14 +475,15 @@ public:
                 if (contxt->asts->contains(top.val_astid)) {
                     AnsonAst *ast = contxt->ast<AnsonAst>(top.val_astid);
                     std::string fd_astid;
+
                     // Notes 26 Mar 2026:
                     // Fields is the definition of an AST, and must be merged back to a being loading AST.
                     // The loading of AST according to AST stop the recursive traversal here.
-                    // bool resolving_map2Fields = false;
+                    // As fields itself has no chances to register the type of a map.
                     if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
                         fd_astid = "map<string,"s + AnsonField_type;
-                        // resolving_map2Fields = true;
                     }
+
                     else if (!ast->fields.contains(fieldname))
                         anerror(std::format(
                             "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
