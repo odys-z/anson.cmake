@@ -189,7 +189,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
     }
     return os;
     */
-    os << '[';
+    os << '{';
     bool first = true;
 
     if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
@@ -233,7 +233,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
     else
         anerror("Todo: list of "s + val_type[0] + ", ptr " + val_type[1]);
 
-    return os << ']';
+    return os << '}';
 }
 
 /**
@@ -333,19 +333,19 @@ inline static ostream& serialize_fields(ostream &os,
 inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    bool first = false;
+    bool has_basefields = false;
     if (opts.has_ast(ast->dataBaseAst)) {
         AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
             auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
             serialize_fields(os, base_fields, anson, opts);
 
-            first &= base_fields.size() == 0;
+            has_basefields = base_fields.size() > 0;
         }
     }
 
     auto fields = ast->fields;
-    if (first && fields.size() > 0) os << ",";
+    if (has_basefields && fields.size() > 0) os << ",";
 
     return serialize_fields(os, fields, anson, opts);
 }

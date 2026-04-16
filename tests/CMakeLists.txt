@@ -20,12 +20,12 @@ add_executable(unit_tests
   # t02_entt_basic_serialize.cpp
   # t03_loadsettings.cpp
   # t04_entt_registry.cpp
-  t05_deserialize.cpp
+  # t05_deserialize.cpp
   # t06_java_enum.cpp
   # t06_java_enum.h
   # t07_ansonresp.cpp
-  # t08_resultset.cpp
-  # t08_resultset.h
+  t08_resultset.cpp
+  t08_resultset.h
 )
 if(MSVC)
     target_compile_options(unit_tests PRIVATE /bigobj)

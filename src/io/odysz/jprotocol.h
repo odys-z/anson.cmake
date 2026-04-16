@@ -110,7 +110,6 @@ class AnsonResp : public AnsonBody{
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
-    // MsgCode code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;
@@ -143,7 +142,7 @@ public:
 
     Port port;
 
-    // MsgCode::Code code;
+    MsgCode::Code code;
 
     AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
 
