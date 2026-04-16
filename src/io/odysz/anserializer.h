@@ -326,7 +326,7 @@ struct ParseNode {
     bool is_map = false;
 
     // TODO ISSUE FIXME why this?
-    bool resolve_map2fields = false;
+    // bool resolve_map2fields = false;
 
     id_type activekey = 0;
     string map_key;
@@ -478,12 +478,11 @@ public:
                     // Notes 26 Mar 2026:
                     // Fields is the definition of an AST, and must be merged back to a being loading AST.
                     // The loading of AST according to AST stop the recursive traversal here.
-                    bool resolving_map2Fields = false;
+                    // bool resolving_map2Fields = false;
                     if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
                         fd_astid = "map<string,"s + AnsonField_type;
-                        resolving_map2Fields = true;
+                        // resolving_map2Fields = true;
                     }
-
                     else if (!ast->fields.contains(fieldname))
                         anerror(std::format(
                             "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
@@ -497,7 +496,7 @@ public:
                                      .val_astid=fd_astid});
                     else { // e.g. map<string, string
                         meta_any inst = datafield.get(stack.back().instance);
-                        push_map(inst, active_key, fd_astid, resolving_map2Fields);
+                        push_map(inst, active_key, fd_astid);
                     }
                 }
             } else if (top.is_map) {
@@ -516,7 +515,7 @@ public:
                         if (contxt->asts->contains(fd_astid))
                             stack.push_back({.instance = inst, .val_astid=fd_astid, .activekey=active_key});
                         else
-                            push_map(inst, active_key, fd_astid, false);
+                            push_map(inst, active_key, fd_astid);
                     }
                     else {
                         anerror("start_obj(): Primative types can not be here?");
@@ -538,7 +537,7 @@ public:
                         if (contxt->asts->contains(fd_astid))
                             stack.push_back({.instance = inst, .val_astid=fd_astid, .activekey=active_key});
                         else
-                            push_map(inst, active_key, fd_astid, false);
+                            push_map(inst, active_key, fd_astid);
                     }
                     else {
                         anerror("start_obj(): Primative types can not be here?");
@@ -584,10 +583,10 @@ public:
             if (!stack.empty() && key0 != 0) {
                 auto data = find_field_recursive(stack.back().instance.type(), key0);
                 if (data) {
-                    if (!stack.back().resolve_map2fields)
+                    // if (!stack.back().resolve_map2fields)
                         data.set(stack.back().instance, top.instance);
-                    else
-                        anerror("end_obj(): Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map).");
+                    // else
+                        // anerror("end_obj(): Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map).");
                 }
                 else if (stack.back().is_map) {
                     meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
@@ -777,7 +776,7 @@ public:
                          .activekey=active_key});
     }
 
-    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, bool resolve_map2fields) {
+    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type) {
 
         vector<std::string> val_anclass = Regex::parseMapValtype(map_type);
         andebug(std::format("Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
@@ -786,7 +785,7 @@ public:
                          .val_astid=val_anclass[0],
                          .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
-                         .resolve_map2fields=resolve_map2fields,
+                         // .resolve_map2fields=resolve_map2fields,
                          .activekey=active_key});
     }
 };
