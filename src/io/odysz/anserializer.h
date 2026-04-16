@@ -115,7 +115,6 @@ inline static ostream& serialize_map(ostream& os, const meta_any &val, const str
             if (first) first = false;
             else os << ", ";
 
-            // key and value are also entt::meta_any
             std::string k = key.cast<std::string>();
             os << '\"' << k << "\": ";
 
@@ -158,13 +157,11 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
     }
 
     if (fld_ast.isMap)
-        // serialize_map(os, val, fd_ast, fd_type, opts);
         return serialize_map(os, val, fld_ast.dataAnclass);
 
     if (fld_ast.isPortEnum) {
         JavaEnum x{"x", "x"};
         cout << x;
-        // return os << val.try_cast<JavaEnum>();
         if (auto* je = val.try_cast<JavaEnum>()) {
             return os << *je;
         } else {
@@ -173,7 +170,6 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
     }
 
     if (fld_ast.isEnum) {
-        // return serialize_enum(val, fd_type, (AnsonJavaEnumAst&)fld_ast, os);
         const AnsonJavaEnumAst * east = static_cast<const AnsonJavaEnumAst*>(&fld_ast);
         string res = east->name_of(val);
         return os << '"' << res << '"';
@@ -185,7 +181,6 @@ inline static ostream& serialize_field(ostream &os, IJsonable& jsonable,
     }
 
     if (fld_ast.isJsonable) {
-        // jsonable.toBlock(os, opts);
         IJsonable *jsonval = val.try_cast<IJsonable>();
         IJsonable *anson = val.try_cast<Anson>();
         if(jsonval)
