@@ -325,9 +325,6 @@ struct ParseNode {
     bool is_list = false;
     bool is_map = false;
 
-    // TODO ISSUE FIXME why this?
-    // bool resolve_map2fields = false;
-
     id_type activekey = 0;
     string map_key;
 };
@@ -584,10 +581,7 @@ public:
             if (!stack.empty() && key0 != 0) {
                 auto data = find_field_recursive(stack.back().instance.type(), key0);
                 if (data) {
-                    // if (!stack.back().resolve_map2fields)
-                        data.set(stack.back().instance, top.instance);
-                    // else
-                        // anerror("end_obj(): Upto 349fef9620674c8b65857616ddddb6d5dc516e7c : Not reachable, and is anti-intution to recursive map parsing (starting shadow_map).");
+                    data.set(stack.back().instance, top.instance);
                 }
                 else if (stack.back().is_map) {
                     meta_type val_type = resolve(hashed_string{stack.back().val_astid.c_str()});
@@ -786,7 +780,6 @@ public:
                          .val_astid=val_anclass[0],
                          .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
-                         // .resolve_map2fields=resolve_map2fields,
                          .activekey=active_key});
     }
 };
