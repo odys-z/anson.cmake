@@ -275,7 +275,7 @@ inline static void register_msgs(AstMap &asts) {
     //
     ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"columns", {.fieldname="columns", .dataAnclass = "map<string," + AnResultset::Column::_type_}},
-        {"rows", {.fieldname="rowssata", .dataAnclass = "list<list<list<string"}}
+        {"rows", {.fieldname="rows", .dataAnclass = "list<list<" + AnResultset::_variantype_}}
     });
     entt::meta_factory<anson::AnResultset>()
         .type(ast->enttypeid)

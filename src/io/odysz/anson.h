@@ -683,7 +683,8 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, bool first, cons
         }
     }
 
-    auto fields = opts.asts->at(anson.anclass)->fields;
+    // auto fields = opts.asts->at(anson.anclass)->fields;
+    auto fields = ast->fields;
     return serialize_fields(os, fields, anson, first, opts);
 }
 

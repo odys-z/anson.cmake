@@ -17,6 +17,7 @@ namespace anson {
  */
 class AnResultset : public Anson {
 public:
+    inline static const string _variantype_ = "io.odysz.module.rs.AnResultset.variant";
     using ValType = std::variant<std::monostate, int, double, std::string, std::chrono::system_clock::time_point>;
 
     inline static const string _type_ = "io.odysz.module.rs.AnResultset";
