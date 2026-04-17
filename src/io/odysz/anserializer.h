@@ -823,7 +823,7 @@ public:
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type) {
 
         vector<std::string> val_anclass = Regex::parseMapValtype(map_type);
-        andebug(std::format("Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
+        andebug(std::format("push_map(): Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
 
         stack.push_back({.instance = map_inst,
                          .val_astid=val_anclass[0],

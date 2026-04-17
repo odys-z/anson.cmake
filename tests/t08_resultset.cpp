@@ -79,7 +79,7 @@ TEST(AnResultset, Serialize_Deserialize) {
     register_jserv(asts, contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-    map<string, AnResultset::Column> cols {
+    map<string, Column> cols {
         {"X", {0, "x"}},
         {"Y", {1, "y"}}
     };

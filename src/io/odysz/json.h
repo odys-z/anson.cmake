@@ -274,8 +274,41 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
+    ast = createAST<Column, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+        {"colx", {.fieldname="colx", .dataAnclass = "int"}},
+        {"col_id", {.fieldname="col_id", .dataAnclass = "string"}}
+    });
+    entt::meta_factory<anson::Column>()
+        .type(ast->enttypeid)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::Column::colx>("colx")
+        .data<&anson::Column::col_id>("col_id")
+        ;
+
+    ast->get_field_instance
+        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const Column&>(ans);
+            if ("colx" == fieldname)
+                return entt::forward_as_meta(concrete.colx);
+            else if ("col_id" == fieldname)
+                return entt::forward_as_meta(concrete.col_id);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<Column>(): Failed to get entt instance (meta_any): "s + fieldname);
+        return {};
+    };
+
+    //
     ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
-        {"columns", {.fieldname="columns", .dataAnclass = "map<string," + AnResultset::Column::_type_}},
+        {"columns", {.fieldname="columns", .dataAnclass = "map<string," + Column::_type_}},
         {"rows", {.fieldname="rows", .dataAnclass = "list<list<" + AnResultset::_variantype_}}
     });
     entt::meta_factory<anson::AnResultset>()

@@ -10,6 +10,17 @@
 
 namespace anson {
 
+class Column : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.module.rs.AnResultset.Column";
+    int colx;
+    string col_id;
+
+    Column() = default;
+    Column(int cx, string nom) : colx(cx), col_id(nom) {}
+};
+
+
 /**
  * @brief The AnResultset class
  *
@@ -21,12 +32,6 @@ public:
     using ValType = std::variant<std::monostate, int, double, std::string, std::chrono::system_clock::time_point>;
 
     inline static const string _type_ = "io.odysz.module.rs.AnResultset";
-
-    struct Column {
-        inline static const string _type_ = AnResultset::_type_ + ".Column";
-        int colx;
-        string col_id;
-    };
 
     vector<vector<ValType>> rows;
     map<string, Column> colnames;
