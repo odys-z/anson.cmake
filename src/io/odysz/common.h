@@ -13,6 +13,13 @@
 #include <sstream>
 #include <vector>
 #include <format>
+#include <variant>
+#include <optional>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <entt/entt.hpp>
+#include <entt/meta/meta.hpp>
 
 #include "utils.h"
 
@@ -34,6 +41,20 @@ public:
      */
     virtual const T& name() { return nmp[v]; }
 };
+
+inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
+    std::string s(str, len);
+    std::istringstream ss{s};
+    std::chrono::system_clock::time_point tp;
+
+    // Attempt to parse YYYY or YYYY-MM-DD
+    if (s.length() == 4) {
+        ss >> std::chrono::parse("%Y", tp);
+    } else {
+        ss >> std::chrono::parse("%F", tp); // %F is YYYY-MM-DD
+    }
+    return tp;
+}
 
 class LangExt {
 
@@ -171,6 +192,102 @@ public:
         if (s.length() == 0)
             return null;
         else return s;
+    }
+
+    using VarType = std::variant<std::monostate,
+                                 int, double, float,
+                                 std::string,
+                                 std::chrono::system_clock::time_point>;
+
+    inline static std::optional<std::string> var_str(VarType v) {
+        return std::visit([](auto&& arg) -> std::optional<std::string> {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, std::monostate>) return std::nullopt;
+
+            if constexpr (std::is_same_v<T, std::string>) return arg;
+
+            if constexpr (std::is_same_v<T, int> || std::is_same_v<T, double>)
+                return std::to_string(arg);
+
+            else if constexpr (std::is_same_v<T, std::chrono::system_clock::time_point>)
+                return std::format("{:%Y-%m-%d %H:%M:%S}", arg);
+
+            return std::nullopt;
+        }, v);
+    }
+
+    inline static std::optional<int> var_int(VarType v) {
+        if (auto ptr = std::get_if<int>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static std::optional<double> var_double(VarType v) {
+        if (auto ptr = std::get_if<double>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static std::optional<chrono::system_clock::time_point> var_time(VarType v) {
+        if (auto ptr = std::get_if<chrono::system_clock::time_point>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static VarType var_any(entt::meta_any v) {
+        using namespace entt::literals;
+
+        if (!v) return std::monostate{};
+
+        auto type = v.type();
+        if (type == entt::resolve<int>()) return v.cast<int>();
+        if (type == entt::resolve<double>()) return v.cast<double>();
+
+        if (type == entt::resolve<std::string>()) return v.cast<std::string>();
+        if (type == entt::resolve<const std::string>()) return v.cast<std::string>();
+        if (type == entt::resolve<char*>()) return v.cast<char*>();
+        if (type == entt::resolve<const char*>()) return v.cast<const char*>();
+
+        // if (type == entt::resolve<float>()) return v.cast<float>();
+        if (auto* f = v.try_cast<float>()) return *f;
+
+        if (type == entt::resolve<std::chrono::system_clock::time_point>())
+            return v.cast<std::chrono::system_clock::time_point>();
+
+        return std::monostate{};
+    }
+
+    inline static ostream& serialize_var(ostream& os, const entt::meta_any & v) {
+        using namespace entt::literals;
+
+        if (!v) return os << "null";
+
+        auto type = v.type();
+        if (type == entt::resolve<int>()) return os << v.cast<int>();
+        if (type == entt::resolve<double>()) return os << v.cast<double>();
+
+        if (type == entt::resolve<std::string>()) return os << v.cast<std::string>();
+        if (type == entt::resolve<const std::string>()) return os << v.cast<std::string>();
+        // if (type == entt::resolve<char*>()) return os << v.cast<char*>();
+        if (auto* s = v.try_cast<char*>())
+            return os << *s;
+
+        // if (type == entt::resolve<const char*>()) return os << v.cast<const char*>();
+        if (auto* s = v.try_cast<const char*>())
+            return os << *s;
+
+        // if (type == entt::resolve<float>()) return v.cast<float>();
+        if (auto* f = v.try_cast<float>()) return os << *f;
+
+        if (type == entt::resolve<std::chrono::system_clock::time_point>())
+            return os << v.cast<std::chrono::system_clock::time_point>();
+
+        return os << "null";
+
     }
 };
 

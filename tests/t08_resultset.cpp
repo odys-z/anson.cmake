@@ -92,7 +92,7 @@ TEST(AnResultset, Serialize_Deserialize) {
     AnResultset rstr{cols, r0, r1, r2};
 
     string json = rstr.toBlock(contxt);
-    anlog(json);
+    anlog("------------------------------------ "s + json);
 
     AnResultset rs;
     bool result = Anson::from_json(json, rs);

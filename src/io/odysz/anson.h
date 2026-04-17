@@ -21,6 +21,7 @@ using AstMap = map<string, unique_ptr<AnsonAst>>;
 
 class JsonOpt {
 public:
+    bool serialize_type;
     bool escape4DB;
     string doubleFormat;
     string indent;
@@ -37,7 +38,8 @@ public:
             {"float", "float"}, {"Float", "float"}, {"java.lang.Float", "float"},
             {"double", "double"}, {"Double", "double"}, {"java.lang.Double", "double"},
             {"boolean", "boolean"}, {"Boolean", "boolean"}, {"java.lang.Boolean", "boolean"},
-        }{};
+            {"VarType", "VarType"}, {"LangExt::VarType", "VarType"}, {"anson::LangExt::VarType", "VarType"},
+        }, serialize_type(false) {};
 
     template<typename AST>
     AST* ast(const string &astid) const {
@@ -225,6 +227,7 @@ public:
     bool istring = false;
     bool isJsonable = false;
     bool isPortEnum = false;
+    bool isVar = false;
     string base = "io.odysz.anson.Anson";
 
     string dataBaseAst;
