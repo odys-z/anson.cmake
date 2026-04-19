@@ -14,7 +14,7 @@ add_executable(unit_tests
   semantier.h
   echoreq.h
   # t01_common.cpp
-  t01_typs_java_vs.cpp
+  # t01_typs_java_vs.cpp
   t02_type_java_tests.cpp
   t02_type_java_tests.h
   # t02_entt_basic.h

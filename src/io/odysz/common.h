@@ -42,20 +42,6 @@ public:
     virtual const T& name() { return nmp[v]; }
 };
 
-inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
-    std::string s(str, len);
-    std::istringstream ss{s};
-    std::chrono::system_clock::time_point tp;
-
-    // Attempt to parse YYYY or YYYY-MM-DD
-    if (s.length() == 4) {
-        ss >> std::chrono::parse("%Y", tp);
-    } else {
-        ss >> std::chrono::parse("%F", tp); // %F is YYYY-MM-DD
-    }
-    return tp;
-}
-
 class LangExt {
 
 public:
@@ -238,7 +224,7 @@ public:
         return std::nullopt;
     }
 
-    inline static VarType var_any(entt::meta_any v) {
+    inline static VarType any2var(entt::meta_any v) {
         using namespace entt::literals;
 
         if (!v) return std::monostate{};
@@ -266,30 +252,64 @@ public:
 
         if (!v) return os << "null";
 
+        // Gemini: When wrap std::variant in a meta_any, EnTT sees the variant type, not the type currently held inside the variant.
+        if (auto* var = v.try_cast<LangExt::VarType>()) {
+            return std::visit([&](auto&& arg) -> ostream& {
+                return serialize_var(os, entt::meta_any{arg});
+            }, *var);
+        }
+
         auto type = v.type();
+        // if (auto* i = v.try_cast<int>())    return os << *i;
+        // if (auto* d = v.try_cast<double>()) return os << *d;
+        // if (auto* f = v.try_cast<float>()) return os << *f;
+
         if (type == entt::resolve<int>()) return os << v.cast<int>();
-        if (type == entt::resolve<double>()) return os << v.cast<double>();
+        if (type == entt::resolve<double>() || type == entt::resolve<float>()) {
+            std::string s = std::to_string(v.cast<double>());
+            // Remove unnecessary trailing zeros, but keep the ".0"
+            s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+            if (s.back() == '.') s += '0';
+            return os << s;
+        }
 
-        if (type == entt::resolve<std::string>()) return os << v.cast<std::string>();
-        if (type == entt::resolve<const std::string>()) return os << v.cast<std::string>();
-        // if (type == entt::resolve<char*>()) return os << v.cast<char*>();
-        if (auto* s = v.try_cast<char*>())
-            return os << *s;
+        // if (type == entt::resolve<float>()) return os << v.cast<float>();
 
-        // if (type == entt::resolve<const char*>()) return os << v.cast<const char*>();
-        if (auto* s = v.try_cast<const char*>())
-            return os << *s;
+        if (auto* s = v.try_cast<std::string>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<const std::string>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<char*>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<const char*>()) return os << '"' << *s << '"';
 
-        // if (type == entt::resolve<float>()) return v.cast<float>();
-        if (auto* f = v.try_cast<float>()) return os << *f;
-
-        if (type == entt::resolve<std::chrono::system_clock::time_point>())
-            return os << v.cast<std::chrono::system_clock::time_point>();
+        if (auto* tp = v.try_cast<std::chrono::system_clock::time_point>())
+            return os << format("{:%Y-%m-%d %H:%M:%S}", floor<std::chrono::seconds>(*tp));
 
         return os << "null";
 
     }
 };
+
+inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
+    std::string s(str, len);
+    std::istringstream ss{s};
+    std::chrono::system_clock::time_point tp;
+
+    if (len == 4) {
+        ss >> std::chrono::parse("%Y", tp);
+    } else if (len == 10) {
+        ss >> std::chrono::parse("%F", tp);
+    } else {
+        ss >> std::chrono::parse("%F %T", tp);
+    }
+    return tp;
+}
+
+// inline LangExt::VarType operator ""_d(long double v) {
+//     return static_cast<double>(v);
+// }
+
+// inline LangExt::VarType operator ""_l(unsigned long long v) {
+//     return static_cast<long>(v);
+// }
 
 /**
  * Structure to hold decomposed URL parts

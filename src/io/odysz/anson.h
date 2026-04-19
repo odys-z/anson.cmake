@@ -277,6 +277,9 @@ struct AnsonField {
     /** ast-id, i.e. the java valType */
     string dataAnclass;
 
+    /** Not planned to support ptr members, but parsing/serialization requires. */
+    string isptr = "false";
+
     /**
      * Element type. Not used currently.
      *
@@ -284,6 +287,14 @@ struct AnsonField {
      * if dataAnclass == map<string, list<string, valuType == list<string.
      */
     string valType;
+
+    /**
+     * When parsing a map or list's complex value, the element need to be created with
+     * a constructor at compile time. See EnttSAXParser.start_array() & start_object().
+     *
+     * @brief nest_val_ctor
+     */
+    std::function<meta_any()> nest_val_ctor = nullptr;
 
     bool operator==(const AnsonField& other) const {
         return fieldname == other.fieldname
@@ -296,6 +307,7 @@ struct AnsonField {
                   << "dataAnclass: \"" << obj.dataAnclass << "\", "
                   << "valType: \"" << obj.valType << "\" }";
     }
+
 };
 
 class AnsonJavaEnumAst: public AnsonAst {
