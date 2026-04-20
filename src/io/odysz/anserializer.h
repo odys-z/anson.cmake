@@ -77,7 +77,7 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
     }
 
     if (val_ast.isPortEnum) {
-        if (auto* je = val.try_cast<JavaEnum>()) {
+        if (auto* je = val.try_cast<const JavaEnum>()) {
             return os << *je;
         } else {
             return os << "null";
@@ -90,14 +90,13 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
     }
 
     if (val_ast.isJsonable) {
-        // anerror("Shouldn't reache here!");
         IJsonable *jsonval = val.try_cast<IJsonable>();
         const IJsonable *anson = val.try_cast<Anson>();
         if(jsonval)
             jsonval->toBlock(os, opts);
         else
-            anerror(std::format("Connot convert from meta_any to IJasonalbe: {}",
-                                jsonval->anclass));
+            anerror(std::format("serialize_jsonable(): Connot convert from meta_any to IJasonalbe: {}",
+                                val_ast.dataAnclass));
         return os;
     }
 
@@ -664,24 +663,31 @@ public:
                     // Fields is the definition of an AST, and must be merged back to a being loading AST.
                     // The loading of AST according to AST stop the recursive traversal here.
                     // As fields itself has no chances to register the type of a map.
-                    if ("fields" == fieldname && true) { // How do I know I am loading an AST of an AST?
+                    if ("fields" == fieldname && IJsonable::contxt_ptr->is_ast(ast->type)) {
                         fd_astid = "map<string,"s + AnsonField_type;
+                        meta_any inst = datafield.get(stack.back().instance);
+                        AnsonField field_confg = ast->fields[fieldname];
+                        field_confg.fieldname = fieldname;
+                        push_map(inst, active_key, fd_astid, // ast->fields.at(fieldname).nest_val_ctor);
+                                 [field_confg]() { return AnsonField{.fieldname=field_confg.fieldname, .dataAnclass=field_confg.dataAnclass};});
                     }
 
-                    else if (!ast->fields.contains(fieldname))
-                        anerror(std::format(
-                            "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
-                            ast->anclass, ast->dataAnclass, fieldname));
+                    else {
+                        if (!ast->fields.contains(fieldname))
+                            anerror(std::format(
+                                "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
+                                ast->anclass, ast->dataAnclass, fieldname));
 
-                    else
-                        fd_astid = ast->fields.at(fieldname).dataAnclass;
+                        else
+                            fd_astid = ast->fields.at(fieldname).dataAnclass;
 
-                    if (contxt->asts->contains(fd_astid))
-                        stack.push_back({.instance = datafield.get(stack.back()),
-                                     .val_astid=fd_astid});
-                    else { // e.g. map<string, string
-                        meta_any inst = datafield.get(stack.back().instance);
-                        push_map(inst, active_key, fd_astid, ast->fields.at(fieldname).nest_val_ctor);
+                        if (contxt->asts->contains(fd_astid))
+                            stack.push_back({.instance = datafield.get(stack.back()),
+                                 .val_astid=fd_astid});
+                        else { // e.g. map<string, string
+                            meta_any inst = datafield.get(stack.back().instance);
+                            push_map(inst, active_key, fd_astid, ast->fields.at(fieldname).nest_val_ctor);
+                        }
                     }
                 }
             } else if (top.is_map) {
@@ -956,10 +962,36 @@ public:
                         anerror("end_array(): Failed to set back (copy) "s + data.name());
 
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
+                        // Why serialize_jsonable(): Connot convert from meta_any to IJasonalbe: io.odysz.anson.T_List ?
                         andebug(v->toBlock(*IJsonable::contxt_ptr));
                 }
+                else if (stack.back().is_map) {
+                    if (!stack.back().nest_val_ctor) {
+                        anerror("end_array(): Not able to create map value without val_ctor in map of <"
+                                + stack.back().val_astid);
+                        return false;
+                    }
+                    else {
+                        auto view = stack.back().instance.as_associative_container();
+                        view.insert(stack.back().map_key, finished_list);
+                        andebug(std::format("end_array(): map [{}] , size {}",
+                                            stack.back().map_key, view.size()));
+                    }
+                }
+                else if (stack.back().is_list) {
+                    if (!stack.back().nest_val_ctor) {
+                        anerror("end_array(): Not able to create map value without val_ctor in list of <"
+                            + stack.back().val_astid);
+                        return false;
+                    }
+                    else {
+                        auto view = stack.back().instance.as_sequence_container();
+                        view.insert(view.end(), finished_list);
+                        andebug(std::format("end_array(): list {}, size {}", stack.back().map_key, view.size()));
+                    }
+                }
                 else
-                    anerror("TODO can be in list, map, or an Anson field...");
+                    anerror("Can't be here, field rather than list, map, or an Anson triggered ending arrays ...");
             }
         }
         return true;

@@ -26,6 +26,7 @@ public:
     string doubleFormat;
     string indent;
 
+    const map<string, string> astyps;
     const map<string, string> primtypes;
     const AstMap *asts;
 
@@ -39,7 +40,13 @@ public:
             {"double", "double"}, {"Double", "double"}, {"java.lang.Double", "double"},
             {"boolean", "boolean"}, {"Boolean", "boolean"}, {"java.lang.Boolean", "boolean"},
             {"VarType", "VarType"}, {"LangExt::VarType", "VarType"}, {"anson::LangExt::VarType", "VarType"},
-        }, serialize_type(false) {};
+        },
+        // this initializer can only be generated?
+        astyps({{"io.odysz.anson.AnsonAst", "AnsonAst"},
+                {"io.odysz.anson.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
+                {"io.odysz.anson.AnsonBodyAst", "AnsonBodyAst"},
+                {"io.odysz.anson.AnsonMsgAst", "AnsonMsgAst"}}),
+        serialize_type(false) {};
 
     template<typename AST>
     AST* ast(const string &astid) const {
@@ -54,6 +61,10 @@ public:
 
     bool has_ast(const string &astid) const {
         return asts->contains(astid);
+    }
+
+    bool is_ast(const string &astid) const {
+        return astyps.contains(astid);
     }
 };
 
@@ -401,10 +412,11 @@ inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsona
 
 inline string JavaEnum::valof() const {
     if (contxt_ptr->asts->contains(anclass)) {
-        map<string, string> decode = dynamic_cast<AnsonJavaEnumAst*>(
-                            contxt_ptr->asts->at(anclass).get())->decode;
+        map<string, string> decode =
+            dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->decode;
+
         if (decode.contains(enm)) {
-        return decode[enm];
+            return decode[enm];
         }
     }
     return enm;

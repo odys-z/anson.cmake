@@ -6,6 +6,19 @@
 #include "io/odysz/json.h"
 #include "t02_entt_basic.h"
 
+TEST(ENTT, EXT_ASTS) {
+    using namespace entt::literals;
+    using namespace anson;
+    AstMap asts;
+    JsonOpt opts(&asts);
+
+    ASSERT_TRUE(opts.is_ast(AnsonAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonJavaEnumAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonBodyAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonMsgAst::_type_));
+    ASSERT_FALSE(opts.is_ast(Anson::_type_));
+}
+
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace entt::literals;
     using namespace anson;
