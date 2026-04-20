@@ -305,7 +305,7 @@ struct AnsonField {
      *
      * @brief nest_val_ctor
      */
-    std::function<meta_any()> nest_val_ctor = nullptr;
+    // std::function<meta_any()> nest_val_ctor = nullptr;
 
     bool operator==(const AnsonField& other) const {
         return fieldname == other.fieldname

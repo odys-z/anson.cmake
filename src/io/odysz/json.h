@@ -317,12 +317,14 @@ inline static void register_msgs(AstMap &asts) {
         // {"columns", {.fieldname="columns", .dataAnclass = "map<string," + Column::_type_}},
         {"columns", {.fieldname="columns",
                      .dataAnclass = "map<string, list<VarType",
-                     .nest_val_ctor=[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}}; }}},
+                     // .nest_val_ctor=[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}};}
+        }},
 
         // {"rows", {.fieldname="rows", .dataAnclass = "list<list<" + AnResultset::_variantype_}}
         {"rows", {.fieldname="rows",
                   .dataAnclass = "list<list<list<VarType",
-                  .nest_val_ctor=[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }}}
+                  // .nest_val_ctor=[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }
+        }}
     });
 
     entt::meta_factory<anson::AnResultset>()
@@ -456,6 +458,13 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
 
 inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     IJsonable::contxt_ptr = &ctx_opt;
+
+    function<meta_any()> *f;
+    f = new function<meta_any()> {[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}}; }};
+    LangExt::register_ctor("list<VarType", f);
+
+    f = new function<meta_any()> {[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }};
+    LangExt::register_ctor("list<list<VarType", f);
 
     register_asts(asts);
     register_msgs(asts);
