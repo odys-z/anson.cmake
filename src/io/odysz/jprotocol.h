@@ -82,7 +82,9 @@ struct EnEnregistrement {
     static constexpr size_t compter = N;
     static const std::array<std::string_view, N> noms;
 
-    EnEnregistrement(E v) : valeur(v) {}
+    EnEnregistrement(E v) : valeur(v) {
+        andebug("EnEnregistrement Constructeur: "s + _type_);
+    }
 
     constexpr bool operator==(std::string_view s) const {
         for (int i = 0; i < compter; i++) {
@@ -108,7 +110,6 @@ class AnsonResp : public AnsonBody{
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
-    // MsgCode code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;

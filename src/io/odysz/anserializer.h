@@ -162,6 +162,7 @@ inline static ostream& serialize_val(ostream& os, meta_any &inst,
             // vector<string> valtype  = Regex::parse_val_type(val_type[0]);
             // entt::meta_any val = ast->get_field_instance(anson, fn);
             serialize_prim_value(os, inst, val_type, opts);
+<<<<<<< HEAD
         }
     }
 
@@ -191,6 +192,37 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
         }
     }
 
+=======
+        }
+    }
+
+    return os;
+}
+
+inline static ostream& serialize_anson_prim_ptr(ostream& os, const meta_any &inst,
+                       const vector<string> &val_type, const JsonOpt &opts) {
+
+    return os;
+}
+
+inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
+                       const vector<string> &val_type, const JsonOpt &opts) {
+    os << '[';
+    bool first = true;
+
+    if (auto view = list_any.as_sequence_container(); view) {
+        for (auto e : view) {
+            if (first) first = false; else os << ',';
+            entt::meta_any element_obj = *e;
+            if (element_obj) {
+                serialize_val(os, element_obj, val_type, opts);
+            }
+            else // anerror("Element in list does not inherit from Anson!");
+                serialize_val(os, e, val_type, opts);
+        }
+    }
+
+>>>>>>> try-AST-ptr
     // if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
     //     if (!ast->isJsonable)
     //         anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
@@ -264,6 +296,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
             else {
                 os << "\"(unknown type): " << value.type().info().name() << '"';
             }
+<<<<<<< HEAD
         }
         os << '}';
     }
@@ -357,6 +390,101 @@ inline static ostream& serialize_fields(ostream &os,
 
         AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
 
+=======
+        }
+        os << '}';
+    }
+    return os;
+    */
+    os << '{';
+    bool first = true;
+
+    if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
+        if (!ast->isJsonable)
+            anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
+        else {
+            if ("true" == val_type[1]) {
+                if (auto view = map_any.as_associative_container(); view) {
+                    for (auto [k, v] : view) {
+                        if (first) first = false; else os << ',';
+                        entt::meta_any element_obj = *v;
+                        if (element_obj) {
+                            if (auto* anson_inst = element_obj.try_cast<anson::Anson>()) {
+                                anson_inst->toBlock(os, opts);
+                            } else {
+                                anerror("Element in map is not inherit from Anson!");
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if (auto view = map_any.as_associative_container(); view) {
+                    for (auto [k, v] : view) {
+                        if (first) first = false; else os << ',';
+                        if (auto* p = v.try_cast<IJsonable>()) {
+                            p->toBlock(os, opts);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else if (auto view = map_any.as_associative_container(); view) {
+        bool first = true;
+        for (auto [k, v] : view) {
+            if (first) first = false; else os << ',';
+            os << '"' << k.cast<const string&>() << "\": ";
+            // serialize_anson_prim_ptr(os, v, val_type, opts);
+            // serialize_prim_value(os, v, val_type[0], k.cast<string>(), opts);
+            serialize_val(os, v, val_type, opts);
+        }
+    }
+    else
+        anerror("Todo: list of "s + val_type[0] + ", ptr " + val_type[1]);
+
+    return os << '}';
+}
+
+/**
+ * @brief serialize_fields
+ * @param os
+ * @param fields
+ * @param anson
+ * @param first
+ * @param opts
+ * @return os
+ *
+ * Debug Notes:
+ * 1. forward_as_meta() resolves type at compile time, will fail converting Anson to subclasses.
+ *
+ * entt::meta_any meta_inst = ast->get_instance(anson);
+ * meta_any meta_list = data.get(meta_inst);
+ * *  Gemini:
+ * *  fail—is because of Type Erasure and Registration Mismatch.
+ * * In EnTT, forward_as_meta is a template function. Its behavior depends entirely on
+ * * the static type of the argument passed to it at the call site.
+ * * In your serialize_fields function, the parameter anson is likely defined as a
+ * * reference to the base class: anson::Anson& anson.
+ * * When you call forward_as_meta(anson), the compiler resolves this to
+ * * forward_as_meta<anson::Anson>(anson).
+ *
+ * 2. The debugger observer effect.
+ * code: meta_any meta_list2 = ast->get_field_instance(anson, fn);
+ * Now meta_list2.node can be '0x0' in debugger view.
+ * To observe the spooky entanglement, use this code and see the instance address:
+ * * if (meta_list2.type() == entt::resolve(ast->enttypeid)) {
+ * *     andebug("vector<shared_ptr< ...        ...");
+ * * }
+ */
+inline static ostream& serialize_fields(ostream &os,
+                    const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts) {
+
+     if (fields.size() > 0) {
+
+        AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
+
+>>>>>>> try-AST-ptr
         bool first = true;
         for (auto[fn, f] : fields) {
             if (opts.serialize_type && "type" == fn)
@@ -418,6 +546,7 @@ inline static ostream& serialize_fields(ostream &os,
 }
 
 inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
+<<<<<<< HEAD
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     bool has_basefields = false;
@@ -434,6 +563,24 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
     auto fields = ast->fields;
     if (has_basefields && fields.size() > 0) os << ",";
 
+=======
+
+    AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
+    bool has_basefields = false;
+    if (opts.has_ast(ast->dataBaseAst)) {
+        AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
+        if (opts.has_ast(base_ast->dataAnclass)) {
+            auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+            serialize_fields(os, base_fields, anson, opts);
+
+            has_basefields = base_fields.size() > 0;
+        }
+    }
+
+    auto fields = ast->fields;
+    if (has_basefields && fields.size() > 0) os << ",";
+
+>>>>>>> try-AST-ptr
     return serialize_fields(os, fields, anson, opts);
 }
 
@@ -442,6 +589,7 @@ inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonO
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     if (ast && ast->fields.size() > 0) os << ",";
+<<<<<<< HEAD
 
     serialize_kvs(os, anson, opts);
     return  os << '}';
@@ -452,6 +600,18 @@ inline IJsonable* Anson::toBlock(ostream& os, const JsonOpt& opts) {
     return this;
 }
 
+=======
+
+    serialize_kvs(os, anson, opts);
+    return  os << '}';
+}
+
+inline IJsonable* Anson::toBlock(ostream& os, const JsonOpt& opts) {
+    serialize_envelope(os, *this, opts);
+    return this;
+}
+
+>>>>>>> try-AST-ptr
 struct ParseNode {
     meta_any instance;
 
@@ -483,6 +643,7 @@ private:
             return find_field_ast(base_ast, fieldname);
 
         return nullptr;
+<<<<<<< HEAD
     }
 
     template<typename V>
@@ -515,6 +676,8 @@ private:
         } catch(...) {
             return false;
         }
+=======
+>>>>>>> try-AST-ptr
     }
 
     template<typename V>
@@ -523,6 +686,7 @@ private:
             anerror("set_value(): setting val to empty object");
             return;
         }
+<<<<<<< HEAD
 
         auto& top = stack.back();
 
@@ -573,6 +737,57 @@ private:
                 return;
             }
 
+=======
+
+        auto& top = stack.back();
+
+        if (top.is_list) {
+            andebug(std::format("set_value(): setting value in list: {}", top.val_astid));
+            auto view = top.instance.as_sequence_container();
+            if (view) {
+                if ("ValType" == contxt->primtypes.at(top.val_astid))
+                    // view.insert(view.end(), LangExt::VarType{val});
+                    view.insert(view.end(), std::forward<V>(LangExt::VarType{val}));
+                else
+                    view.insert(view.end(), std::forward<V>(val));
+                andebug("set_value(): List size: " + std::to_string(view.size()));
+            }
+            else
+                anerror(std::format("set_value(): Failed to set list value: {}", val));
+            return;
+        }
+        // ???
+        else if (top.is_map) {
+            andebug(std::format("set_value(): setting value in map: {}", top.map_key));
+            auto view = top.instance.as_associative_container();
+            if (view) {
+                view.insert(top.map_key, std::forward<V>(val));
+                andebug("set_value(): Map size: " + std::to_string(view.size()));
+            }
+            else
+                anerror(std::format("set_value(): Failed to set a map pair: {}", val));
+            return;
+        }
+        else if (active_key != 0) {
+            auto& top = stack.back();
+
+            if (contxt->primtypes.contains(top.val_astid)) {
+                if (!top.is_map)
+                    anerror("set_value(): Why here\n\n??????????\n\n");
+
+                andebug("set_value(): set to supposed map");
+                auto view = top.instance.as_associative_container();
+                if (view) {
+                    view.insert(top.map_key, std::forward<V>(val));
+                }
+                else
+                    anerror("set_value(): Why cannot set value to map?");
+
+                andebug("set_value(): Map size after insert: " + std::to_string(view.size()));
+                return;
+            }
+
+>>>>>>> try-AST-ptr
             auto data = find_field_recursive(top.instance.type(), active_key);
             if (data) {
                 std::string fieldname = data.name();
@@ -863,6 +1078,7 @@ public:
 
         andebug(std::format("start_array(): [0] list container addr: {:P}",
                 (void*)stack.front().instance.try_cast<Anson>()));
+<<<<<<< HEAD
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
@@ -924,6 +1140,69 @@ public:
 
         Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
         andebug(std::format("end_array(): Stack front addr: {:P}", (void*)stack_ptr));
+=======
+
+        if (active_key != 0 && !stack.empty()) {
+            auto data = find_field_recursive(stack.back().instance.type(), active_key);
+            if (data) {
+                std::string fieldname = data.name();
+                andebug(std::format("start_array(): starting, field key {}, name {}",
+                                    active_key, fieldname));
+
+                std::string val_astid;
+                AnsonAst *ast = contxt->ast<AnsonAst>(stack.back().val_astid);
+                if (!ast) {
+                    anerror(std::format("start_array(): Cannot find list value type {}.",
+                                        stack.back().val_astid));
+                }
+                else if (!ast->fields.contains(fieldname))
+                    anerror(std::format(
+                        "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
+                        ast->anclass, ast->dataAnclass, fieldname));
+                else
+                    val_astid = ast->fields.at(fieldname).dataAnclass;
+
+                meta_any list = data.get(stack.back().instance);
+                push_list(list, active_key, val_astid, ast->fields.at(fieldname).nest_val_ctor);
+
+                andebug(std::format("start_array(): [1] list container addr: {:P}",
+                        (void*)stack.front().instance.try_cast<Anson>()));
+            }
+            else if (stack.back().is_map) { // map<string, list<...
+                vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
+                if (!stack.back().nest_val_ctor) {
+                    anerror("start_array(): Not able to create list value without val_ctor in map of <"
+                            + stack.back().val_astid);
+                    return false;
+                }
+                else {
+                    meta_any list = stack.back().nest_val_ctor();
+                    // push_list(list, active_key, valtype[0]);
+                    push_list(list, active_key, stack.back().val_astid);
+                }
+            }
+            else if (stack.back().is_list) { // list<list<...
+                vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
+                if (!stack.back().nest_val_ctor) {
+                    anerror("start_array(): Not able to create list value without val_ctor in list of <"
+                            + stack.back().val_astid);
+                    return false;
+                }
+                else {
+                    meta_any list = stack.back().nest_val_ctor();
+                    // push_list(list, active_key, valtype[0]);
+                    push_list(list, active_key, stack.back().val_astid);
+                }
+            }
+        }
+        return true;
+    }
+
+    bool end_array() override {
+
+        Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
+        andebug(std::format("end_array(): Stack back addr: {:P}", (void*)stack_ptr));
+>>>>>>> try-AST-ptr
 
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().instance;
@@ -958,8 +1237,11 @@ public:
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
                         andebug(v->toBlock(*IJsonable::contxt_ptr));
                 }
+<<<<<<< HEAD
                 else
                     anerror("TODO can be in list, map, or an Anson field...");
+=======
+>>>>>>> try-AST-ptr
             }
         }
         return true;

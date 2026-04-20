@@ -150,10 +150,10 @@ TEST(Load, EchoReq) {
     register_jserv(asts, contxt);
     load_echoAst(asts, "ast/echo.ast.json");
 
-    string t02_echo_json = "t03_echo.body.json";
-    std::ifstream ifstream(t02_echo_json);
+    string t03_echo_json = "t03_echo.body.json";
+    std::ifstream ifstream(t03_echo_json);
     if (!ifstream.is_open()) {
-        FAIL() << "Could not open the file! " << t02_echo_json << endl;
+        FAIL() << "Could not open the file! " << t03_echo_json << endl;
     }
 
     EchoReq echo{};

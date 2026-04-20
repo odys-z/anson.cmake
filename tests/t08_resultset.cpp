@@ -79,7 +79,7 @@ TEST(AnResultset, Serialize_Deserialize) {
     register_jserv(asts, contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-    map<string, AnResultset::Column> cols {
+    map<string, Column> cols {
         {"X", {0, "x"}},
         {"Y", {1, "y"}}
     };
@@ -92,11 +92,12 @@ TEST(AnResultset, Serialize_Deserialize) {
     AnResultset rstr{cols, r0, r1, r2};
 
     string json = rstr.toBlock(contxt);
-    anlog(json);
+    anlog("------------------------------------ "s + json);
 
     AnResultset rs;
     bool result = Anson::from_json(json, rs);
-    anlog(std::format("[2] ok: {}, anclass: {}, rows: {}", result, rs.anclass, rs.rowCnt));
+    anlog(std::format("[2] ok: {}, anclass: {}, rows: {}",
+                      result, rs.anclass, rs.rowCnt));
 
     ASSERT_TRUE(result);
     ASSERT_EQ(AnResultset::_type_, rs.anclass) << "[2]rs->anclass";
