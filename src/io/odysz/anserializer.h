@@ -486,6 +486,38 @@ private:
     }
 
     template<typename V>
+    bool insert_list(auto &list_v, V&& val) {
+        using Tv = std::decay_t<V>;
+        try {
+            // Get the type the container actually expects
+            auto expected_type = list_v.value_type();
+
+            if (expected_type == entt::resolve<LangExt::VarType>()) {
+                // The container is vector<VarType>.
+                // We must explicitly create the variant so EnTT doesn't have to guess.
+                LangExt::VarType variant_val;
+
+                if constexpr (std::is_constructible_v<LangExt::VarType, Tv>) {
+                    variant_val = std::forward<V>(val);
+                } else {
+                    variant_val = std::to_string(val);
+                }
+
+                // Wrap the variant in a meta_any and insert
+                list_v.insert(list_v.end(), entt::meta_any{std::move(variant_val)});
+            }
+            else {
+                // The container is vector<int>, vector<string>, etc.
+                // Insert the raw value directly.
+                list_v.insert(list_v.end(), std::forward<V>(val));
+            }
+            return true;
+        } catch(...) {
+            return false;
+        }
+    }
+
+    template<typename V>
     void set_value(V&& val) {
         if (stack.empty()){
             anerror("set_value(): setting val to empty object");
@@ -498,11 +530,12 @@ private:
             andebug(std::format("set_value(): setting value in list: {}", top.val_astid));
             auto view = top.instance.as_sequence_container();
             if (view) {
-                if ("ValType" == contxt->primtypes.at(top.val_astid))
-                    // view.insert(view.end(), LangExt::VarType{val});
-                    view.insert(view.end(), std::forward<V>(LangExt::VarType{val}));
-                else
-                    view.insert(view.end(), std::forward<V>(val));
+                // if ("ValType" == contxt->primtypes.at(top.val_astid))
+                //     // view.insert(view.end(), LangExt::VarType{val});
+                //     view.insert(view.end(), std::forward<V>(LangExt::VarType{to_string(val)}));
+                // else
+                //     view.insert(view.end(), std::forward<V>(val));
+                insert_list(view, val);
                 andebug("set_value(): List size: " + std::to_string(view.size()));
             }
             else
@@ -890,7 +923,7 @@ public:
     bool end_array() override {
 
         Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(std::format("end_array(): Stack back addr: {:P}", (void*)stack_ptr));
+        andebug(std::format("end_array(): Stack front addr: {:P}", (void*)stack_ptr));
 
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().instance;
