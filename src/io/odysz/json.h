@@ -315,10 +315,16 @@ inline static void register_msgs(AstMap &asts) {
     //
     ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         // {"columns", {.fieldname="columns", .dataAnclass = "map<string," + Column::_type_}},
-        {"columns", {.fieldname="columns", .dataAnclass = "map<string, list<VarType"}},
+        {"columns", {.fieldname="columns",
+                     .dataAnclass = "map<string, list<VarType",
+                     .nest_val_ctor=[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}}; }}},
+
         // {"rows", {.fieldname="rows", .dataAnclass = "list<list<" + AnResultset::_variantype_}}
-        {"rows", {.fieldname="rows", .dataAnclass = "list<list<list<VarType"}}
+        {"rows", {.fieldname="rows",
+                  .dataAnclass = "list<list<list<VarType",
+                  .nest_val_ctor=[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }}}
     });
+
     entt::meta_factory<anson::AnResultset>()
         .type(ast->enttypeid)
         .ctor<>()
