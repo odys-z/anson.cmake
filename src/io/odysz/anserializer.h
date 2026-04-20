@@ -923,7 +923,7 @@ public:
     bool end_array() override {
 
         Anson* stack_ptr = stack.front().instance.try_cast<Anson>();
-        andebug(std::format("end_array(): Stack back addr: {:P}", (void*)stack_ptr));
+        andebug(std::format("end_array(): Stack front addr: {:P}", (void*)stack_ptr));
 
         if (!stack.empty() && stack.back().is_list) {
             auto finished_list = stack.back().instance;
@@ -958,6 +958,8 @@ public:
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
                         andebug(v->toBlock(*IJsonable::contxt_ptr));
                 }
+                else
+                    anerror("TODO can be in list, map, or an Anson field...");
             }
         }
         return true;
