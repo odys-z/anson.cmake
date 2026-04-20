@@ -200,11 +200,15 @@ TEST(JAVA_CPP, LIST_MODIFY) {
 
     if (auto view = anylst.as_sequence_container(); view) {
         view.insert(view.end(), meta_any{LangExt::VarType{"A"}});
+        view.insert(view.end(), LangExt::VarType{"B"});
+        view.insert(view.end(), LangExt::VarType{3.1415926});
 
         vector<LangExt::VarType> *varlist = anylst.try_cast<vector<LangExt::VarType>>();
-        ASSERT_EQ(1, view.size()) << "view.size";
-        ASSERT_EQ(1, varlist->size()) << "varlist.size";
+        ASSERT_EQ(3, view.size()) << "view.size";
+        ASSERT_EQ(3, varlist->size()) << "varlist.size";
         ASSERT_EQ("A", LangExt::var_str((*varlist)[0]));
+        ASSERT_EQ("B", LangExt::var_str((*varlist)[1]));
+        ASSERT_EQ(3.1415926, LangExt::var_double((*varlist)[2]));
     }
     else FAIL() << "Cannot create sequence view Y.";
 }
