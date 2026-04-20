@@ -498,7 +498,11 @@ private:
             andebug(std::format("set_value(): setting value in list: {}", top.val_astid));
             auto view = top.instance.as_sequence_container();
             if (view) {
-                view.insert(view.end(), std::forward<V>(val));
+                if ("ValType" == contxt->primtypes.at(top.val_astid))
+                    // view.insert(view.end(), LangExt::VarType{val});
+                    view.insert(view.end(), std::forward<V>(LangExt::VarType{val}));
+                else
+                    view.insert(view.end(), std::forward<V>(val));
                 andebug("set_value(): List size: " + std::to_string(view.size()));
             }
             else

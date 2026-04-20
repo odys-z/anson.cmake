@@ -194,3 +194,17 @@ TEST(JAVA_CPP, JsonVariant) {
     else FAIL() << "Cannot create sequence view Y.";
 
 }
+
+TEST(JAVA_CPP, LIST_MODIFY) {
+    meta_any anylst = meta_any{vector<LangExt::VarType>{}};
+
+    if (auto view = anylst.as_sequence_container(); view) {
+        view.insert(view.end(), meta_any{LangExt::VarType{"A"}});
+
+        vector<LangExt::VarType> *varlist = anylst.try_cast<vector<LangExt::VarType>>();
+        ASSERT_EQ(1, view.size()) << "view.size";
+        ASSERT_EQ(1, varlist->size()) << "varlist.size";
+        ASSERT_EQ("A", LangExt::var_str((*varlist)[0]));
+    }
+    else FAIL() << "Cannot create sequence view Y.";
+}
