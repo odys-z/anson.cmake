@@ -6,6 +6,19 @@
 #include "io/odysz/json.h"
 #include "t02_entt_basic.h"
 
+TEST(ENTT, EXT_ASTS) {
+    using namespace entt::literals;
+    using namespace anson;
+    AstMap asts;
+    JsonOpt opts(&asts);
+
+    ASSERT_TRUE(opts.is_ast(AnsonAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonJavaEnumAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonBodyAst::_type_));
+    ASSERT_TRUE(opts.is_ast(AnsonMsgAst::_type_));
+    ASSERT_FALSE(opts.is_ast(Anson::_type_));
+}
+
 TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     using namespace entt::literals;
     using namespace anson;
@@ -30,7 +43,10 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     if (view) {
         entt::meta_any newValue = std::string("Generic Insert");
         view.insert(view.end(), std::move(newValue));
-        andebug(string_view(std::format("{}, {}", view.size(), tlist.val.size())));
+        // https://github.com/skypjack/entt/issues/1332#event-23995788785
+        andebug(string_view(std::format("#1332 {}, {}", view.size(), tlist.val.size())));
+        EXPECT_EQ(1, view.size());
+        EXPECT_EQ(1, tlist.val.size());
     }
 
     // Verification
