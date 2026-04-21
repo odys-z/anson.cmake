@@ -463,7 +463,7 @@ struct ParseNode {
     id_type activekey = 0;
     string map_key;
 
-    std::function<meta_any()> nest_val_ctor;
+    // std::function<meta_any()> nest_val_ctor;
 };
 
 template<typename T>
@@ -668,8 +668,8 @@ public:
                         meta_any inst = datafield.get(stack.back().instance);
                         AnsonField field_confg = ast->fields[fieldname];
                         field_confg.fieldname = fieldname;
-                        push_map(inst, active_key, fd_astid, // ast->fields.at(fieldname).nest_val_ctor);
-                                 [field_confg]() { return AnsonField{.fieldname=field_confg.fieldname, .dataAnclass=field_confg.dataAnclass};});
+                        push_map(inst, active_key, fd_astid); //, ast->fields.at(fieldname).nest_val_ctor);
+                                 //[field_confg]() { return AnsonField{.fieldname=field_confg.fieldname, .dataAnclass=field_confg.dataAnclass};});
                     }
 
                     else {
@@ -686,7 +686,8 @@ public:
                                  .val_astid=fd_astid});
                         else { // e.g. map<string, string
                             meta_any inst = datafield.get(stack.back().instance);
-                            push_map(inst, active_key, fd_astid, ast->fields.at(fieldname).nest_val_ctor);
+                            // push_map(inst, active_key, fd_astid, ast->fields.at(fieldname).nest_val_ctor);
+                            push_map(inst, active_key, fd_astid);
                         }
                     }
                 }
@@ -891,34 +892,37 @@ public:
                     val_astid = ast->fields.at(fieldname).dataAnclass;
 
                 meta_any list = data.get(stack.back().instance);
-                push_list(list, active_key, val_astid, ast->fields.at(fieldname).nest_val_ctor);
+                // push_list(list, active_key, val_astid, ast->fields.at(fieldname).nest_val_ctor);
+                push_list(list, active_key, val_astid);
 
                 andebug(std::format("start_array(): [1] list container addr: {:P}",
                         (void*)stack.front().instance.try_cast<Anson>()));
             }
             else if (stack.back().is_map) { // map<string, list<...
                 vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
-                if (!stack.back().nest_val_ctor) {
+                // if (!stack.back().nest_val_ctor) {
+                if (!LangExt::has_ctor(stack.back().val_astid)) {
                     anerror("start_array(): Not able to create list value without val_ctor in map of <"
                             + stack.back().val_astid);
                     return false;
                 }
                 else {
-                    meta_any list = stack.back().nest_val_ctor();
-                    // push_list(list, active_key, valtype[0]);
+                    // meta_any list = stack.back().nest_val_ctor();
+                    meta_any list = LangExt::call_ctor(stack.back().val_astid);
                     push_list(list, active_key, stack.back().val_astid);
                 }
             }
             else if (stack.back().is_list) { // list<list<...
                 vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
-                if (!stack.back().nest_val_ctor) {
+                // if (!stack.back().nest_val_ctor) {
+                if (!LangExt::has_ctor(stack.back().val_astid)) {
                     anerror("start_array(): Not able to create list value without val_ctor in list of <"
                             + stack.back().val_astid);
                     return false;
                 }
                 else {
-                    meta_any list = stack.back().nest_val_ctor();
-                    // push_list(list, active_key, valtype[0]);
+                    // meta_any list = stack.back().nest_val_ctor();
+                    meta_any list = LangExt::call_ctor(stack.back().val_astid);
                     push_list(list, active_key, stack.back().val_astid);
                 }
             }
@@ -966,7 +970,8 @@ public:
                         andebug(v->toBlock(*IJsonable::contxt_ptr));
                 }
                 else if (stack.back().is_map) {
-                    if (!stack.back().nest_val_ctor) {
+                    // if (!stack.back().nest_val_ctor) {
+                    if (!LangExt::has_ctor(stack.back().val_astid)) {
                         anerror("end_array(): Not able to create map value without val_ctor in map of <"
                                 + stack.back().val_astid);
                         return false;
@@ -979,7 +984,8 @@ public:
                     }
                 }
                 else if (stack.back().is_list) {
-                    if (!stack.back().nest_val_ctor) {
+                    // if (!stack.back().nest_val_ctor) {
+                    if (!LangExt::has_ctor(stack.back().val_astid)) {
                         anerror("end_array(): Not able to create map value without val_ctor in list of <"
                             + stack.back().val_astid);
                         return false;
@@ -1009,7 +1015,8 @@ public:
                          .activekey=0});
     }
 
-    void push_list(meta_any ref, id_type active_key, std::string list_type, function<meta_any()> nestval_ctor = nullptr) {
+    // void push_list(meta_any ref, id_type active_key, std::string list_type, function<meta_any()> nestval_ctor = nullptr) {
+    void push_list(meta_any ref, id_type active_key, std::string list_type) {
         vector<std::string> val_anclass = Regex::parseListValtype(list_type);
         andebug(std::format("List value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
 
@@ -1019,10 +1026,13 @@ public:
                          .val_astid=val_anclass[0],
                          .is_val_ptr=is_ptr,
                          .is_list=true, .is_map=false,
-                         .activekey=active_key, .nest_val_ctor=nestval_ctor});
+                         .activekey=active_key,
+                         // .nest_val_ctor=nestval_ctor
+        });
     }
 
-    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, function<meta_any()> nestval_ctor = nullptr) {
+    // void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, function<meta_any()> nestval_ctor = nullptr) {
+    void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type) {
 
         vector<std::string> val_anclass = Regex::parseMapValtype(map_type);
         andebug(std::format("push_map(): Map value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
@@ -1031,7 +1041,9 @@ public:
                          .val_astid=val_anclass[0],
                          .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
-                         .activekey=active_key, .nest_val_ctor=nestval_ctor});
+                         .activekey=active_key,
+                         // .nest_val_ctor=nestval_ctor
+        });
     }
 };
 

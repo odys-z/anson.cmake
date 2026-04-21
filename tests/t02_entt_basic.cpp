@@ -43,13 +43,16 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     if (view) {
         entt::meta_any newValue = std::string("Generic Insert");
         view.insert(view.end(), std::move(newValue));
-        andebug(string_view(std::format("{}, {}", view.size(), tlist.val.size())));
+        // https://github.com/skypjack/entt/issues/1332#event-23995788785
+        andebug(string_view(std::format("#1332 {}, {}", view.size(), tlist.val.size())));
+        EXPECT_EQ(1, view.size());
+        EXPECT_EQ(1, tlist.val.size());
     }
 
     // Verification
     auto& final_vec = instance.cast<anson::T_List&>().val;
     EXPECT_EQ(1, view.size());
-    EXPECT_EQ(0, final_vec.size());
+    EXPECT_EQ(1, final_vec.size());
     vector<string>& val = final_vec;
 
     vector<string> vec{"New Insert"};

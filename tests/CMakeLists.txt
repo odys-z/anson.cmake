@@ -17,8 +17,8 @@ add_executable(unit_tests
   # t01_typs_java_vs.cpp
   # t02_type_java_tests.cpp
   # t02_type_java_tests.h
-  # t02_entt_basic.h
-  # t02_entt_basic.cpp
+  t02_entt_basic.h
+  t02_entt_basic.cpp
   # t02_entt_basic_serialize.cpp
   # t03_loadsettings.cpp
   # t04_entt_registry.cpp
@@ -26,8 +26,8 @@ add_executable(unit_tests
   # t06_java_enum.cpp
   # t06_java_enum.h
   # t07_ansonresp.cpp
-  t08_resultset.cpp
-  t08_resultset.h
+  # t08_resultset.cpp
+  # t08_resultset.h
 )
 
 if(MSVC)

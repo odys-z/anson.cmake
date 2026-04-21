@@ -51,7 +51,7 @@ inline static void register_T_List(AstMap &asts) {
             anlog(std::format("T_List.func<create_ptr>(const inst)"));
             return std::make_shared<anson::T_List>(inst);
         }>("create_ptr")
-        .data<&anson::T_List::val>("val")
+        .data<&anson::T_List::val, as_ref_t>("val")
         .data<&anson::T_List::txt>("txt")
         ;
 
