@@ -14,6 +14,7 @@ static JsonOpt opts{&asts};
 
 TEST(JUNIT, AnsTMap) {
     IJsonable::contxt_ptr = &opts;
+    register_varctors();
     register_asts(asts);
     register_AnsTMap(asts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});

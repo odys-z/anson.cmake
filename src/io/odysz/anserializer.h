@@ -899,10 +899,10 @@ public:
                         (void*)stack.front().instance.try_cast<Anson>()));
             }
             else if (stack.back().is_map) { // map<string, list<...
-                vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
+                vector<std::string> valtype = Regex::parseListValtype(stack.back().val_astid); // debug
                 // if (!stack.back().nest_val_ctor) {
                 if (!LangExt::has_ctor(stack.back().val_astid)) {
-                    anerror("start_array(): Not able to create list value without val_ctor in map of <"
+                    anerror("start_array(): Not able to create list value without var_ctor in map of map<"
                             + stack.back().val_astid);
                     return false;
                 }
@@ -913,10 +913,10 @@ public:
                 }
             }
             else if (stack.back().is_list) { // list<list<...
-                vector<std::string> valtype  = Regex::parseListValtype(stack.back().val_astid); // debug
+                vector<std::string> valtype = Regex::parseListValtype(stack.back().val_astid); // debug
                 // if (!stack.back().nest_val_ctor) {
                 if (!LangExt::has_ctor(stack.back().val_astid)) {
-                    anerror("start_array(): Not able to create list value without val_ctor in list of <"
+                    anerror("start_array(): Not able to create list value without var_ctor in list of list<"
                             + stack.back().val_astid);
                     return false;
                 }
@@ -972,7 +972,7 @@ public:
                 else if (stack.back().is_map) {
                     // if (!stack.back().nest_val_ctor) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
-                        anerror("end_array(): Not able to create map value without val_ctor in map of <"
+                        anerror("end_array(): Not able to create map value without var_ctor in map of map<"
                                 + stack.back().val_astid);
                         return false;
                     }
@@ -986,7 +986,7 @@ public:
                 else if (stack.back().is_list) {
                     // if (!stack.back().nest_val_ctor) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
-                        anerror("end_array(): Not able to create map value without val_ctor in list of <"
+                        anerror("end_array(): Not able to create map value without var_ctor in list of list<"
                             + stack.back().val_astid);
                         return false;
                     }

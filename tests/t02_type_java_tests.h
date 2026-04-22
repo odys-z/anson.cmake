@@ -33,14 +33,10 @@ public:
 inline static AnsonAst* register_AnsTMap(AstMap & asts) {
     AnsonAst *ast = createAST<AnsTMap, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"_map", {.dataAnclass="map<string, string"}},
-        {"mapArr", {.dataAnclass="map<string, list<LangExt::VarType",
-                    .nest_val_ctor=[]() -> meta_any{
-                        return meta_any{vector<LangExt::VarType>{}};
-                     }}},
-        {"mapArr2", {.dataAnclass="map<string, list<VarType",
-                     .nest_val_ctor=[]() -> meta_any{
-                        return meta_any{vector<LangExt::VarType>{}};
-                      }}}
+        {"mapArr", {.dataAnclass="map<string, list<LangExt::VarType"}},
+                    // .nest_val_ctor=[]() -> meta_any{ return meta_any{vector<LangExt::VarType>{}};
+        {"mapArr2", {.dataAnclass="map<string, list<VarType"}}
+                    // .nest_val_ctor=[]() -> meta_any{ return meta_any{vector<LangExt::VarType>{}};
     });
 
     entt::meta_factory<anson::AnsTMap>()

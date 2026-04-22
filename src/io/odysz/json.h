@@ -456,16 +456,21 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
         anerror(string_view(std::format("Could not load AST from {}!", port_ast_pth)));
 }
 
-inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
-    IJsonable::contxt_ptr = &ctx_opt;
-
+inline static void register_varctors() {
     function<meta_any()> *f;
     f = new function<meta_any()> {[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}}; }};
     LangExt::register_ctor("list<VarType", f);
+    LangExt::register_ctor("list<LangExt::VarType", f);
 
     f = new function<meta_any()> {[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }};
     LangExt::register_ctor("list<list<VarType", f);
+    LangExt::register_ctor("list<list<LangExt::VarType", f);
+}
 
+inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
+    IJsonable::contxt_ptr = &ctx_opt;
+
+    register_varctors();
     register_asts(asts);
     register_msgs(asts);
     register_enums<MsgCode>(asts);
