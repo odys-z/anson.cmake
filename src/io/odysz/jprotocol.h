@@ -28,6 +28,26 @@ public:
     AnsonBody(string a, string type) : Anson(type), a(a) {}
 };
 
+class AnsonHeader : public anson::Anson {
+    string uid;
+    string ssid;
+    string iv64;
+    vector<string> usrAct;
+
+    /**
+     * Session token, encrypt(key=session-token, text=ssid+uid, iv) : iv
+     * in base64, where session-token is reply of login.
+     *
+     * @since java 1.4.36, cmake 0.1
+     */
+    string ssToken;
+};
+
+class JProtocol {
+public:
+    string protocolpath;
+};
+
 class EchoReq: public AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
@@ -227,9 +247,96 @@ class OnProgress {
     virtual void progess(const string& path, std::string status);
 };
 
-class JProtocol {
+class AnQueryReq : public AnsonBody {
+    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnQueryReq";
+
 public:
-    string protocolpath;
+    /**Main table */
+    string mtabl;
+    /**Main table alias*/
+    string mAlias;
+
+    /**
+     * <pre>
+     * joins: [join-obj],
+     * join-obj: [{t: "j/R/l", tabl: "table-1", as: "t_alais", on: conds}]
+     * conds: [cond-obj]
+     * cond-obj: {(main-table | alais.)left-col-val op (table-1 | alias2 .)right-col-val}
+     * op: '=' | '&lt;=' | '&gt;=' ...</pre>
+     */
+    vector<vector<string>> joins;
+
+    /**exprs: [expr-obj],
+     * expr-obj: {tabl: "b_articles/t_alais", alais: "recId", expr: "recId"}
+     *  */
+    vector<vector<string>> exprs;
+
+    /**where: [cond-obj], see {@link #joins}for cond-obj.*/
+    vector<vector<string>> where;
+
+    /**orders: [order-obj],
+     - order-obj: {tabl: "b_articles", field: "pubDate", asc: "true"} */
+    vector<vector<string>> orders;
+
+    /**group: [group-obj]
+     - group-obj: {tabl: "b_articles/t_alais", expr: "recId" } */
+    vector<string> groups;
+
+    int page;
+    int pgsize;
+
+    vector<string> limt;
+
+    vector<vector<string>> havings;
 };
+
+class AnUpdateReq : public AnsonBody {
+public:
+    inline static const string _type_ = "io.odysz.semantic.jserv.U.AnUpdateeq";
+
+    /**Main table */
+    string mtabl;
+    AnUpdateReq* Mtabl(string mtbl) {
+        mtabl = mtbl;
+        return this;
+    }
+
+    /**nvs: [nv-obj],
+     * nv-obj: {n: "roleName", v: "admin"}
+     */
+    vector<vector<LangExt::VarType>> nvs;
+
+    /**inserting values, used for "I". 3d array [[[n, v], ...]] */
+    vector<vector<vector<LangExt::VarType>>> nvss;
+
+    /**
+     * Inserting columns, used for "I".
+     * Here a col shouldn't be an expression - so not vector<LangExt::VarType>, unlike that of query.
+     */
+    vector<string> cols;
+
+    /**
+     * Get columns for sql's insert into COLs.
+     * @return columns
+     */
+    vector<string> Cols() { return cols; }
+
+
+    /**where: [cond-obj], see {@link #joins}for cond-obj.*/
+    vector<vector<LangExt::VarType>> where;
+
+    string limt;
+
+    vector<AnUpdateReq> postUpds;
+
+    AnsonHeader header;
+
+    vector<vector<LangExt::VarType>> attacheds;
+};
+
+class AnInsertReq : public AnUpdateReq {
+    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnInsertReq";
+};
+
 }
 

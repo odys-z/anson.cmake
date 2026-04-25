@@ -55,7 +55,8 @@ public:
             return dynamic_cast<AST*>(it->second.get());
         }
         if (!primtypes.contains(astid))
-            anerror(std::format("JsonOpt.ast(): cannot find ast with id: '{}'.", astid));
+            if (!LangExt::has_ctor(astid))
+                anerror(std::format("JsonOpt.ast(): cannot find ast with id: '{}'.", astid));
         return nullptr;
     }
 

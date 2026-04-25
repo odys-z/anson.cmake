@@ -189,6 +189,9 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
                 serialize_val(os, e, val_type, opts);
         }
     }
+    else
+        anerror(std::format("TODO / ERROR: serialize list of {}, ptr {}. Tip: Is the list value initialized as the same to the type registered?",
+                            val_type[0], val_type[1]));
 
     // if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
     //     if (!ast->isJsonable)
