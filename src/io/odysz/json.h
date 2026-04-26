@@ -497,49 +497,6 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
     }
     if (!load_msg_specialAst<Rq>(asts, ifstream, registerBodyFields))
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
-
-    // AnsonBodyAst *bodyAst = new AnsonBodyAst{};
-    // EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
-
-    // std::ifstream ifstream(ast_pth);
-    // if (!ifstream.is_open()) {
-    //     anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
-    // }
-
-    // bool result = nlohmann::json::sax_parse(ifstream, &handler);
-    // if (result) {
-    //     for (auto& [fn, f] : bodyAst->fields)
-    //         if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
-    //             anwarn(std::format("Error fields configuration in {} : {} (fieldname: {}, dataAnclass: {})",
-    //                                ast_pth, fn, f.dataAnclass, f.fieldname));
-    //             if (LangExt::isblank(f.fieldname))
-    //                 f.fieldname = fn;
-    //         }
-
-    //     string anclass = bodyAst->dataAnclass;
-    //     hashed_string enttype = hashed_string{anclass.c_str()};
-
-    //     meta_factory<Rq> protype =
-    //     entt::meta_factory<Rq>()
-    //         .type(enttype)
-    //         .template base<AnsonBody>()
-    //         .template ctor<>()
-    //         .template ctor<string>()
-    //         .func<+[](const Rq &inst) -> std::shared_ptr<Rq> {
-    //             andebug(string_view(std::format("{}.func<create_ptr>(const inst)", Rq::_type_)));
-    //             return std::make_shared<Rq>(inst);
-    //         }>("create_ptr")
-    //         ;
-
-    //     bodyAst->enttypeid = enttype;
-    //     registerBodyFields(protype, bodyAst);
-
-    //     asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
-
-    //     specialize_req<Rq>(asts, bodyAst);
-    // }
-    // else
-    //     anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 
 inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
