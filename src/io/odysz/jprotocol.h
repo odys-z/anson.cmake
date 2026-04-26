@@ -248,9 +248,10 @@ class OnProgress {
 };
 
 class AnQueryReq : public AnsonBody {
-    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnQueryReq";
 
 public:
+    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnQueryReq";
+
     /**Main table */
     string mtabl;
     /**Main table alias*/

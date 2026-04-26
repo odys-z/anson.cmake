@@ -280,48 +280,13 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
-    // ast = createAST<Column, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
-    //     {"colx", {.fieldname="colx", .dataAnclass = "int"}},
-    //     {"col_id", {.fieldname="col_id", .dataAnclass = "string"}}
-    // });
-    // entt::meta_factory<anson::Column>()
-    //     .type(ast->enttypeid)
-    //     .ctor<>()
-    //     .base<anson::Anson>()
-    //     .data<&anson::Column::colx>("colx")
-    //     .data<&anson::Column::col_id>("col_id")
-    //     ;
-
-    // ast->get_field_instance
-    //     = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
-
-    //     if (ast->fields.contains(fieldname)) {
-    //         auto& concrete = static_cast<const Column&>(ans);
-    //         if ("colx" == fieldname)
-    //             return entt::forward_as_meta(concrete.colx);
-    //         else if ("col_id" == fieldname)
-    //             return entt::forward_as_meta(concrete.col_id);
-    //     }
-
-    //     if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-    //         AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
-    //         return bast->get_field_instance(ans, fieldname);
-    //     }
-
-    //     anerror("get_field_instance<Column>(): Failed to get entt instance (meta_any): "s + fieldname);
-    //     return {};
-    // };
-
-    //
     ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"columns", {.fieldname="columns",
                      .dataAnclass = "map<string, list<VarType",
-                     // .nest_val_ctor=[]()->meta_any{ return meta_any{vector<LangExt::VarType>{}};}
         }},
 
         {"rows", {.fieldname="rows",
                   .dataAnclass = "list<list<VarType",
-                  // .nest_val_ctor=[]()->meta_any{ return meta_any{vector<vector<LangExt::VarType>>{}}; }
         }}
     });
 
@@ -476,17 +441,12 @@ inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const An
 };
 
 template <typename Rq>
-inline static bool load_msg_specialAst(AstMap &asts, std::ifstream &ifs,
+inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)>& registerBodyFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
     EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
 
-    // std::ifstream ifstream("ast_pth");
-    // if (!ifstream.is_open()) {
-    //     anerror(string_view(std::format("Could not open the file {}! ", "ast_pth")));
-    // }
-
-    bool result = nlohmann::json::sax_parse(ifs, &handler);
+    bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
         for (auto& [fn, f] : bodyAst->fields)
             if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
@@ -505,9 +465,8 @@ inline static bool load_msg_specialAst(AstMap &asts, std::ifstream &ifs,
             .template base<AnsonBody>()
             .template ctor<>()
             .template ctor<string>()
-            // .func<creat_ptr>("creat_ptr");
             .func<+[](const Rq &inst) -> std::shared_ptr<Rq> {
-                // andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
+                andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
                 return std::make_shared<Rq>(inst);
             }>("create_ptr")
             ;
@@ -520,8 +479,6 @@ inline static bool load_msg_specialAst(AstMap &asts, std::ifstream &ifs,
         specialize_req<Rq>(asts, bodyAst);
     }
     return result;
-    // else
-    //     anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 
 template <typename Rq>
@@ -585,8 +542,6 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
     //     anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 
-
-
 inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     IJsonable::contxt_ptr = &ctx_opt;
 
@@ -596,7 +551,7 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     register_enums<MsgCode>(asts);
     register_port(asts, "ast/port.ast.json");
     specialize_respmsg(asts);
-    // register_jserv_crud(asts);
+    // setup_ext_crud(asts);
 }
 
 
