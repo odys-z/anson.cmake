@@ -437,8 +437,8 @@ inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const An
     return make_shared<Anson>(inst);
 };
 
-// template <typename BD, typename BD_Base>
-template <typename BD>
+// template <typename BD>
+template <typename BD, typename BD_Base>
 inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                    const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
     for (auto& [fn, f] : bodyAst->fields)
@@ -455,8 +455,8 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     meta_factory<BD> protype =
         entt::meta_factory<BD>()
             .type(enttype)
-            // .template base<BD_Base>()
-            .template base<AnsonBody>()
+            .template base<BD_Base>()
+            // .template base<AnsonBody>()
             .template ctor<>()
             .template ctor<string>()
             .func<+[](const BD &inst) -> std::shared_ptr<BD> {
@@ -468,7 +468,8 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     bodyAst->enttypeid = enttype;
     registerBodyFields(protype, bodyAst);
 
-    asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
+    if (!asts.contains(anclass))
+        asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
 
     specialize_req<BD>(asts, bodyAst);
 }
@@ -481,7 +482,7 @@ inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
-        body_specialize_msg<Rq>(asts, bodyAst, registerBodyFields);
+        body_specialize_msg<Rq, AnsonBody>(asts, bodyAst, registerBodyFields);
         // for (auto& [fn, f] : bodyAst->fields)
         //     if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
         //         anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",

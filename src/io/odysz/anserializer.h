@@ -524,13 +524,14 @@ public:
                     }
 
                     else {
-                        if (!ast->fields.contains(fieldname))
-                            anerror(std::format(
-                                "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
-                                ast->anclass, ast->dataAnclass, fieldname));
+                        // if (!ast->fields.contains(fieldname))
+                        //     anerror(std::format(
+                        //         "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
+                        //         ast->anclass, ast->dataAnclass, fieldname));
 
-                        else
-                            fd_astid = ast->fields.at(fieldname).dataAnclass;
+                        // else
+                        //     fd_astid = ast->fields.at(fieldname).dataAnclass;
+                        fd_astid = ast->find_field_astid(contxt->asts, fieldname);
 
                         if (contxt->asts->contains(fd_astid))
                             stack.push_back({.instance = datafield.get(stack.back()),
@@ -734,12 +735,14 @@ public:
                     anerror(std::format("start_array(): Cannot find list value type {}.",
                                         stack.back().val_astid));
                 }
-                else if (!ast->fields.contains(fieldname))
-                    anerror(std::format(
-                        "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
-                        ast->anclass, ast->dataAnclass, fieldname));
+                // else if (!ast->fields.contains(fieldname))
+                //     anerror(std::format(
+                //         "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
+                //         ast->anclass, ast->dataAnclass, fieldname));
+                // else
+                //     val_astid = ast->fields.at(fieldname).dataAnclass;
                 else
-                    val_astid = ast->fields.at(fieldname).dataAnclass;
+                    val_astid = ast->find_field_astid(contxt->asts, fieldname);
 
                 meta_any list = data.get(stack.back().instance);
                 // push_list(list, active_key, val_astid, ast->fields.at(fieldname).nest_val_ctor);

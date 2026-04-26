@@ -277,6 +277,8 @@ public:
                             this->dataAnclass, ans.anclass, fn, ans.anclass));
         return meta_any{false};
     };
+
+    inline const string find_field_astid(const AstMap* asts, const string & fieldname) const ;
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
@@ -320,6 +322,16 @@ struct AnsonField {
     }
 
 };
+
+const string AnsonAst::find_field_astid(const AstMap* asts, const string & fieldname) const {
+    if (fields.contains(fieldname))
+        return fields.at(fieldname).dataAnclass;
+    else if (asts->contains(dataBaseAst)) {
+        const AnsonAst *baseAst = asts->at(dataBaseAst).get();
+        return baseAst->find_field_astid(asts, fieldname);
+    }
+    return "";
+}
 
 class AnsonJavaEnumAst: public AnsonAst {
 public:

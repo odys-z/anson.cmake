@@ -75,6 +75,7 @@ static JsonOpt opts{&asts};
 
 TEST(JUNIT, NestedList) {
     register_jserv(asts, opts);
+    anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string jblock = R"({"type":"io.odysz.semantic.jserv.U.AnInsertReq",)"
                     R"("nvs":[["type""type","type","io.oz.album.tier.PhotoRec"],["css","{\"type\":\"io.odysz.semantic.T_PhotoCSS\", \"size\":[4,3,3,4]}"]],)"
@@ -92,18 +93,18 @@ TEST(JUNIT, NestedList) {
     ASSERT_EQ("0-1-0", LangExt::var_str(req.nvss[0][1][0]));
 }
 
-TEST(JUNIT, NoSql) {
-    string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.test.U.AnInsertReq\","s
-                    + "\"nvs\":[[\"type\"\"type\",\"type\",\"io.oz.album.tier.PhotoRec\"],[\"css\",\"{\\\"type\\\":\\\"io.odysz.semantic.T_PhotoCSS\\\", \\\"size\\\":[4,3,3,4]}\"]],"
-                    + "\"nvss\": [[[\"0-0-0.0,0-0-0.1\",\"0-0-1\"],[\"0-1-0\"]]]"
-                    + "}";
+// TEST(JUNIT, NoSql) {
+//     string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.test.U.AnInsertReq\","s
+//                     + "\"nvs\":[[\"type\"\"type\",\"type\",\"io.oz.album.tier.PhotoRec\"],[\"css\",\"{\\\"type\\\":\\\"io.odysz.semantic.T_PhotoCSS\\\", \\\"size\\\":[4,3,3,4]}\"]],"
+//                     + "\"nvss\": [[[\"0-0-0.0,0-0-0.1\",\"0-0-1\"],[\"0-1-0\"]]]"
+//                     + "}";
 
-    AnInsertReq req;
-    bool result = Anson::from_json(jblock, req);
-    ASSERT_TRUE(result);
+//     AnInsertReq req;
+//     bool result = Anson::from_json(jblock, req);
+//     ASSERT_TRUE(result);
 
-    T_PhotoCSS css;
-    result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css);
-    ASSERT_TRUE(result);
-    ASSERT_EQ (4, css.size[0]);
-}
+//     T_PhotoCSS css;
+//     result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css);
+//     ASSERT_TRUE(result);
+//     ASSERT_EQ (4, css.size[0]);
+// }

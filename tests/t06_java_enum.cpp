@@ -4,8 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <io/odysz/jprotocol.h>
-#include "io/odysz/json.h"
-#include "io/odysz/json.h"
+#include "io/odysz/entt_jserv.h"
 
 #include "echoreq.h"
 
