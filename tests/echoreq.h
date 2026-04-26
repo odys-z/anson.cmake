@@ -53,39 +53,4 @@ inline static void load_echoAst(AstMap &asts, const string &ast_path) {
         };
     });
 }
-
-inline static void setup_ext_crud(AstMap &asts) {
-    setup_msg_specialAst<AnQueryReq>(asts,
-        std::format(R"({{"type": "{}")", AnsonBodyAst::_type_) +
-        std::format(R"("base": "{}")", AnsonAst::_type_) +
-        R"("A": {"echo":  "echo", "inet":  "inet"},)" +
-        std::format(R"("dataAnclass": "{}",)", AnQueryReq::_type_) +
-        std::format(R"("dataBaseAst": "{}")", AnsonBody::_type_) +
-        R"("fields" : {{ "echo": {"dataAnclass": "string"}} }})"
-        R"(}})",
-
-      [](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
-
-        entf.data<&EchoReq::echo>("echo");
-
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
-            if (ast->fields.contains(fieldname)) {
-                auto& concrete = static_cast<const EchoReq&>(ans);
-                if ("echo" == fieldname)
-                    return entt::forward_as_meta(concrete.echo);
-            }
-
-            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
-                return bast->get_field_instance(ans, fieldname);
-            }
-
-            anerror("get_field_instance<EchoReq>(): Failed to get entt instance (meta_any)");
-            return {};
-        };
-    });
-}
-
-
-
 }

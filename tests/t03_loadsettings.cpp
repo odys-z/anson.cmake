@@ -5,8 +5,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "io/odysz/json.h"
-#include "io/odysz/jprotocol.h"
+#include "io/odysz/entt_jserv.h"
 #include "io/odysz/semantier.h"
 #include "echoreq.h"
 
@@ -17,12 +16,12 @@ void register_peersettings(AstMap &asts) {
     //
     AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
         asts, Anson::_type_, map<string, AnsonField>{
-        {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
-        {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
-        {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
-        {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
-        {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
-        {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+        {"ansonMsg",  {.dataAnclass = "string"}},
+        {"ansons",    {.dataAnclass = "list<string"}},
+        {"scopeEnums",{.dataAnclass = "list<string"}},
+        {"javaEnums", {.dataAnclass = "list<string"}},
+        {"ansonBody", {.dataAnclass = "string"}},
+        {"anRequests",{.dataAnclass = "list<string"}},
     });
 
     entt::meta_factory<anson::PeerSettings>()

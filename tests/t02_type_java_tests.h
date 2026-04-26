@@ -137,12 +137,11 @@ inline static AnsonAst* register_AnsTStrsList(AstMap & asts) {
     return ast;
 }
 
-
 class T_PhotoCSS : public Anson {
-    inline static const string _type_ = "io.odysz.semantic.T_PhotoCSS";
 public:
-    vector<int> size;
+    inline static const string _type_ = "io.odysz.semantic.T_PhotoCSS";
 
+    vector<int> size;
 
     T_PhotoCSS() {
         size = vector<int> { 0, 0 };

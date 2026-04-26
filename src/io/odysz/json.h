@@ -256,7 +256,9 @@ inline static void specialize_respmsg(AstMap & asts) {
         }
 
         if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            andebug("------------------------ "s + to_string(++cnt) + " -------- " + ast->dataAnclass + " ------ " + fieldname);
+            andebug(std::format("------- {} ------- {} ------ {} ",
+                                ++cnt, ast->dataAnclass, fieldname));
+
             AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
             return bast->get_field_instance(ans, fieldname);
         }
@@ -281,13 +283,8 @@ inline static void register_msgs(AstMap &asts) {
 
     //
     ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
-        {"columns", {.fieldname="columns",
-                     .dataAnclass = "map<string, list<VarType",
-        }},
-
-        {"rows", {.fieldname="rows",
-                  .dataAnclass = "list<list<VarType",
-        }}
+        {"columns", {.dataAnclass = "map<string, list<VarType"}},
+        {"rows", {.dataAnclass = "list<list<VarType"}}
     });
 
     entt::meta_factory<anson::AnResultset>()
@@ -320,8 +317,8 @@ inline static void register_msgs(AstMap &asts) {
 
     //
     ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{
-        {"uri", {.fieldname="uri", .dataAnclass = "string"}},
-        {"a", {.fieldname="a", .dataAnclass = "string"}}
+        {"uri", {.dataAnclass = "string"}},
+        {"a",   {.dataAnclass = "string"}}
     });
 
     ast->get_field_instance
@@ -440,6 +437,42 @@ inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const An
     return make_shared<Anson>(inst);
 };
 
+// template <typename BD, typename BD_Base>
+template <typename BD>
+inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
+                   const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
+    for (auto& [fn, f] : bodyAst->fields)
+        if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+            anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
+                               fn, f.dataAnclass, f.fieldname));
+            if (LangExt::isblank(f.fieldname))
+                f.fieldname = fn;
+        }
+
+    string anclass = bodyAst->dataAnclass;
+    hashed_string enttype = hashed_string{anclass.c_str()};
+
+    meta_factory<BD> protype =
+        entt::meta_factory<BD>()
+            .type(enttype)
+            // .template base<BD_Base>()
+            .template base<AnsonBody>()
+            .template ctor<>()
+            .template ctor<string>()
+            .func<+[](const BD &inst) -> std::shared_ptr<BD> {
+                andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
+                return std::make_shared<BD>(inst);
+            }>("create_ptr")
+        ;
+
+    bodyAst->enttypeid = enttype;
+    registerBodyFields(protype, bodyAst);
+
+    asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
+
+    specialize_req<BD>(asts, bodyAst);
+}
+
 template <typename Rq>
 inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)>& registerBodyFields) {
@@ -448,35 +481,36 @@ inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
-        for (auto& [fn, f] : bodyAst->fields)
-            if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
-                anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
-                                   fn, f.dataAnclass, f.fieldname));
-                if (LangExt::isblank(f.fieldname))
-                    f.fieldname = fn;
-            }
+        body_specialize_msg<Rq>(asts, bodyAst, registerBodyFields);
+        // for (auto& [fn, f] : bodyAst->fields)
+        //     if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+        //         anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
+        //                            fn, f.dataAnclass, f.fieldname));
+        //         if (LangExt::isblank(f.fieldname))
+        //             f.fieldname = fn;
+        //     }
 
-        string anclass = bodyAst->dataAnclass;
-        hashed_string enttype = hashed_string{anclass.c_str()};
+        // string anclass = bodyAst->dataAnclass;
+        // hashed_string enttype = hashed_string{anclass.c_str()};
 
-        meta_factory<Rq> protype =
-        entt::meta_factory<Rq>()
-            .type(enttype)
-            .template base<AnsonBody>()
-            .template ctor<>()
-            .template ctor<string>()
-            .func<+[](const Rq &inst) -> std::shared_ptr<Rq> {
-                andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
-                return std::make_shared<Rq>(inst);
-            }>("create_ptr")
-            ;
+        // meta_factory<Rq> protype =
+        // entt::meta_factory<Rq>()
+        //     .type(enttype)
+        //     .template base<AnsonBody>()
+        //     .template ctor<>()
+        //     .template ctor<string>()
+        //     .func<+[](const Rq &inst) -> std::shared_ptr<Rq> {
+        //         andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
+        //         return std::make_shared<Rq>(inst);
+        //     }>("create_ptr")
+        //     ;
 
-        bodyAst->enttypeid = enttype;
-        registerBodyFields(protype, bodyAst);
+        // bodyAst->enttypeid = enttype;
+        // registerBodyFields(protype, bodyAst);
 
-        asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
+        // asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
 
-        specialize_req<Rq>(asts, bodyAst);
+        // specialize_req<Rq>(asts, bodyAst);
     }
     return result;
 }
@@ -499,17 +533,17 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 
-inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
-    IJsonable::contxt_ptr = &ctx_opt;
+// inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
+//     IJsonable::contxt_ptr = &ctx_opt;
 
-    register_varctors();
-    register_asts(asts);
-    register_msgs(asts);
-    register_enums<MsgCode>(asts);
-    register_port(asts, "ast/port.ast.json");
-    specialize_respmsg(asts);
-    // setup_ext_crud(asts);
-}
+//     register_varctors();
+//     register_asts(asts);
+//     register_msgs(asts);
+//     register_enums<MsgCode>(asts);
+//     register_port(asts, "ast/port.ast.json");
+//     specialize_respmsg(asts);
+//     // setup_ext_crud(asts);
+// }
 
 
 }

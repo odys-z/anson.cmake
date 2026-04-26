@@ -9,12 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(anson INTERFACE
     io/odysz/anson.h
     io/odysz/jprotocol.h
-    io/odysz/json.h
     io/odysz/common.h
     io/odysz/utils.h
     io/odysz/semantier.h
     io/odysz/anserializer.h
     io/odysz/module/rs.h
+    io/odysz/json.h
+    io/odysz/entt_jserv.h
 )
 
 add_library(anson::anson ALIAS anson)

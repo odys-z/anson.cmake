@@ -16,7 +16,11 @@ namespace anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    virtual string _type_special(string msgtype) {
+        anerror("[ERROR] AnsonBody::_type_special(): any type id generation reached here can be an error.\n"s
+              + _type_ + " must not be used as an ast-id part, etc.");
+        return msgtype + "<" + _type_;
+    }
 
     string a;
     string uri;
@@ -46,6 +50,13 @@ class AnsonHeader : public anson::Anson {
 class JProtocol {
 public:
     string protocolpath;
+};
+
+struct CRUD {
+    inline static const string C = "I";
+    inline static const string R = "R";
+    inline static const string U = "U";
+    inline static const string D = "D";
 };
 
 class EchoReq: public AnsonBody {
@@ -289,6 +300,12 @@ public:
     vector<string> limt;
 
     vector<vector<string>> havings;
+
+    AnQueryReq() : AnsonBody(CRUD::R, _type_) {}
+
+    AnQueryReq(string a) : AnsonBody(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 class AnUpdateReq : public AnsonBody {
@@ -322,7 +339,6 @@ public:
      */
     vector<string> Cols() { return cols; }
 
-
     /**where: [cond-obj], see {@link #joins}for cond-obj.*/
     vector<vector<LangExt::VarType>> where;
 
@@ -333,10 +349,26 @@ public:
     AnsonHeader header;
 
     vector<vector<LangExt::VarType>> attacheds;
+
+    AnUpdateReq() : AnsonBody(CRUD::D, _type_) {}
+
+    AnUpdateReq(string a) : AnsonBody(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+
+protected:
+    AnUpdateReq(string a, string tp) : AnsonBody(a, tp) {}
 };
 
 class AnInsertReq : public AnUpdateReq {
-    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnInsertReq";
+public:
+    inline static const string _type_ = "io.odysz.semantic.jserv.U.AnInsertReq";
+
+    AnInsertReq() : AnUpdateReq(CRUD::C, _type_) {}
+
+    AnInsertReq(string a) : AnUpdateReq(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 }

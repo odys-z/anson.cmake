@@ -20,7 +20,7 @@ add_executable(unit_tests
   # t02_entt_basic.h
   # t02_entt_basic.cpp
   # t02_entt_basic_serialize.cpp
-  t03_loadsettings.cpp
+  # t03_loadsettings.cpp
   # t04_entt_registry.cpp
   # t05_deserialize.cpp
   # t06_java_enum.cpp

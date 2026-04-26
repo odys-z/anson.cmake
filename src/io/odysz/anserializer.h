@@ -37,8 +37,7 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
         if (inst) {
             auto *s = inst.try_cast<const std::string>();
             if (s) return os << '"' << *s << '"';
-            else // return os << '"' << std::to_string(inst) << '"';
-                ;
+            // else ;
         }
         else os << "null";
     }
@@ -67,7 +66,7 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
 
     if (val_ast.isMap) {
         anerror("Simple value is not a map, and shouldn't reach here!");
-        return os; // serialize_map(os, val, val_ast.dataAnclass);
+        return os;
     }
 
     if (val_ast.isEnum) {
@@ -104,16 +103,6 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
 
     }
 
-    // if (val_ast.isInt) {
-    //     auto s = val.try_cast<int>();
-    //     return os << '\"' << s << '\"';
-    // }
-
-    // if (val_ast.isDouble) {
-    //     auto s = val.try_cast<std::double_t>();
-    //     return os << '\"' << s << '\"';
-    // }
-
     return os << R"("Cannot handle value of )" << val_ast.anclass << '\"';
 }
 
@@ -126,11 +115,6 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
 inline static ostream& serialize_val(ostream& os, meta_any &inst,
                        const vector<string> &val_type, const JsonOpt &opts) {
     if (val_type[0].starts_with("list<")) {
-        // AnsonAst *ast = opts.ast<AnsonAst>(val_type[0]);
-        // if (ast->enttypeid != hashed_string{anson.anclass.c_str()})
-        //     anerror(std::format("serialize_fields(): entt type_id mismatch: {} {}",
-        //                         std::to_string(ast->enttypeid), anson.anclass));
-
         if (inst) {
             vector<string> valtype  = Regex::parseListValtype(val_type[0]);
             serialize_list(os, inst, valtype, opts);
@@ -149,17 +133,9 @@ inline static ostream& serialize_val(ostream& os, meta_any &inst,
     else {
         AnsonAst* fd_ast = opts.ast<AnsonAst>(val_type[0]);
         if (fd_ast) {
-            // meta_type enttype = entt::resolve(ast->enttypeid);
-            // hashed_string data_key{fn.c_str()};
-            // meta_data data = find_field_recursive(enttype, data_key);
-
-            // entt::meta_any obj = enttype.from_void(&anson);
-            // meta_any val = data.get(obj);
             serialize_jsonable(os, inst, *fd_ast, opts);
         }
         else {
-            // vector<string> valtype  = Regex::parse_val_type(val_type[0]);
-            // entt::meta_any val = ast->get_field_instance(anson, fn);
             serialize_prim_value(os, inst, val_type, opts);
         }
     }
@@ -185,7 +161,7 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
             if (element_obj) {
                 serialize_val(os, element_obj, val_type, opts);
             }
-            else // anerror("Element in list does not inherit from Anson!");
+            else
                 serialize_val(os, e, val_type, opts);
         }
     }
@@ -193,84 +169,11 @@ inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
         anerror(std::format("TODO / ERROR: serialize list of {}, ptr {}. Tip: Is the list value initialized as the same to the type registered?",
                             val_type[0], val_type[1]));
 
-    // if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
-    //     if (!ast->isJsonable)
-    //         anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
-    //     else {
-    //         if ("true" == val_type[1]) {
-    //             if (auto view = list_any.as_sequence_container(); view) {
-    //                 for (auto e : view) {
-    //                     if (first) first = false; else os << ',';
-    //                     entt::meta_any element_obj = *e;
-    //                     if (element_obj) {
-    //                         if (auto* anson_inst = element_obj.try_cast<anson::Anson>()) {
-    //                             anson_inst->toBlock(os, opts);
-    //                         } else {
-    //                             anerror("Element in list does not inherit from Anson!");
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         else {
-    //             if (auto view = list_any.as_sequence_container(); view) {
-    //                 for (auto e : view) {
-    //                     if (first) first = false; else os << ',';
-    //                     if (auto* p = e.try_cast<IJsonable>()) {
-    //                         p->toBlock(os, opts);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // else if (auto view = list_any.as_sequence_container(); view) {
-    //         bool first = true;
-    //         for (auto e : view) {
-    //             if (first) first = false; else os << ',';
-    //             serialize_prim_value(os, e, val_type, opts);
-    //         }
-    //     }
-    // else
-    //     anerror("Todo: list of "s + val_type[0] + ", ptr " + val_type[1]);
-
     return os << ']';
 }
 
 inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
                        const vector<string> &val_type, const JsonOpt &opts) {
-    /*
-    if ("map<string, string" != dataclass) {
-        anerror("TODO: map of " + dataclass);
-        return os;
-    }
-
-    if (auto view = val.as_associative_container(); view) {
-        os << '{';
-        bool first = true;
-        for (auto [key, value] : view) {
-            if (first) first = false;
-            else os << ", ";
-
-            std::string k = key.cast<std::string>();
-            os << '"' << k << "\": ";
-
-            if (value.type() == entt::resolve<std::string>()) {
-                os << '"' << value.cast<const std::string&>() << '"';
-            }
-            // Maybe it's an int?
-            else if (auto* int_ptr = value.try_cast<int>()) {
-                os << *int_ptr;
-            }
-            // Fallback: Just print the type name
-            else {
-                os << "\"(unknown type): " << value.type().info().name() << '"';
-            }
-        }
-        os << '}';
-    }
-    return os;
-    */
     os << '{';
     bool first = true;
 
@@ -310,8 +213,6 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
         for (auto [k, v] : view) {
             if (first) first = false; else os << ',';
             os << '"' << k.cast<const string&>() << "\": ";
-            // serialize_anson_prim_ptr(os, v, val_type, opts);
-            // serialize_prim_value(os, v, val_type[0], k.cast<string>(), opts);
             serialize_val(os, v, val_type, opts);
         }
     }
@@ -369,51 +270,7 @@ inline static ostream& serialize_fields(ostream &os,
             if (first) first = false; else os << ",";
 
             os << '\"' << fn << R"(": )";
-
-            // vector<string> valtype = Regex::parseMapValtype(f.dataAnclass);
             serialize_val(os, meta_val, vector<string>{f.dataAnclass, f.isptr}, opts);
-
-            // if (f.dataAnclass.starts_with("list<")) {
-            //     if (ast->enttypeid != hashed_string{anson.anclass.c_str()})
-            //         anerror(std::format("serialize_fields(): entt type_id mismatch: {} {}",
-            //                             std::to_string(ast->enttypeid), anson.anclass));
-
-            //     if (meta_val)
-            //         serialize_list(os, meta_val, valtype, opts);
-            //     else
-            //         os << "null";
-            // }
-
-            // else if (f.dataAnclass.starts_with("map<")) {
-            //     vector<string> valtype  = Regex::parseMapValtype(f.dataAnclass);
-            //     if (meta_val)
-            //         serialize_map(os, meta_val, valtype, opts);
-            //     else
-            //         os << "null";
-            // }
-            // else {
-            //     AnsonAst* fd_ast = opts.ast<AnsonAst>(f.dataAnclass);
-            //     if (fd_ast) {
-            //         meta_type enttype = entt::resolve(ast->enttypeid);
-            //         hashed_string data_key{fn.c_str()};
-            //         meta_data data = find_field_recursive(enttype, data_key);
-
-            //         entt::meta_any obj = enttype.from_void(&anson);
-            //         meta_any val = data.get(obj);
-            //         // IJsonable *jsonval = val.try_cast<Anson>();
-            //         // if(jsonval)
-            //         //     jsonval->toBlock(os, opts);
-            //         // else
-            //         //     anerror(std::format("Connot convert from meta_any to IJasonalbe: {}.{}",
-            //         //             ast->dataAnclass, data.name()));
-            //         serialize_jsonable(os, val, *fd_ast, opts);
-            //     }
-            //     else {
-            //         vector<string> valtype  = Regex::parse_val_type(f.dataAnclass);
-            //         entt::meta_any val = ast->get_field_instance(anson, fn);
-            //         serialize_prim_value(os, val, valtype, opts);
-            //     }
-            // }
         }
     }
     return os;
@@ -465,8 +322,6 @@ struct ParseNode {
 
     id_type activekey = 0;
     string map_key;
-
-    // std::function<meta_any()> nest_val_ctor;
 };
 
 template<typename T>
@@ -532,11 +387,6 @@ private:
             andebug(std::format("set_value(): setting value in list: {}", top.val_astid));
             auto view = top.instance.as_sequence_container();
             if (view) {
-                // if ("ValType" == contxt->primtypes.at(top.val_astid))
-                //     // view.insert(view.end(), LangExt::VarType{val});
-                //     view.insert(view.end(), std::forward<V>(LangExt::VarType{to_string(val)}));
-                // else
-                //     view.insert(view.end(), std::forward<V>(val));
                 insert_list(view, val);
                 andebug("set_value(): List size: " + std::to_string(view.size()));
             }
@@ -544,7 +394,6 @@ private:
                 anerror(std::format("set_value(): Failed to set list value: {}", val));
             return;
         }
-        // ???
         else if (top.is_map) {
             andebug(std::format("set_value(): setting value in map: {}", top.map_key));
             auto view = top.instance.as_associative_container();
@@ -671,8 +520,7 @@ public:
                         meta_any inst = datafield.get(stack.back().instance);
                         AnsonField field_confg = ast->fields[fieldname];
                         field_confg.fieldname = fieldname;
-                        push_map(inst, active_key, fd_astid); //, ast->fields.at(fieldname).nest_val_ctor);
-                                 //[field_confg]() { return AnsonField{.fieldname=field_confg.fieldname, .dataAnclass=field_confg.dataAnclass};});
+                        push_map(inst, active_key, fd_astid);
                     }
 
                     else {
@@ -689,7 +537,6 @@ public:
                                  .val_astid=fd_astid});
                         else { // e.g. map<string, string
                             meta_any inst = datafield.get(stack.back().instance);
-                            // push_map(inst, active_key, fd_astid, ast->fields.at(fieldname).nest_val_ctor);
                             push_map(inst, active_key, fd_astid);
                         }
                     }
@@ -903,28 +750,24 @@ public:
             }
             else if (stack.back().is_map) { // map<string, list<...
                 vector<std::string> valtype = Regex::parseListValtype(stack.back().val_astid); // debug
-                // if (!stack.back().nest_val_ctor) {
                 if (!LangExt::has_ctor(stack.back().val_astid)) {
                     anerror("start_array(): Not able to create list value without var_ctor in map of map<"
                             + stack.back().val_astid);
                     return false;
                 }
                 else {
-                    // meta_any list = stack.back().nest_val_ctor();
                     meta_any list = LangExt::call_ctor(stack.back().val_astid);
                     push_list(list, active_key, stack.back().val_astid);
                 }
             }
             else if (stack.back().is_list) { // list<list<...
                 vector<std::string> valtype = Regex::parseListValtype(stack.back().val_astid); // debug
-                // if (!stack.back().nest_val_ctor) {
                 if (!LangExt::has_ctor(stack.back().val_astid)) {
                     anerror("start_array(): Not able to create list value without var_ctor in list of list<"
                             + stack.back().val_astid);
                     return false;
                 }
                 else {
-                    // meta_any list = stack.back().nest_val_ctor();
                     meta_any list = LangExt::call_ctor(stack.back().val_astid);
                     push_list(list, active_key, stack.back().val_astid);
                 }
@@ -973,7 +816,6 @@ public:
                         andebug(v->toBlock(*IJsonable::contxt_ptr));
                 }
                 else if (stack.back().is_map) {
-                    // if (!stack.back().nest_val_ctor) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
                         anerror("end_array(): Not able to create map value without var_ctor in map of map<"
                                 + stack.back().val_astid);
@@ -987,7 +829,6 @@ public:
                     }
                 }
                 else if (stack.back().is_list) {
-                    // if (!stack.back().nest_val_ctor) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
                         anerror("end_array(): Not able to create map value without var_ctor in list of list<"
                             + stack.back().val_astid);
@@ -1018,7 +859,6 @@ public:
                          .activekey=0});
     }
 
-    // void push_list(meta_any ref, id_type active_key, std::string list_type, function<meta_any()> nestval_ctor = nullptr) {
     void push_list(meta_any ref, id_type active_key, std::string list_type) {
         vector<std::string> val_anclass = Regex::parseListValtype(list_type);
         andebug(std::format("List value data class: {}, ptr {}", val_anclass[0], val_anclass[1]));
@@ -1030,11 +870,9 @@ public:
                          .is_val_ptr=is_ptr,
                          .is_list=true, .is_map=false,
                          .activekey=active_key,
-                         // .nest_val_ctor=nestval_ctor
         });
     }
 
-    // void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type, function<meta_any()> nestval_ctor = nullptr) {
     void push_map(meta_any &map_inst, const id_type active_key, const std::string & map_type) {
 
         vector<std::string> val_anclass = Regex::parseMapValtype(map_type);
@@ -1045,7 +883,6 @@ public:
                          .is_val_ptr=(val_anclass[1] == "true"),
                          .is_list=false, .is_map=true,
                          .activekey=active_key,
-                         // .nest_val_ctor=nestval_ctor
         });
     }
 };
