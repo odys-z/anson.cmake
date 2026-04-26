@@ -39,7 +39,7 @@ void register_peersettings(AstMap &asts) {
 }
 
 TEST(Load, PeerSettings) {
-    aninfo(string_view(filesystem::current_path().string()));
+    aninfo(filesystem::current_path().string());
 
     AstMap asts;
     JsonOpt contxt{&asts};
@@ -58,10 +58,10 @@ TEST(Load, PeerSettings) {
     ASSERT_TRUE(result);
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
-    string t02_json = "t03-settings.json";
-    std::ifstream ifstream(t02_json);
+    string t03_json = "t03-settings.json";
+    std::ifstream ifstream(t03_json);
     if (!ifstream.is_open()) {
-        FAIL() << "Could not open the file! " << t02_json << endl;
+        FAIL() << "Could not open the file! " << t03_json << endl;
     }
 
     EnTTSaxParser handler2(settings, IJsonable::contxt_ptr);
