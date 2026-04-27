@@ -146,7 +146,7 @@ inline static void register_2DPtr_asts_callback(AstMap &asts) {
     ast->enttypeid = hashed_string{T_List2DPtr::_type_.c_str()};
 
     ast->fields = map<string, AnsonField>{{"vpp",
-                    {.fieldname="vpp", .dataAnclass = "list<shared_ptr<"s + T_List::_type_}} };
+                    {.dataAnclass = "list<shared_ptr<"s + T_List::_type_}}};
 
     /* Returned something. Depends on entt reflection or Anson semantics generation?
     ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {

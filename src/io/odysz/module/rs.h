@@ -6,9 +6,25 @@
 #include <vector>
 #include <chrono>
 
+#include "io/odysz/common.h"
 #include "io/odysz/anson.h"
 
 namespace anson {
+
+// class Column : public Anson {
+// public:
+//     inline static const string _type_ = "io.odysz.module.rs.AnResultset.Column";
+//     int colx;
+//     string col_id;
+
+//     Column() = default;
+//     Column(int cx, string nom) : colx(cx), col_id(nom) {}
+// };
+
+
+// using ValType = std::variant<std::monostate, int, double, std::string, std::chrono::system_clock::time_point>;
+using Column = vector<LangExt::VarType>;
+using Row = vector<LangExt::VarType>;
 
 /**
  * @brief The AnResultset class
@@ -16,39 +32,33 @@ namespace anson {
  * All indecies start at 0.
  */
 class AnResultset : public Anson {
+    /** start at 0 */
+    int rowIdx;
+    // int rowCnt;
+    // int colCnt;
+    long total;
+
 public:
-    using ValType = std::variant<std::monostate, int, double, std::string, std::chrono::system_clock::time_point>;
+//    inline static const string _variantype_ = "json-value";
 
     inline static const string _type_ = "io.odysz.module.rs.AnResultset";
 
-    struct Column {
-        inline static const string _type_ = AnResultset::_type_ + ".Column";
-        int colx;
-        string col_id;
-    };
-
-    vector<vector<ValType>> rows;
+    vector<vector<LangExt::VarType>> rows;
     map<string, Column> colnames;
 
-    /** start at 0 */
-    int rowIdx;
-    int rowCnt;
-    int colCnt;
-    long total;
-
-    AnResultset() : Anson(_type_), rowIdx(-1), rowCnt(0), colCnt(0), total(0){}
+    AnResultset() : Anson(_type_), rowIdx(-1), total(0){}
 
     template<typename... RowTypes>
     AnResultset(const map<string, Column> &columns, RowTypes&&... row)
         : AnResultset() {
 
         this->colnames = columns;
-        this->colCnt = columns.size();
+        // this->colCnt = columns.size();
 
         this->rows.reserve(sizeof...(row));
 
         ([&](auto& r) {
-            vector<ValType> variantRow;
+            Row variantRow;
             variantRow.reserve(r.size());
 
             for (const auto& cell : r) {
@@ -58,13 +68,13 @@ public:
             this->rows.push_back(std::move(variantRow));
         }(row), ...);
 
-        this->rowCnt = rows.size();
-        total += rowCnt;
+        // this->rowCnt = rows.size();
+        total += rows.size();
     }
 
     bool next() {
-        if (rowIdx < rowCnt)
-            return ++rowIdx < rowCnt;
+        if (rowIdx < static_cast<int>(rows.size()))
+            return ++rowIdx < rows.size();
         else return false;
     }
 
@@ -74,24 +84,32 @@ public:
     }
 
 protected:
-    const ValType* getCell(const string& col) const {
-        if (rowIdx < 0 || rowIdx >= rowCnt) return nullptr;
+    const LangExt::VarType* getCell(const string& col) const {
+        if (rowIdx < 0 || rowIdx >= rows.size()) return nullptr;
 
         auto it = colnames.find(col);
         if (it != colnames.end()) {
-            return &rows[rowIdx][it->second.colx];
+            optional<int> colx = LangExt::var_int(it->second[0]);
+            if (colx)
+                return &rows[rowIdx][*colx];
         }
 
         string c = LangExt::upper_case(col);
         it = colnames.find(c);
         if (it != colnames.end()) {
-            return &rows[rowIdx][it->second.colx];
+            // return &rows[rowIdx][it->second.colx];
+            optional<int> colx = LangExt::var_int(it->second[0]);
+            if (colx)
+                return &rows[rowIdx][*colx];
         }
 
         return nullptr;
     }
 
 public:
+
+    size_t getRowCnt() { return rows.size(); }
+    size_t getColCnt() { return colnames.size(); }
 
     std::optional<int> getInt(const string& col) {
         if (auto* cell = getCell(col)) {

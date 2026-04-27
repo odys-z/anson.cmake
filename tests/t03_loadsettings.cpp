@@ -5,8 +5,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "io/odysz/json.h"
-#include "io/odysz/jprotocol.h"
+#include "io/odysz/entt_jserv.h"
 #include "io/odysz/semantier.h"
 #include "echoreq.h"
 
@@ -17,12 +16,12 @@ void register_peersettings(AstMap &asts) {
     //
     AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
         asts, Anson::_type_, map<string, AnsonField>{
-        {"ansonMsg",   {.fieldname="ansonMsg", .dataAnclass = "string"}},
-        {"ansons",   {.fieldname="ansons", .dataAnclass = "list<string"}},
-        {"scopeEnums",   {.fieldname="scopeEnums", .dataAnclass = "list<string"}},
-        {"javaEnums",   {.fieldname="javaEnums", .dataAnclass = "list<string"}},
-        {"ansonBody",   {.fieldname="ansonBody", .dataAnclass = "string"}},
-        {"anRequests",   {.fieldname="anRequests", .dataAnclass = "list<string"}},
+        {"ansonMsg",  {.dataAnclass = "string"}},
+        {"ansons",    {.dataAnclass = "list<string"}},
+        {"scopeEnums",{.dataAnclass = "list<string"}},
+        {"javaEnums", {.dataAnclass = "list<string"}},
+        {"ansonBody", {.dataAnclass = "string"}},
+        {"anRequests",{.dataAnclass = "list<string"}},
     });
 
     entt::meta_factory<anson::PeerSettings>()
@@ -39,7 +38,7 @@ void register_peersettings(AstMap &asts) {
 }
 
 TEST(Load, PeerSettings) {
-    aninfo(string_view(filesystem::current_path().string()));
+    aninfo(filesystem::current_path().string());
 
     AstMap asts;
     JsonOpt contxt{&asts};
@@ -58,10 +57,10 @@ TEST(Load, PeerSettings) {
     ASSERT_TRUE(result);
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
-    string t02_json = "t03-settings.json";
-    std::ifstream ifstream(t02_json);
+    string t03_json = "t03-settings.json";
+    std::ifstream ifstream(t03_json);
     if (!ifstream.is_open()) {
-        FAIL() << "Could not open the file! " << t02_json << endl;
+        FAIL() << "Could not open the file! " << t03_json << endl;
     }
 
     EnTTSaxParser handler2(settings, IJsonable::contxt_ptr);
@@ -150,10 +149,10 @@ TEST(Load, EchoReq) {
     register_jserv(asts, contxt);
     load_echoAst(asts, "ast/echo.ast.json");
 
-    string t02_echo_json = "t03_echo.body.json";
-    std::ifstream ifstream(t02_echo_json);
+    string t03_echo_json = "t03_echo.body.json";
+    std::ifstream ifstream(t03_echo_json);
     if (!ifstream.is_open()) {
-        FAIL() << "Could not open the file! " << t02_echo_json << endl;
+        FAIL() << "Could not open the file! " << t03_echo_json << endl;
     }
 
     EchoReq echo{};

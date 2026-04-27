@@ -149,6 +149,10 @@ TEST(RegexTest, TestPareseTypes) {
     ASSERT_EQ((std::vector<std::string>{"list<string", "false"}),
               Regex::parseListValtype(R"(list<list<string)")) << "::5";
 
+
+    ASSERT_EQ((std::vector<std::string>{"string", "false"}),
+              Regex::parseMapValtype(R"(map<string, string)")) << "::5.1";
+
     ASSERT_EQ((std::vector<std::string>{"non_list<T_List", "false"}),
               Regex::parseListValtype(R"(non_list<T_List)")) << "::6";
 

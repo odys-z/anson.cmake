@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "io/odysz/jprotocol.h"
-#include "io/odysz/json.h"
+#include "io/odysz/entt_jserv.h"
 
 
 using namespace anson;
@@ -69,7 +69,7 @@ TEST(AnsonResponse, Serialize) {
     ASSERT_EQ((R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
                R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp",)"
                R"("a": "NA","uri": "AnsonResponse.Serialize","m": "TEST AnsonRespse Serialize",)"
-               R"("map": TODO: map<string,string,"rs": []}],)"
+               R"("map": {},"rs": []}],)"
                R"("code": "ok","port": "query"})")
               , json_result) << "serialzied josn string";
 }

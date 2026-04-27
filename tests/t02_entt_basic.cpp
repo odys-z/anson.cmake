@@ -52,7 +52,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     // Verification
     auto& final_vec = instance.cast<anson::T_List&>().val;
     EXPECT_EQ(1, view.size());
-    EXPECT_EQ(0, final_vec.size());
+    EXPECT_EQ(1, final_vec.size());
     vector<string>& val = final_vec;
 
     vector<string> vec{"New Insert"};

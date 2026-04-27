@@ -13,6 +13,13 @@
 #include <sstream>
 #include <vector>
 #include <format>
+#include <variant>
+#include <optional>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <entt/entt.hpp>
+#include <entt/meta/meta.hpp>
 
 #include "utils.h"
 
@@ -172,7 +179,181 @@ public:
             return null;
         else return s;
     }
+
+    using VarType = std::variant<std::monostate,
+                                 int, double, float,
+                                 std::string,
+                                 std::chrono::system_clock::time_point>;
+
+    inline static std::optional<std::string> var_str(VarType v) {
+        return std::visit([](auto&& arg) -> std::optional<std::string> {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, std::monostate>) return std::nullopt;
+
+            if constexpr (std::is_same_v<T, std::string>) return arg;
+
+            if constexpr (std::is_same_v<T, int> || std::is_same_v<T, double>)
+                return std::to_string(arg);
+
+            else if constexpr (std::is_same_v<T, std::chrono::system_clock::time_point>)
+                return std::format("{:%Y-%m-%d %H:%M:%S}", arg);
+
+            return std::nullopt;
+        }, v);
+    }
+
+    inline static std::optional<int> var_int(VarType v) {
+        if (auto ptr = std::get_if<int>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static std::optional<double> var_double(VarType v) {
+        if (auto ptr = std::get_if<double>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static std::optional<chrono::system_clock::time_point> var_time(VarType v) {
+        if (auto ptr = std::get_if<chrono::system_clock::time_point>(&v)) {
+            return *ptr;
+        }
+        return std::nullopt;
+    }
+
+    inline static VarType any2var(entt::meta_any v) {
+        using namespace entt::literals;
+
+        if (!v) return std::monostate{};
+
+        auto type = v.type();
+        if (type == entt::resolve<int>()) return v.cast<int>();
+        if (type == entt::resolve<double>()) return v.cast<double>();
+
+        if (type == entt::resolve<std::string>()) return v.cast<std::string>();
+        if (type == entt::resolve<const std::string>()) return v.cast<std::string>();
+        if (type == entt::resolve<char*>()) return v.cast<char*>();
+        if (type == entt::resolve<const char*>()) return v.cast<const char*>();
+
+        // if (type == entt::resolve<float>()) return v.cast<float>();
+        if (auto* f = v.try_cast<float>()) return *f;
+
+        if (type == entt::resolve<std::chrono::system_clock::time_point>())
+            return v.cast<std::chrono::system_clock::time_point>();
+
+        return std::monostate{};
+    }
+
+    inline static ostream& serialize_var(ostream& os, const entt::meta_any & v) {
+        using namespace entt::literals;
+
+        if (!v) return os << "null";
+
+        // Gemini: When wrap std::variant in a meta_any, EnTT sees the variant type, not the type currently held inside the variant.
+        if (auto* var = v.try_cast<LangExt::VarType>()) {
+            return std::visit([&](auto&& arg) -> ostream& {
+                return serialize_var(os, entt::meta_any{arg});
+            }, *var);
+        }
+
+        auto type = v.type();
+        // if (auto* i = v.try_cast<int>())    return os << *i;
+        // if (auto* d = v.try_cast<double>()) return os << *d;
+        // if (auto* f = v.try_cast<float>()) return os << *f;
+
+        if (type == entt::resolve<int>()) return os << v.cast<int>();
+        if (type == entt::resolve<double>() || type == entt::resolve<float>()) {
+            std::string s = std::to_string(v.cast<double>());
+            // Remove unnecessary trailing zeros, but keep the ".0"
+            s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+            if (s.back() == '.') s += '0';
+            return os << s;
+        }
+
+        // if (type == entt::resolve<float>()) return os << v.cast<float>();
+
+        if (auto* s = v.try_cast<std::string>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<const std::string>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<char*>()) return os << '"' << *s << '"';
+        if (auto* s = v.try_cast<const char*>()) return os << '"' << *s << '"';
+
+        if (auto* tp = v.try_cast<std::chrono::system_clock::time_point>())
+            return os << format("{:%Y-%m-%d %H:%M:%S}", floor<std::chrono::seconds>(*tp));
+
+        return os << "null";
+
+    }
+
+    inline static map<string, std::function<entt::meta_any()>*> var_ctors;
+
+    inline static bool has_ctor(const string & vartyp) {
+        return var_ctors.contains(vartyp);
+    }
+
+    /**
+     * @brief call_ctor
+     * @param tp
+     * @return Gemini: will create different instance, e.g. vector for different callers.
+     */
+    inline static entt::meta_any call_ctor(const string &tp) {
+        if (has_ctor(tp)) {
+            auto *f = var_ctors.at(tp);
+            return (*f)();
+        }
+        else
+            return {};
+    }
+
+    inline static void register_ctor(const string & tp, std::function<entt::meta_any()> *c) {
+        var_ctors[tp] = c;
+    }
+
+    // friend bool operator == (const VarType& u, const std::string& v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const std::string& v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const VarType& u, const char* v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const char* v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
 };
+
+inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
+    std::string s(str, len);
+    std::istringstream ss{s};
+    std::chrono::system_clock::time_point tp;
+
+    if (len == 4) {
+        ss >> std::chrono::parse("%Y", tp);
+    } else if (len == 10) {
+        ss >> std::chrono::parse("%F", tp);
+    } else {
+        ss >> std::chrono::parse("%F %T", tp);
+    }
+    return tp;
+}
+
+// inline LangExt::VarType operator ""_d(long double v) {
+//     return static_cast<double>(v);
+// }
+
+// inline LangExt::VarType operator ""_l(unsigned long long v) {
+//     return static_cast<long>(v);
+// }
 
 /**
  * Structure to hold decomposed URL parts

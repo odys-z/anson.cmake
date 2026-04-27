@@ -16,7 +16,11 @@ namespace anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    virtual string _type_special(string msgtype) {
+        anerror("[ERROR] AnsonBody::_type_special(): any type id generation reached here can be an error.\n"s
+              + _type_ + " must not be used as an ast-id part, etc.");
+        return msgtype + "<" + _type_;
+    }
 
     string a;
     string uri;
@@ -26,6 +30,33 @@ public:
     AnsonBody(string a) : Anson(_type_) , a(a) {}
 
     AnsonBody(string a, string type) : Anson(type), a(a) {}
+};
+
+class AnsonHeader : public anson::Anson {
+    string uid;
+    string ssid;
+    string iv64;
+    vector<string> usrAct;
+
+    /**
+     * Session token, encrypt(key=session-token, text=ssid+uid, iv) : iv
+     * in base64, where session-token is reply of login.
+     *
+     * @since java 1.4.36, cmake 0.1
+     */
+    string ssToken;
+};
+
+class JProtocol {
+public:
+    string protocolpath;
+};
+
+struct CRUD {
+    inline static const string C = "I";
+    inline static const string R = "R";
+    inline static const string U = "U";
+    inline static const string D = "D";
 };
 
 class EchoReq: public AnsonBody {
@@ -82,7 +113,9 @@ struct EnEnregistrement {
     static constexpr size_t compter = N;
     static const std::array<std::string_view, N> noms;
 
-    EnEnregistrement(E v) : valeur(v) {}
+    EnEnregistrement(E v) : valeur(v) {
+        andebug("EnEnregistrement Constructeur: "s + _type_);
+    }
 
     constexpr bool operator==(std::string_view s) const {
         for (int i = 0; i < compter; i++) {
@@ -108,7 +141,6 @@ class AnsonResp : public AnsonBody{
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
-    // MsgCode code;
     string m;
     vector<AnResultset> rs;
     map<string, Anson> map;
@@ -226,9 +258,118 @@ class OnProgress {
     virtual void progess(const string& path, std::string status);
 };
 
-class JProtocol {
+class AnQueryReq : public AnsonBody {
+
 public:
-    string protocolpath;
+    inline static const string _type_ = "io.odysz.semantic.jserv.R.AnQueryReq";
+
+    /**Main table */
+    string mtabl;
+    /**Main table alias*/
+    string mAlias;
+
+    /**
+     * <pre>
+     * joins: [join-obj],
+     * join-obj: [{t: "j/R/l", tabl: "table-1", as: "t_alais", on: conds}]
+     * conds: [cond-obj]
+     * cond-obj: {(main-table | alais.)left-col-val op (table-1 | alias2 .)right-col-val}
+     * op: '=' | '&lt;=' | '&gt;=' ...</pre>
+     */
+    vector<vector<string>> joins;
+
+    /**exprs: [expr-obj],
+     * expr-obj: {tabl: "b_articles/t_alais", alais: "recId", expr: "recId"}
+     *  */
+    vector<vector<string>> exprs;
+
+    /**where: [cond-obj], see {@link #joins}for cond-obj.*/
+    vector<vector<string>> where;
+
+    /**orders: [order-obj],
+     - order-obj: {tabl: "b_articles", field: "pubDate", asc: "true"} */
+    vector<vector<string>> orders;
+
+    /**group: [group-obj]
+     - group-obj: {tabl: "b_articles/t_alais", expr: "recId" } */
+    vector<string> groups;
+
+    int page;
+    int pgsize;
+
+    vector<string> limt;
+
+    vector<vector<string>> havings;
+
+    AnQueryReq() : AnsonBody(CRUD::R, _type_) {}
+
+    AnQueryReq(string a) : AnsonBody(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
+
+class AnUpdateReq : public AnsonBody {
+public:
+    inline static const string _type_ = "io.odysz.semantic.jserv.U.AnUpdateeq";
+
+    /**Main table */
+    string mtabl;
+    AnUpdateReq* Mtabl(string mtbl) {
+        mtabl = mtbl;
+        return this;
+    }
+
+    /**nvs: [nv-obj],
+     * nv-obj: {n: "roleName", v: "admin"}
+     */
+    vector<vector<LangExt::VarType>> nvs;
+
+    /**inserting values, used for "I". 3d array [[[n, v], ...]] */
+    vector<vector<vector<LangExt::VarType>>> nvss;
+
+    /**
+     * Inserting columns, used for "I".
+     * Here a col shouldn't be an expression - so not vector<LangExt::VarType>, unlike that of query.
+     */
+    vector<string> cols;
+
+    /**
+     * Get columns for sql's insert into COLs.
+     * @return columns
+     */
+    vector<string> Cols() { return cols; }
+
+    /**where: [cond-obj], see {@link #joins}for cond-obj.*/
+    vector<vector<LangExt::VarType>> where;
+
+    string limt;
+
+    vector<AnUpdateReq> postUpds;
+
+    AnsonHeader header;
+
+    vector<vector<LangExt::VarType>> attacheds;
+
+    AnUpdateReq() : AnsonBody(CRUD::D, _type_) {}
+
+    AnUpdateReq(string a) : AnsonBody(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+
+protected:
+    AnUpdateReq(string a, string tp) : AnsonBody(a, tp) {}
+};
+
+class AnInsertReq : public AnUpdateReq {
+public:
+    inline static const string _type_ = "io.odysz.semantic.jserv.U.AnInsertReq";
+
+    AnInsertReq() : AnUpdateReq(CRUD::C, _type_) {}
+
+    AnInsertReq(string a) : AnUpdateReq(a, _type_) {}
+
+    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+};
+
 }
 

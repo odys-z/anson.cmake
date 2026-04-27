@@ -2,10 +2,8 @@
 #include <entt/meta/meta.hpp>
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
-#include <iostream>
 
-#include "io/odysz/jprotocol.h"
-#include "io/odysz/json.h"
+#include "io/odysz/entt_jserv.h"
 #include <io/odysz/module/rs.h>
 
 
@@ -18,7 +16,7 @@ static JsonOpt contxt{&asts};
 
 TEST(AnResultset, StringVal) {
 
-    map<string, AnResultset::Column> cols {
+    map<string, Column> cols {
       {"X", {0, "x"}},
       {"Y", {1, "y"}}
     };
@@ -29,10 +27,11 @@ TEST(AnResultset, StringVal) {
 
     AnResultset rstr{cols, r0, r1, r2};
 
-    ASSERT_EQ(2, rstr.colCnt);
-    ASSERT_EQ(3, rstr.rowCnt);
+    ASSERT_EQ(2, rstr.getColCnt());
+    ASSERT_EQ(3, rstr.getRowCnt());
 
-    rstr.beforeFirst().next();
+    rstr.beforeFirst();
+    ASSERT_TRUE(rstr.next());
     EXPECT_EQ("x0", rstr.getString("x"));
     EXPECT_EQ("y0", rstr.getString("y"));
     rstr.next();
@@ -47,7 +46,7 @@ TEST(AnResultset, StringVal) {
 }
 
 TEST(AnResultset, IntVal) {
-    map<string, AnResultset::Column> cols {
+    map<string, Column> cols {
       {"M", {0, "m"}},
       {"N", {1, "n"}},
       {"O", {2, "o"}},
@@ -79,7 +78,7 @@ TEST(AnResultset, Serialize_Deserialize) {
     register_jserv(asts, contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-    map<string, AnResultset::Column> cols {
+    map<string, Column> cols {
         {"X", {0, "x"}},
         {"Y", {1, "y"}}
     };
@@ -92,12 +91,17 @@ TEST(AnResultset, Serialize_Deserialize) {
     AnResultset rstr{cols, r0, r1, r2};
 
     string json = rstr.toBlock(contxt);
-    anlog(json);
+    anlog("------------------------------------ "s + json);
 
     AnResultset rs;
     bool result = Anson::from_json(json, rs);
-    anlog(std::format("[2] ok: {}, anclass: {}, rows: {}", result, rs.anclass, rs.rowCnt));
+    anlog(std::format("[2] ok: {}, anclass: {}, rows: {}",
+                      result, rs.anclass, rs.getRowCnt()));
 
     ASSERT_TRUE(result);
     ASSERT_EQ(AnResultset::_type_, rs.anclass) << "[2]rs->anclass";
+    ASSERT_EQ(3, rs.rows.size()) << "[2]rs.rows.size";
+    ASSERT_EQ(3, rs.getRowCnt()) << "[2]rs.rowCnt";
+    ASSERT_EQ(2, rs.colnames.size()) << "[2]rs.colnames.size()";
+    ASSERT_EQ(2, rs.getColCnt()) << "[2]rs.colCnt";
 }
