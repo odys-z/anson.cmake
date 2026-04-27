@@ -30,7 +30,8 @@ TEST(AnResultset, StringVal) {
     ASSERT_EQ(2, rstr.getColCnt());
     ASSERT_EQ(3, rstr.getRowCnt());
 
-    rstr.beforeFirst().next();
+    rstr.beforeFirst();
+    ASSERT_TRUE(rstr.next());
     EXPECT_EQ("x0", rstr.getString("x"));
     EXPECT_EQ("y0", rstr.getString("y"));
     rstr.next();

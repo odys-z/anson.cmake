@@ -73,7 +73,7 @@ public:
     }
 
     bool next() {
-        if (rowIdx < rows.size())
+        if (rowIdx < static_cast<int>(rows.size()))
             return ++rowIdx < rows.size();
         else return false;
     }
