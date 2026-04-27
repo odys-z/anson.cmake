@@ -52,7 +52,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
         map<string, AnsonField>{
             /**Main table */
             {"mtabl", {.dataAnclass="string"}},
-            // /**Main table alias*/
+            /**Main table alias*/
             {"mAlias", {.dataAnclass="string"}},
 
             /**

@@ -1,0 +1,9 @@
+{ "type": "io.odysz.anson.AnsonAst",
+  "base": "io.odysz.anson.Anson",
+  "A": {"echo":  "echo", "inet":  "inet"},
+  "dataAnclass": "io.oz.album.tier.T_PhotoCSS",
+  "dataBaseAst": "io.odysz.anson.Anson",
+  "fields" : {
+    "size": {"dataAnclass": "list<int"}
+  }
+}

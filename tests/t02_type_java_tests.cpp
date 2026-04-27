@@ -78,33 +78,50 @@ TEST(JUNIT, NestedList) {
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string jblock = R"({"type":"io.odysz.semantic.jserv.U.AnInsertReq",)"
-                    R"("nvs":[["type""type","type","io.oz.album.tier.PhotoRec"],["css","{\"type\":\"io.odysz.semantic.T_PhotoCSS\", \"size\":[4,3,3,4]}"]],)"
+                    // the java side tolerated this error: R"("nvs":[["type""type","type","io.oz.album.tier.PhotoRec"]
+                    R"("nvs":[["type\"\"type","type","io.oz.album.tier.PhotoRec"],)"
+                           R"(["css","{\"type\":\"io.odysz.semantic.T_PhotoCSS\", \"size\":[4,3,3,4]}"]],)"
                     R"("nvss": [[["0-0-0.0 0-0-0.1","v0-0-1.0,v0-0-1.1","0-0-2"],["0-1-0"]]])"
                     R"(})";
 
     AnInsertReq req;
     bool result = Anson::from_json(jblock, req);
     ASSERT_TRUE(result);
-    ASSERT_EQ("\"type\"\"type\"", LangExt::var_str(req.nvs[0][0]));
-    ASSERT_EQ("\"type\"", LangExt::var_str(req.nvs[0][1]));
+    ASSERT_EQ("type\"\"type", LangExt::var_str(req.nvs[0][0]));
+    // ISSUE The java side is "\"type\"", which is not expected.
+    ASSERT_EQ("type", LangExt::var_str(req.nvs[0][1]));
 
     ASSERT_EQ("0-0-0.0 0-0-0.1", LangExt::var_str(req.nvss[0][0][0]));
     ASSERT_EQ("0-0-2", LangExt::var_str(req.nvss[0][0][2]));
     ASSERT_EQ("0-1-0", LangExt::var_str(req.nvss[0][1][0]));
 }
 
-// TEST(JUNIT, NoSql) {
-//     string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.test.U.AnInsertReq\","s
-//                     + "\"nvs\":[[\"type\"\"type\",\"type\",\"io.oz.album.tier.PhotoRec\"],[\"css\",\"{\\\"type\\\":\\\"io.odysz.semantic.T_PhotoCSS\\\", \\\"size\\\":[4,3,3,4]}\"]],"
-//                     + "\"nvss\": [[[\"0-0-0.0,0-0-0.1\",\"0-0-1\"],[\"0-1-0\"]]]"
-//                     + "}";
+TEST(JUNIT, NoSql) {
+    register_jserv(asts, opts);
+    register_ast(asts, "ast/photo_css.json");
+    anlog(to_aststring(asts, T_PhotoCSS::_type_), PrintFormat{.head="------", .sep="\n"});
 
-//     AnInsertReq req;
-//     bool result = Anson::from_json(jblock, req);
-//     ASSERT_TRUE(result);
+    string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.U.AnInsertReq\","s
+                    + "\"nvs\":[[\"type\\\"\\\"type\",\"type\",\"io.oz.album.tier.PhotoRec\"],[\"css\",\"{\\\"type\\\":\\\"io.oz.album.tier.T_PhotoCSS\\\", \\\"size\\\":[4,3,3,4]}\"]],"
+                    + "\"nvss\": [[[\"0-0-0.0,0-0-0.1\",\"0-0-1\"],[\"0-1-0\"]]]"
+                    + "}";
 
-//     T_PhotoCSS css;
-//     result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css);
-//     ASSERT_TRUE(result);
-//     ASSERT_EQ (4, css.size[0]);
-// }
+    AnInsertReq req;
+    bool result = Anson::from_json(jblock, req);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(R"({"type":"io.oz.album.tier.T_PhotoCSS", "size":[4,3,3,4]})", LangExt::var_str(req.nvs[1][1]));
+
+    T_PhotoCSS css;
+    result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(T_PhotoCSS::_type_, css.anclass);
+    ASSERT_EQ(css.anclass, css.type);
+    ASSERT_EQ(((vector<int>{4,3,3,4})), css.size);
+    ASSERT_EQ(4, css.size[0]);
+    ASSERT_EQ(3, css.size[1]);
+    ASSERT_EQ(3, css.size[2]);
+    ASSERT_EQ(4, css.size[3]);
+
+    string json = css.toBlock(opts);
+    ASSERT_EQ(R"({"type": "io.oz.album.tier.T_PhotoCSS","size": [4,3,3,4]})", json);
+}

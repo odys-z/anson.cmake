@@ -44,7 +44,7 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
 
     if ("int" == opts.primtypes.at(valtype[0])) {
         if (inst) {
-            auto *s = inst.try_cast<const std::string>();
+            auto *s = inst.try_cast<const int>();
             return os << *s;
         }
     }
@@ -608,7 +608,7 @@ public:
 
     bool key(string_t& val) override {
         active_key = hashed_string{val.c_str()};
-        andebug(std::format("key(): deserializing key {}, key-id: {}", val, active_key));
+        andebug(std::format("key(): deserializing key {} (id: {})", val, active_key));
 
         if (!stack.empty()) {
             stack.back().map_key = val;
@@ -852,7 +852,15 @@ public:
 
 
     /////////////////////////////////////////////////////////////////
-    bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception&) override {
+    bool parse_error(std::size_t s, const std::string& e, const nlohmann::detail::exception& x) override {
+
+        anerror(std::format("Parse error [TODO call onError()]:\nsize: {}, e: {}, x: {}]",
+                            s, e, x.what()));
+        if (stack.size() > 0) {
+            ParseNode top = stack.back();
+            anerror(std::format("stack top: [val_astid: {}, map_key: {}, is_list {}, is_map {}]",
+                                top.val_astid, top.map_key, top.is_list, top.is_map));
+        }
         return false;
     }
 
@@ -894,6 +902,17 @@ template<typename T>
 inline static bool parse(const string& json, T &an, const JsonOpt *opts) {
     EnTTSaxParser handler{an, opts};
     return nlohmann::json::sax_parse(json, &handler);
+}
+
+inline static string to_aststring(const AstMap &asts, const string & astid) {
+    string fields;
+
+    AnsonAst *ast = asts.at(astid).get();
+
+    for (auto& [fn, f] :ast->fields)
+        fields += std::format("\n\t{}: {}", fn, f.dataAnclass);
+
+    return std::format("{}: {} [{}\n\t]", astid, ast->dataBaseAst, fields);
 }
 
 inline static vector<string> to_aststring(const AstMap &asts) {

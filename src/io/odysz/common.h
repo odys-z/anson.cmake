@@ -310,6 +310,26 @@ public:
     inline static void register_ctor(const string & tp, std::function<entt::meta_any()> *c) {
         var_ctors[tp] = c;
     }
+
+    // friend bool operator == (const VarType& u, const std::string& v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const std::string& v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const VarType& u, const char* v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const char* v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
 };
 
 inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {

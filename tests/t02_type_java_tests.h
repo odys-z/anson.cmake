@@ -139,17 +139,62 @@ inline static AnsonAst* register_AnsTStrsList(AstMap & asts) {
 
 class T_PhotoCSS : public Anson {
 public:
-    inline static const string _type_ = "io.odysz.semantic.T_PhotoCSS";
+    inline static const string _type_ = "io.oz.album.tier.T_PhotoCSS";
 
     vector<int> size;
 
-    T_PhotoCSS() {
-        size = vector<int> { 0, 0 };
+    T_PhotoCSS() : Anson(_type_) {
+        size = vector<int> {};
     }
 
-    T_PhotoCSS(int w, int h) {
+    T_PhotoCSS(int w, int h) : Anson(_type_) {
         size = vector<int> {w, h};
     }
 };
 
+// MEMO: There are the .data() callings unable to generalized, but can be handled with callbacks.
+//
+// template <typename D, typename DBase>
+inline static optional<AnsonAst*> register_ast(AstMap & asts, string ast_pth) {
+    optional<AnsonAst*> _ast = load_ast(asts, ast_pth);
+    if (_ast) {
+        AnsonAst *ast = _ast.value();
+
+        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+            auto& concrete = static_cast<const T_PhotoCSS&>(ans);
+            if ("size" == fieldname)
+                return entt::forward_as_meta(concrete.size);
+
+            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
+                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+                return bast->get_field_instance(ans, fieldname);
+            }
+
+            anerror(std::format("get_entt_instance<T_PhotoCSS>(): Failed to get entt field instance: {}",
+                        T_PhotoCSS::_type_, fieldname));
+            return {};
+        };
+
+        string anclass = ast->dataAnclass;
+        hashed_string enttype = hashed_string{anclass.c_str()};
+
+        meta_factory<T_PhotoCSS> protype =
+        entt::meta_factory<T_PhotoCSS>()
+            .type(enttype)
+            // .template base<DBase>()
+            // .template ctor<>()
+            // .template ctor<string>()
+            .base<Anson>()
+            .ctor<>()
+            .data<&T_PhotoCSS::size>("size")
+            .func<+[](const T_PhotoCSS &inst) -> std::shared_ptr<T_PhotoCSS> {
+                andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
+                return std::make_shared<T_PhotoCSS>(inst);
+            }>("create_ptr")
+        ;
+
+        ast->enttypeid = enttype;
+    }
+    return _ast;
+}
 }

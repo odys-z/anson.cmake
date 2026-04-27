@@ -18,6 +18,41 @@ inline static int cnt = 0;
 using namespace entt;
 using namespace entt::literals;
 
+inline static optional<AnsonAst*> load_ast(AstMap & asts, string ast_pth) {
+    std::ifstream iss(ast_pth);
+    if (!iss.is_open()) {
+        anerror(string_view(std::format("Can not open the file {}! ", ast_pth)));
+        return nullptr;
+    }
+    AnsonAst *ast = new AnsonAst{};
+    EnTTSaxParser handler(*ast, IJsonable::contxt_ptr);
+
+    bool result = nlohmann::json::sax_parse(iss, &handler);
+
+    if (!result) {
+        anerror(std::format("AST parsing failed. file{}).", ast_pth));
+        return nullptr;
+    }
+    else if (asts.contains(ast->dataAnclass)) {
+        anwarn(std::format("AST {} already exists. Ingore updating for avoiding unique-ptr deletion error (Only happens with heavy template usage?).",
+                           ast->dataAnclass));
+        return nullptr;
+    }
+    else {
+        for (auto& [fn, f] : ast->fields)
+            if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+                anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
+                                   fn, f.dataAnclass, f.fieldname));
+                if (LangExt::isblank(f.fieldname))
+                    f.fieldname = fn;
+            }
+
+        andebug(std::format("AST loaded: {}, field size: {}", ast->dataAnclass, ast->fields.size()));
+        asts[ast->dataAnclass] = unique_ptr<AnsonAst>(ast);
+        return ast;
+    }
+}
+
 template <typename AN, typename AST>
 inline static AST* createAST(AstMap &asts, const string &base_ast_id,
                              map<string, AnsonField> fields) {
@@ -449,6 +484,7 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                 f.fieldname = fn;
         }
 
+    // TODO merge with load_ast()?
     string anclass = bodyAst->dataAnclass;
     hashed_string enttype = hashed_string{anclass.c_str()};
 
@@ -533,19 +569,6 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
     if (!load_msg_specialAst<Rq>(asts, ifstream, registerBodyFields))
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
-
-// inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
-//     IJsonable::contxt_ptr = &ctx_opt;
-
-//     register_varctors();
-//     register_asts(asts);
-//     register_msgs(asts);
-//     register_enums<MsgCode>(asts);
-//     register_port(asts, "ast/port.ast.json");
-//     specialize_respmsg(asts);
-//     // setup_ext_crud(asts);
-// }
-
 
 }
 
