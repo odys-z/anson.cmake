@@ -40,9 +40,9 @@ inline static optional<AnsonAst*> load_ast(AstMap & asts, string ast_pth) {
     }
     else {
         for (auto& [fn, f] : ast->fields)
-            if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+            if (!LangExt::isblank(f.fieldname) && f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
                 anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
-                                   fn, f.dataAnclass, f.fieldname));
+                                   fn, f.fieldname, f.dataAnclass));
                 if (LangExt::isblank(f.fieldname))
                     f.fieldname = fn;
             }
@@ -477,7 +477,7 @@ template <typename BD, typename BD_Base>
 inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                    const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
     for (auto& [fn, f] : bodyAst->fields)
-        if (LangExt::isblank(f.fieldname) || LangExt::isblank(f.dataAnclass)) {
+        if (!LangExt::isblank(f.fieldname) && f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
             anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
                                fn, f.dataAnclass, f.fieldname));
             if (LangExt::isblank(f.fieldname))

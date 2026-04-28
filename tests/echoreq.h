@@ -3,6 +3,7 @@
 #include "io/odysz/anson.h"
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/json.h"
+#include "io/odysz/semantier.h"
 
 namespace anson{
 
