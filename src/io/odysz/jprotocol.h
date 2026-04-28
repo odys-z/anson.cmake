@@ -16,11 +16,11 @@ namespace anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    virtual string _type_special(string msgtype) {
-        anerror("[ERROR] AnsonBody::_type_special(): any type id generation reached here can be an error.\n"s
-              + _type_ + " must not be used as an ast-id part, etc.");
-        return msgtype + "<" + _type_;
-    }
+    // virtual string _type_special(string msgtype) {
+    //     anerror("[ERROR] AnsonBody::_type_special(): any type id generation reached here can be an error.\n"s
+    //           + _type_ + " must not be used as an ast-id part, etc.");
+    //     return msgtype + "<" + _type_;
+    // }
 
     string a;
     string uri;
@@ -65,6 +65,8 @@ public:
     map<string, entt::any> data;
     UserReq() : UserReq("null") {}
     UserReq(string a) : AnsonBody(a, _type_) {}
+
+    // virtual string _type_special(string msgtype) { return msgtype + "<" + type; }
 };
 
 /**
@@ -142,7 +144,7 @@ public:
         return this;
     }
 
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 template <typename T //anson::AnsonBody
@@ -163,13 +165,16 @@ public:
 
     MsgCode::Code code;
 
-    AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
+    // AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
+    AnsonMsg() : Anson(_type_, _type_ + '<' + T::_type_), port("_sentinel_") { }
 
-    AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
+    // AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
+    AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         cout << port.enm;
     }
 
-    AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
+    // AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
+    AnsonMsg(Port port, const T& body) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         this->Body(body);
     }
 
@@ -298,7 +303,7 @@ public:
 
     AnQueryReq(string a) : AnsonBody(a, _type_) {}
 
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 class AnUpdateReq : public AnsonBody {
@@ -347,7 +352,7 @@ public:
 
     AnUpdateReq(string a) : AnsonBody(a, _type_) {}
 
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 
 protected:
     AnUpdateReq(string a, string tp) : AnsonBody(a, tp) {}
@@ -361,7 +366,7 @@ public:
 
     AnInsertReq(string a) : AnUpdateReq(a, _type_) {}
 
-    virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
 };
 
 }
