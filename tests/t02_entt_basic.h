@@ -148,25 +148,6 @@ inline static void register_2DPtr_asts_callback(AstMap &asts) {
     ast->fields = map<string, AnsonField>{{"vpp",
                     {.dataAnclass = "list<shared_ptr<"s + T_List::_type_}}};
 
-    /* Returned something. Depends on entt reflection or Anson semantics generation?
-    ast->get_entt_instance = [](IJsonable& inst, id_type key) -> meta_any {
-        auto& concrete = static_cast<T_List2DPtr&>(inst);
-
-        auto type = entt::resolve<T_List2DPtr>();
-
-        if (auto data = find_field_recursive(type, key); data) {
-            if (!entt::resolve(data.type().id())) {
-                anerror("Field type is not registered in EnTT meta system!");
-            }
-            meta_any d = data.get(concrete);
-            if (d)
-                return d;
-        }
-        anerror("get_entt_instance(): Failed to get entt instance (meta_any)");
-        return {};
-    };
-    */
-
     ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
         if (!ast->fields.contains(fieldname))
             return meta_any{false};
