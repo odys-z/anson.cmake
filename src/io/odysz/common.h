@@ -286,6 +286,50 @@ public:
         return os << "null";
 
     }
+
+    inline static map<string, std::function<entt::meta_any()>*> var_ctors;
+
+    inline static bool has_ctor(const string & vartyp) {
+        return var_ctors.contains(vartyp);
+    }
+
+    /**
+     * @brief call_ctor
+     * @param tp
+     * @return Gemini: will create different instance, e.g. vector for different callers.
+     */
+    inline static entt::meta_any call_ctor(const string &tp) {
+        if (has_ctor(tp)) {
+            auto *f = var_ctors.at(tp);
+            return (*f)();
+        }
+        else
+            return {};
+    }
+
+    inline static void register_ctor(const string & tp, std::function<entt::meta_any()> *c) {
+        var_ctors[tp] = c;
+    }
+
+    // friend bool operator == (const VarType& u, const std::string& v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const std::string& v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const VarType& u, const char* v) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
+
+    // friend bool operator == (const char* v, const VarType& u) {
+    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
+    //            || (LangExt::var_str(u).value_or("") == v);
+    // }
 };
 
 inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {

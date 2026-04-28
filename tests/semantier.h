@@ -1,7 +1,7 @@
 #pragma once
 
 #include <io/odysz/anson.h>
-#include <io/odysz/jprotocol.h>
+#include <io/odysz/json.h>
 
 
 namespace anson {
@@ -15,7 +15,6 @@ public:
     size_t end;
 
     map<string, vector<string>>clientPaths;
-
 };
 
 /**
@@ -27,6 +26,6 @@ public:
     string synuri;
     string docTabl;
     DocsReq(string a) : UserReq(a) {}
-
 };
+
 }

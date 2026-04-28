@@ -1,5 +1,8 @@
+![Version](https://img.shields.io/badge/version-0.1.0-orange)
+![CMake Version](https://img.shields.io/badge/CMake-3.30+-064F8C?logo=cmake)
+
 # anson.cmake
-The cmake peer of Antson. 
+The cmake peer of [Antson](https://github.com/odys-z/antson). 
 
 # Run Tests (VCPKG)
 

@@ -2,10 +2,8 @@
 #include <entt/meta/meta.hpp>
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
-#include <iostream>
 
-#include "io/odysz/jprotocol.h"
-#include "io/odysz/json.h"
+#include "io/odysz/entt_jserv.h"
 #include <io/odysz/module/rs.h>
 
 
@@ -16,64 +14,65 @@ static AstMap asts;
 
 static JsonOpt contxt{&asts};
 
-// TEST(AnResultset, StringVal) {
+TEST(AnResultset, StringVal) {
 
-//     map<string, AnResultset::Column> cols {
-//       {"X", {0, "x"}},
-//       {"Y", {1, "y"}}
-//     };
-//     vector<string>
-//         r0{"x0", "y0"},
-//         r1{"x1", "y1"},
-//         r2{"x2", "y2"};
+    map<string, Column> cols {
+      {"X", {0, "x"}},
+      {"Y", {1, "y"}}
+    };
+    vector<string>
+        r0{"x0", "y0"},
+        r1{"x1", "y1"},
+        r2{"x2", "y2"};
 
-//     AnResultset rstr{cols, r0, r1, r2};
+    AnResultset rstr{cols, r0, r1, r2};
 
-//     ASSERT_EQ(2, rstr.colCnt);
-//     ASSERT_EQ(3, rstr.rowCnt);
+    ASSERT_EQ(2, rstr.getColCnt());
+    ASSERT_EQ(3, rstr.getRowCnt());
 
-//     rstr.beforeFirst().next();
-//     EXPECT_EQ("x0", rstr.getString("x"));
-//     EXPECT_EQ("y0", rstr.getString("y"));
-//     rstr.next();
-//     EXPECT_EQ("x1", rstr.getString("x"));
-//     EXPECT_EQ("y1", rstr.getString("y"));
-//     rstr.next();
-//     EXPECT_EQ("x2", rstr.getString("x"));
-//     EXPECT_EQ("y2", rstr.getString("y"));
+    rstr.beforeFirst();
+    ASSERT_TRUE(rstr.next());
+    EXPECT_EQ("x0", rstr.getString("x"));
+    EXPECT_EQ("y0", rstr.getString("y"));
+    rstr.next();
+    EXPECT_EQ("x1", rstr.getString("x"));
+    EXPECT_EQ("y1", rstr.getString("y"));
+    rstr.next();
+    EXPECT_EQ("x2", rstr.getString("x"));
+    EXPECT_EQ("y2", rstr.getString("y"));
 
-//     ASSERT_FALSE(rstr.next());
-//     EXPECT_EQ(std::nullopt, rstr.getString("y"));
-// }
+    ASSERT_FALSE(rstr.next());
+    EXPECT_EQ(std::nullopt, rstr.getString("y"));
+}
 
-// TEST(AnResultset, IntVal) {
-//     map<string, AnResultset::Column> cols {
-//       {"M", {0, "m"}},
-//       {"N", {1, "n"}},
-//       {"O", {2, "o"}},
-//       {"P", {3, "p"}}
-//     };
+TEST(AnResultset, IntVal) {
+    map<string, Column> cols {
+      {"M", {0, "m"}},
+      {"N", {1, "n"}},
+      {"O", {2, "o"}},
+      {"P", {3, "p"}}
+    };
 
-//     vector<int>
-//         r0{00, 01},
-//         r1{10, 11},
-//         r2{20, 21, 23, 24};
+    vector<int>
+        r0{00, 01},
+        r1{10, 11},
+        r2{20, 21, 23, 24};
 
-//     AnResultset intrs{cols, r0, r1, r2};
+    AnResultset intrs{cols, r0, r1, r2};
 
-//     intrs.beforeFirst().next();
-//     EXPECT_EQ(0, intrs.getInt("m"));
-//     EXPECT_EQ(1, intrs.getInt("n"));
+    intrs.beforeFirst().next();
+    EXPECT_EQ(0, intrs.getInt("m"));
+    EXPECT_EQ(1, intrs.getInt("n"));
 
-//     EXPECT_EQ(std::nullopt, intrs.getString("m"));
-//     EXPECT_EQ(std::nullopt, intrs.getString("n"));
+    EXPECT_EQ(std::nullopt, intrs.getString("m"));
+    EXPECT_EQ(std::nullopt, intrs.getString("n"));
 
-//     while(intrs.next())
-//         ;
+    while(intrs.next())
+        ;
 
-//     ASSERT_FALSE(intrs.next());
-//     EXPECT_EQ(std::nullopt, intrs.getString("n"));
-// }
+    ASSERT_FALSE(intrs.next());
+    EXPECT_EQ(std::nullopt, intrs.getString("n"));
+}
 
 TEST(AnResultset, Serialize_Deserialize) {
     register_jserv(asts, contxt);
@@ -97,8 +96,12 @@ TEST(AnResultset, Serialize_Deserialize) {
     AnResultset rs;
     bool result = Anson::from_json(json, rs);
     anlog(std::format("[2] ok: {}, anclass: {}, rows: {}",
-                      result, rs.anclass, rs.rowCnt));
+                      result, rs.anclass, rs.getRowCnt()));
 
     ASSERT_TRUE(result);
     ASSERT_EQ(AnResultset::_type_, rs.anclass) << "[2]rs->anclass";
+    ASSERT_EQ(3, rs.rows.size()) << "[2]rs.rows.size";
+    ASSERT_EQ(3, rs.getRowCnt()) << "[2]rs.rowCnt";
+    ASSERT_EQ(2, rs.colnames.size()) << "[2]rs.colnames.size()";
+    ASSERT_EQ(2, rs.getColCnt()) << "[2]rs.colCnt";
 }
