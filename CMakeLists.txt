@@ -7,7 +7,11 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpk
 # set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed" CACHE PATH "vcpkg install dir")
 
-project(anson.cmake LANGUAGES CXX)
+project(anson.cmake
+    VERSION 0.1.0
+    DESCRIPTION "The cpp peer of Anson"
+    HOMEPAGE_URL "https://github.com/odys-z/anson.cmake"
+    LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

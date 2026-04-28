@@ -7,6 +7,7 @@
 #include <entt/meta/meta.hpp>
 
 #include "anson.h"
+#include "jprotocol.h"
 
 namespace anson {
 
@@ -25,4 +26,18 @@ public:
     PeerSettings() : Anson(_type_) {}
     
 };
+
+class EchoReq: public AnsonBody {
+public:
+    inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
+    string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+
+    string echo;
+
+    EchoReq() : AnsonBody("r/query", EchoReq::_type_) {}
+
+    EchoReq(string echo) : AnsonBody("r/query", EchoReq::_type_), echo(echo) {}
+};
+
+
 }

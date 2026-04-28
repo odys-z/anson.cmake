@@ -59,18 +59,6 @@ struct CRUD {
     inline static const string D = "D";
 };
 
-class EchoReq: public AnsonBody {
-public:
-    inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
-    string _type_special(string msgtype) { return msgtype + "<" + _type_; }
-
-    string echo;
-
-    EchoReq() : AnsonBody("r/query", EchoReq::_type_) {}
-
-    EchoReq(string echo) : AnsonBody("r/query", EchoReq::_type_), echo(echo) {}
-};
-
 class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
@@ -218,6 +206,11 @@ public:
 
     size_t body_size() {
         return body.size();
+    }
+
+    AnsonMsg<T>& Code(MsgCode::Code c) {
+        code = c;
+        return *this;
     }
 };
 
