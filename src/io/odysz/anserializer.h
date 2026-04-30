@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 
-#include "anson.h"
+#include "reflect.h"
 
 namespace anson {
 
@@ -143,11 +143,10 @@ inline static ostream& serialize_val(ostream& os, meta_any &inst,
     return os;
 }
 
-inline static ostream& serialize_anson_prim_ptr(ostream& os, const meta_any &inst,
-                       const vector<string> &val_type, const JsonOpt &opts) {
-
-    return os;
-}
+// inline static ostream& serialize_anson_prim_ptr(ostream& os, const meta_any &inst,
+//                        const vector<string> &val_type, const JsonOpt &opts) {
+//     return os;
+// }
 
 inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
                        const vector<string> &val_type, const JsonOpt &opts) {

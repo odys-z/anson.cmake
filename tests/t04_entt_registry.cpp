@@ -6,7 +6,7 @@
 
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/json.h"
-#include "echoreq.h"
+#include "echoreq.expect.h"
 
 using json = nlohmann::json;
 using namespace anson;
@@ -17,7 +17,7 @@ TEST(ENTT_META, JSON_REGISTRY) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    load_echoAst(asts, "ast/echo.ast.json");
+    load_echoAst_expect(asts, "ast/echo.ast.json");
 
     JsonOpt jsonopts{&asts};
     IJsonable::contxt_ptr = &jsonopts;
@@ -46,7 +46,8 @@ TEST(ENTT_META, JSON_REGISTRY) {
         data.set(req_instance, std::string("Reflection Hello"));
     }
 
-    string msg_anclass = EchoReq()._type_special(AnsonMsg<EchoReq>::_type_);
+    // string msg_anclass = EchoReq()._type_special(AnsonMsg<EchoReq>::_type_);
+    string msg_anclass = AnsonMsg<EchoReq>().anclass;
     auto msg_rfl = entt::resolve(hashed_string{msg_anclass.c_str()}).construct(Port(Port::echo));
 
     std::cout << "Actual Type Name: " << msg_rfl.type().info().name() << std::endl;

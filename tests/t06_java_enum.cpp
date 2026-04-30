@@ -6,7 +6,7 @@
 #include <io/odysz/jprotocol.h>
 #include "io/odysz/entt_jserv.h"
 
-#include "echoreq.h"
+#include "echoreq.expect.h"
 
 namespace {
 

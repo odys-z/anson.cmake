@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <string>
 #include <nlohmann/json.hpp>
 #include <entt/entt.hpp>
@@ -23,21 +22,35 @@ public:
     vector<string> ansonMsgs;
     vector<string> anRequests;
 
-    PeerSettings() : Anson(_type_) {}
-    
+    string cpp_gen;
+
+    PeerSettings() : Anson(_type_), cpp_gen("semantier.gen.h") {}
 };
 
 class EchoReq: public AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq";
-    string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+
+    struct A {
+        inline static const string echo = "echo";
+        inline static const string inet = "inet";
+    };
 
     string echo;
 
-    EchoReq() : AnsonBody("r/query", EchoReq::_type_) {}
+    EchoReq() : AnsonBody("na", EchoReq::_type_) {}
 
-    EchoReq(string echo) : AnsonBody("r/query", EchoReq::_type_), echo(echo) {}
+    /**
+     * Java:
+     * @AnsonCtor(initialist="echo(m)", base={"na"})
+     *
+     * AST.ctors[1]:
+     * [["echo", "string", "m"], ["na"]]
+     *
+     * @brief EchoReq
+     * @param m
+     */
+    EchoReq(string m) : AnsonBody("na", EchoReq::_type_), echo(m) {}
 };
-
 
 }

@@ -7,35 +7,10 @@
 
 #include "io/odysz/entt_jserv.h"
 #include "io/odysz/semantier.h"
-#include "echoreq.h"
+#include "echoreq.expect.h"
 
 using json = nlohmann::json;
 using namespace anson;
-
-void register_peersettings(AstMap &asts) {
-    //
-    AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
-        asts, Anson::_type_, map<string, AnsonField>{
-        {"ansonMsg",  {.dataAnclass = "string"}},
-        {"ansons",    {.dataAnclass = "list<string"}},
-        {"scopeEnums",{.dataAnclass = "list<string"}},
-        {"javaEnums", {.dataAnclass = "list<string"}},
-        {"ansonBody", {.dataAnclass = "string"}},
-        {"anRequests",{.dataAnclass = "list<string"}},
-    });
-
-    entt::meta_factory<anson::PeerSettings>()
-        .type(ast->enttypeid)
-        .base<Anson>()
-        .ctor<>()
-        .data<&anson::PeerSettings::ansons>("ansons")
-        .data<&anson::PeerSettings::scopeEnums>("scopeEnums")
-        .data<&anson::PeerSettings::javaEnums>("javaEnums")
-        .data<&anson::PeerSettings::ansonMsg>("ansonMsg")
-        .data<&anson::PeerSettings::ansonBody>("ansonBody")
-        .data<&anson::PeerSettings::anRequests>("anRequests")
-        ;
-}
 
 TEST(Load, PeerSettings) {
     aninfo(filesystem::current_path().string());
@@ -51,7 +26,8 @@ TEST(Load, PeerSettings) {
     std::string json_input = std::format(R"({{"type": "{}"}})", PeerSettings::_type_);
     EnTTSaxParser handler(settings, IJsonable::contxt_ptr);
 
-    cout << "[0] " << json_input << endl; settings.type = "";
+    andebug("[0] " + json_input);
+    settings.type = "";
     bool result = nlohmann::json::sax_parse(json_input, &handler);
 
     ASSERT_TRUE(result);
@@ -84,13 +60,15 @@ TEST(Load, PeerSettings) {
     ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.MsgCode"}, settings.scopeEnums) << "settings.scopeEnums";
     ASSERT_EQ(vector<string>{"io.odysz.semantic.jprotocol.Port"}, settings.javaEnums) << "settings.javaEnums";
 
-    ASSERT_EQ((vector<string>{"io.odysz.semantic.jprotocol.EchoReq",
+    ASSERT_EQ((vector<string>{"ast/echo.ast.json",
                              "io.odysz.semantic.jprotocol.SessionReq",
                              "io.odysz.semantic.jprotocol.QueryReq",
                              "io.odysz.semantic.jprotocol.UpdateReq",
                              "io.odysz.semantic.jprotocol.DeleteReq",
                              "io.odysz.semantic.jprotocol.UsersReq"}),
               settings.anRequests) << "settings.anRequests";
+
+    ASSERT_EQ("semantier.gen.hpp", settings.cpp_gen) << "settings.cpp_gen";
 }
 
 /**
@@ -147,7 +125,7 @@ TEST(Load, EchoReq) {
     AstMap asts;
     JsonOpt contxt{&asts};
     register_jserv(asts, contxt);
-    load_echoAst(asts, "ast/echo.ast.json");
+    load_echoAst_expect(asts, "ast/echo.ast.json");
 
     string t03_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t03_echo_json);

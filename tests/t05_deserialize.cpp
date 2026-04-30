@@ -6,7 +6,7 @@
 
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/entt_jserv.h"
-#include "echoreq.h"
+#include "echoreq.expect.h"
 
 namespace anson {
 
@@ -96,7 +96,7 @@ TEST(Anson, PORT) {
 
 TEST(Anson, AnsonMsg_EchoReq) {
     register_jserv(enums, contxt);
-    load_echoAst(enums, "ast/echo.ast.json");
+    load_echoAst_expect(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
 
@@ -127,7 +127,8 @@ TEST(Anson, AnsonMsg_EchoReq) {
     cout << "[3] ok: " << result << ", anclass: " << msg2.anclass << ", port: " << msg2.port << endl;
 
     ASSERT_TRUE(result);
-    ASSERT_EQ(EchoReq()._type_special(AnsonMsg<EchoReq>::_type_), msg2.anclass) << "msg->anclass";
+    // ASSERT_EQ(EchoReq()._type_special(AnsonMsg<EchoReq>::_type_), msg2.anclass) << "msg->anclass";
+    ASSERT_EQ(AnsonMsg<EchoReq>().anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ("input", msg2.type);
 
     EXPECT_EQ(Port::query, msg2.port.url()) << "[3] msg->port";
@@ -144,7 +145,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
 TEST(Anson, Servialize_Msg) {
     JsonOpt opts{&enums};
     register_jserv(enums, opts);
-    load_echoAst(enums, "ast/echo.ast.json");
+    load_echoAst_expect(enums, "ast/echo.ast.json");
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<EchoReq>;

@@ -4,7 +4,9 @@
   "scopeEnums": ["io.odysz.semantic.jprotocol.MsgCode"],
   "javaEnums" : ["io.odysz.semantic.jprotocol.Port"],
   "ansonBody" : "io.odysz.semantic.jprotocol.AnsonBody",
-  "anRequests": ["io.odysz.semantic.jprotocol.EchoReq", "io.odysz.semantic.jprotocol.SessionReq",
+  "anRequests": ["ast/echo.ast.json",
+                "io.odysz.semantic.jprotocol.SessionReq",
                 "io.odysz.semantic.jprotocol.QueryReq", "io.odysz.semantic.jprotocol.UpdateReq", "io.odysz.semantic.jprotocol.DeleteReq",
-                "io.odysz.semantic.jprotocol.UsersReq"]
+                "io.odysz.semantic.jprotocol.UsersReq"],
+  "cpp_gen"   : "semantier.gen.hpp"
 }

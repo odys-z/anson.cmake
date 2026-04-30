@@ -8,6 +8,7 @@
 #include <entt/entt.hpp>
 #include <entt/meta/container.hpp>
 #include <string>
+#include "semantier.h"
 #include "json.h"
 
 namespace anson {
@@ -245,6 +246,33 @@ inline static void setup_jserv_crud(AstMap &asts) {
     });
 }
 
+inline static void register_peersettings(AstMap &asts) {
+    //
+    AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
+        asts, Anson::_type_, map<string, AnsonField>{
+        {"ansonMsg",  {.dataAnclass = "string"}},
+        {"ansons",    {.dataAnclass = "list<string"}},
+        {"scopeEnums",{.dataAnclass = "list<string"}},
+        {"javaEnums", {.dataAnclass = "list<string"}},
+        {"ansonBody", {.dataAnclass = "string"}},
+        {"anRequests",{.dataAnclass = "list<string"}},
+        {"cpp_gen",   {.dataAnclass = "string"}}
+    });
+
+    entt::meta_factory<anson::PeerSettings>()
+        .type(ast->enttypeid)
+        .base<Anson>()
+        .ctor<>()
+        .data<&anson::PeerSettings::ansons>("ansons")
+        .data<&anson::PeerSettings::scopeEnums>("scopeEnums")
+        .data<&anson::PeerSettings::javaEnums>("javaEnums")
+        .data<&anson::PeerSettings::ansonMsg>("ansonMsg")
+        .data<&anson::PeerSettings::ansonBody>("ansonBody")
+        .data<&anson::PeerSettings::anRequests>("anRequests")
+        .data<&anson::PeerSettings::cpp_gen>("cpp_gen")
+        ;
+}
+
 inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     IJsonable::contxt_ptr = &ctx_opt;
 
@@ -255,6 +283,7 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     register_port(asts, "ast/port.ast.json");
     specialize_respmsg(asts);
     setup_jserv_crud(asts);
+    register_peersettings(asts);
 }
 
 }

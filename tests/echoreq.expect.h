@@ -31,7 +31,7 @@ inline static void load_usereqAst(AstMap &asts, const string &ast_path) {
     });
 }
 
-inline static void load_echoAst(AstMap &asts, const string &ast_path) {
+inline static void load_echoAst_expect(AstMap &asts, const string &ast_path) {
     specialize_msg_astpth<EchoReq>(asts, ast_path,
       [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
 
