@@ -279,8 +279,8 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     bool has_basefields = false;
-    if (opts.has_ast(ast->dataBaseAst)) {
-        AnsonAst *base_ast = opts.asts->at(ast->dataBaseAst).get();
+    if (opts.has_ast(ast->baseAnclass)) {
+        AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
             auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
             serialize_fields(os, base_fields, anson, opts);
@@ -334,8 +334,8 @@ private:
         AnsonAst *base_ast;
         if (inst_ast->fields.contains(fieldname))
             return contxt->ast<AnsonAst>(inst_ast->fields.at(fieldname).dataAnclass);
-        else if (!LangExt::isblank(inst_ast->dataBaseAst) &&
-                (base_ast = contxt->ast<AnsonAst>(inst_ast->dataBaseAst)))
+        else if (!LangExt::isblank(inst_ast->baseAnclass) &&
+                (base_ast = contxt->ast<AnsonAst>(inst_ast->baseAnclass)))
             return find_field_ast(base_ast, fieldname);
 
         return nullptr;
@@ -911,7 +911,7 @@ inline static string to_aststring(const AstMap &asts, const string & astid) {
     for (auto& [fn, f] :ast->fields)
         fields += std::format("\n\t{}: {}", fn, f.dataAnclass);
 
-    return std::format("{}: {} [{}\n\t]", astid, ast->dataBaseAst, fields);
+    return std::format("{}: {} [{}\n\t]", astid, ast->baseAnclass, fields);
 }
 
 inline static vector<string> to_aststring(const AstMap &asts) {
@@ -921,7 +921,7 @@ inline static vector<string> to_aststring(const AstMap &asts) {
         string fields;
         for (auto& [fn, f] : v->fields)
             fields += std::format("\n\t{}: {}", f.fieldname, f.dataAnclass);
-        sv.push_back(std::format("{}: {} -> {} [{}\n\t]", k, v->dataAnclass, v->dataBaseAst, fields));
+        sv.push_back(std::format("{}: {} -> {} [{}\n\t]", k, v->dataAnclass, v->baseAnclass, fields));
     }
     return sv;
 }

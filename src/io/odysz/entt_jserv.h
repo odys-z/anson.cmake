@@ -36,8 +36,8 @@ inline static void setup_jserv_crud_deprecated(AstMap &asts) {
                     return entt::forward_as_meta(concrete.exprs);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -135,8 +135,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
                     return entt::forward_as_meta(concrete.havings);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -217,8 +217,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
                     return entt::forward_as_meta(concrete.attacheds);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -235,8 +235,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
       [](meta_factory<AnInsertReq> &entf, AnsonBodyAst *ast) {
 
         ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 

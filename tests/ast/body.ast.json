@@ -1,6 +1,6 @@
 { "type": "io.odysz.semantier.AnsonAst",
   "base"  : "io.odysz.anson.Anson",
-  "antype": "io.odysz.semantic.jprotocol.AnsonBody",
+  "dataAnclass": "io.odysz.semantic.jprotocol.AnsonBody",
   "fields" : {
     "uri": {"antype": "String"},
     "port": {"antype": "io.odysz.semantic.jprotocol.Port"},

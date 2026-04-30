@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include "io/odysz/anson.h"
 #include "io/odysz/utils.h"
+#include "io/odysz/reflect.h"
 
 namespace anson {
 using namespace entt;
@@ -97,7 +98,7 @@ inline static void register_2Dasts(AstMap &asts) {
     string anclass = T_List2D().anclass;
     AnsonAst *ast = new AnsonAst{anclass, false};
     ast->dataAnclass = T_List2D::_type_;
-    ast->dataBaseAst = AnsonAst::_type_;
+    ast->baseAnclass = AnsonAst::_type_;
     ast->base = Anson::_type_;
     ast->enttypeid = hashed_string{T_List2D::_type_.c_str()};
 
@@ -141,7 +142,7 @@ inline static void register_2DPtr_asts_callback(AstMap &asts) {
     anclass = T_List2DPtr().anclass;
     AnsonAst *ast = new AnsonAst{anclass, false};
     ast->dataAnclass = T_List2DPtr::_type_;
-    ast->dataBaseAst = Anson::_type_;
+    ast->baseAnclass = Anson::_type_;
     ast->base = Anson::_type_;
     ast->enttypeid = hashed_string{T_List2DPtr::_type_.c_str()};
 

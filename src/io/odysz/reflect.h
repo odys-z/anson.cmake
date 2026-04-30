@@ -48,7 +48,7 @@ public:
     bool isVar = false;
     string base = "io.odysz.anson.Anson";
 
-    string dataBaseAst;
+    string baseAnclass;
     /** The target's anson type or data type, e.g. string */
     string dataAnclass;
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
@@ -91,8 +91,8 @@ public:
 const string AnsonAst::find_field_astid(const AstMap* asts, const string & fieldname) const {
     if (fields.contains(fieldname))
         return fields.at(fieldname).dataAnclass;
-    else if (asts->contains(dataBaseAst)) {
-        const AnsonAst *baseAst = asts->at(dataBaseAst).get();
+    else if (asts->contains(baseAnclass)) {
+        const AnsonAst *baseAst = asts->at(baseAnclass).get();
         return baseAst->find_field_astid(asts, fieldname);
     }
     return "";
@@ -178,8 +178,9 @@ public:
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
     this->anclass = anclass;
     if (contxt_ptr->asts->contains(anclass)) {
-        // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
-        map<string, string> encode = dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
+        map<string, string> encode =
+            // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
+            dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
         if (encode.contains(enm)) {
             enm = encode[enm];
             return;

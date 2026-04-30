@@ -1,6 +1,6 @@
 { "type": "io.odysz.anson.AnsonAst",
   "dataAnclass": "io.oz.album.tier.T_PhotoCSS",
-  "dataBaseAst": "io.odysz.anson.Anson",
+  "baseAnclass": "io.odysz.anson.Anson",
   "fields" : {
     "size": {"dataAnclass": "list<int"}
   }

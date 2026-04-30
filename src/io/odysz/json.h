@@ -62,7 +62,7 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
     hashed_string enttype{antype.c_str()};
 
     ast = new AST(antype);
-    ast->dataBaseAst = base_ast_id;
+    ast->baseAnclass = base_ast_id;
     ast->enttypeid = enttype;
     ast->dataAnclass = anson.anclass;
 
@@ -150,7 +150,7 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::fields>("fields")
         .data<&anson::AnsonAst::enums>("enums")
         .data<&anson::AnsonAst::static_val>("static_val")
-        .data<&anson::AnsonAst::dataBaseAst>("dataBaseAst")
+        .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         ;
 
@@ -218,7 +218,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         .template data<&anson::AnsonMsg<T>::body>("body");
 
     AnsonMsgAst *ast = new AnsonMsgAst(anclass);
-    ast->dataBaseAst = Anson::_type_;
+    ast->baseAnclass = Anson::_type_;
     ast->enttypeid = enttype;
     ast->dataAnclass = anclass;
 
@@ -237,8 +237,8 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         else if ("body" == fieldname)
             return entt::forward_as_meta(concrete.body);
 
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -290,11 +290,11 @@ inline static void specialize_respmsg(AstMap & asts) {
                 return entt::forward_as_meta(concrete.map);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
             andebug(std::format("------- {} ------- {} ------ {} ",
                                 ++cnt, ast->dataAnclass, fieldname));
 
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -341,8 +341,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.rows);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -367,8 +367,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.uri);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->dataBaseAst);
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 

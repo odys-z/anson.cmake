@@ -160,7 +160,7 @@ TEST(Anson, Servialize_Msg) {
 
     std::cout << "Serialized JSON: " << json_result << std::endl;
     ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
-              R"("body": [{"type": "io.odysz.semantic.jserv.echo.EchoReq","a": "r/query","uri": "","echo": "Hello World"}],)"
+              R"("body": [{"type": "io.odysz.semantic.jserv.echo.EchoReq","a": "na","uri": "","echo": "Hello World"}],)"
               R"("code": "null","port": "query"})"
               , json_result);
 }

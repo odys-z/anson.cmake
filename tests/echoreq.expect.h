@@ -20,8 +20,8 @@ inline static void load_usereqAst(AstMap &asts, const string &ast_path) {
             return entt::forward_as_meta(concrete.data);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-            AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -44,8 +44,8 @@ inline static void load_echoAst_expect(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.echo);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->dataBaseAst)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->dataBaseAst);
+            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
