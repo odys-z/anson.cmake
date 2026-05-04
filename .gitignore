@@ -62,3 +62,5 @@ vcpkg_installed
 commit.comments*
 commit-comments
 qstr.txt
+
+ast-cpy

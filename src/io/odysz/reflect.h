@@ -201,5 +201,24 @@ inline string JavaEnum::valof() const {
     }
     return enm;
 }
+
+class PeerSettings : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.semantier.PeerSettings";
+
+    vector<string> ansons;
+    vector<string> scopeEnums;
+    vector<string> javaEnums;
+    string ansonMsg;
+    string ansonBody;
+    vector<string> ansonMsgs;
+    vector<string> anRequests;
+
+    string cpp_gen;
+
+    PeerSettings() : Anson(_type_), cpp_gen("semantier.gen.h") {}
+};
+
+
 }
 

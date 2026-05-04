@@ -8,7 +8,6 @@
 #include <entt/entt.hpp>
 #include <entt/meta/container.hpp>
 #include <string>
-#include "semantier.h"
 #include "json.h"
 
 namespace anson {
