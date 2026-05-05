@@ -48,7 +48,6 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     cout << "[3] ok: " << result << ", anclass: " << msg2.anclass << ", port: " << msg2.port << endl;
 
     ASSERT_TRUE(result);
-    // ASSERT_EQ(EchoReq()._type_special(AnsonMsg<EchoReq>::_type_), msg2.anclass) << "msg->anclass";
     ASSERT_EQ(AnsonMsg<EchoReq2>().anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ("input", msg2.type);
 
