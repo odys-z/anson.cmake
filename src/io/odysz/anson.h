@@ -26,6 +26,7 @@ public:
     string indent;
 
     const map<string, string> astyps;
+    /** @deprecated */
     const map<string, string> primtypes;
     const AstMap *asts;
 
@@ -248,6 +249,33 @@ public:
     map<string, std::any> data;
 
     SemanticObject() : Anson(_type_) { }
+};
+
+class SessionInf : public Anson {
+
+public:
+    inline static string _type_ = "io.odysz.semantics.SessionInf";
+    string ssid;
+    string uid;
+    string roleId;
+    string userName;
+    string roleName;
+
+    /**
+     * Session Token
+     * @since 1.4.37
+     */
+    string ssToken;
+
+    /**
+     * Last Sequence
+     * @since 1.4.37
+     */
+    int seq;
+
+    string device;
+
+    SessionInf() : Anson(_type_) { }
 };
 }
 

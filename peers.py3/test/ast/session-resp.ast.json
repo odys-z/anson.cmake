@@ -1,0 +1,12 @@
+{ "type": "io.odysz.reflect.AnsonBodyAst",
+  "base": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.odysz.semantic.jsession.AnSessionResp",
+  "baseAnclass": "io.odysz.semantic.jprotocol.AnsonResp",
+  "fields" : {
+    "ssInf": {"dataAnclass": "io.odysz.semantic.SessionInf"},
+    "profile": {"dataAnclass": "io.odysz.anson.Anson"}
+  },
+  "ctors": [[[], ["string", "ssInf.ssid", "=", "ssid"], ["string", "ssInf.uid", "=", "uid"], ["string", "ssInf.roleId", "=", "roleId"]],
+            [[], ["SessionInf", "ssInf", "ss_inf"]],
+            [["\"\""], []]]
+}

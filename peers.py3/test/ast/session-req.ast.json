@@ -1,0 +1,16 @@
+{ "type": "io.odysz.reflect.AnsonBodyAst",
+  "base": "io.odysz.reflect.AnsonAst",
+  "A": {
+    "login": "login", "logout": "logout", "pswd": "pswd",
+    "init": "init", "touch": "touch", "ping": "ping"
+  },
+  "dataAnclass": "io.odysz.semantic.jsession.AnSessionReq",
+  "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",
+  "fields" : {
+    "uid": {"dataAnclass": "string"},
+    "token": {"dataAnclass": "string"},
+    "iv": {"dataAnclass": "string"},
+    "deviceId": {"dataAnclass": "string"}
+  },
+  "ctors": [[[], []]]
+}

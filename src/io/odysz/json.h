@@ -306,9 +306,11 @@ inline static void specialize_respmsg(AstMap & asts) {
 }
 
 inline static void register_msgs(AstMap &asts) {
-    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
-        {"data", {.fieldname="data", .dataAnclass = "map<string, string"}}
+    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+            {"data", {.fieldname="data", .dataAnclass = "map<string, string"}}
     });
+
     entt::meta_factory<anson::SemanticObject>()
         .type(ast->enttypeid)
         .ctor<>()
@@ -321,14 +323,6 @@ inline static void register_msgs(AstMap &asts) {
         {"columns", {.dataAnclass = "map<string, list<VarType"}},
         {"rows", {.dataAnclass = "list<list<VarType"}}
     });
-
-    entt::meta_factory<anson::AnResultset>()
-        .type(ast->enttypeid)
-        .ctor<>()
-        .base<anson::Anson>()
-        .data<&anson::AnResultset::colnames>("columns")
-        .data<&anson::AnResultset::rows>("rows")
-        ;
 
     ast->get_field_instance
         = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
@@ -349,6 +343,79 @@ inline static void register_msgs(AstMap &asts) {
         anerror("get_field_instance<AnResultset>(): Failed to get entt instance (meta_any): "s + fieldname);
         return {};
     };
+
+    entt::meta_factory<anson::AnResultset>()
+        .type(ast->enttypeid)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::AnResultset::colnames>("columns")
+        .data<&anson::AnResultset::rows>("rows")
+        ;
+
+    // String ssid;
+    // String uid;
+    // String roleId;
+    // String userName;
+    // String roleName;
+    // String ssToken;
+    // int seq;
+    // String device;
+    ast = createAST<SessionInf, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+        {"ssid", {.dataAnclass = "string"}},
+        {"uid", {.dataAnclass = "string"}},
+        {"roleId", {.dataAnclass = "string"}},
+        {"userName", {.dataAnclass = "string"}},
+        {"roleName", {.dataAnclass = "string"}},
+        {"ssToken", {.dataAnclass = "string"}},
+        {"seq", {.dataAnclass = "int"}},
+        {"deivce", {.dataAnclass = "string"}}
+    });
+
+    ast->get_field_instance
+        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const SessionInf&>(ans);
+            if ("ssid" == fieldname)
+                return entt::forward_as_meta(concrete.ssid);
+            else if ("uid" == fieldname)
+                return entt::forward_as_meta(concrete.uid);
+            else if ("roleId" == fieldname)
+                return entt::forward_as_meta(concrete.roleId);
+            else if ("userName" == fieldname)
+                return entt::forward_as_meta(concrete.userName);
+            else if ("roleName" == fieldname)
+                return entt::forward_as_meta(concrete.roleName);
+            else if ("ssToken" == fieldname)
+                return entt::forward_as_meta(concrete.ssToken);
+            else if ("seq" == fieldname)
+                return entt::forward_as_meta(concrete.seq);
+            else if ("device" == fieldname)
+                return entt::forward_as_meta(concrete.device);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<SessionInf>(): Failed to get entt instance (meta_any): "s + fieldname);
+        return {};
+    };
+
+    entt::meta_factory<anson::SessionInf>()
+        .type(ast->enttypeid)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::SessionInf::ssid>("ssid")
+        .data<&anson::SessionInf::uid>("uid")
+        .data<&anson::SessionInf::roleId>("roleId")
+        .data<&anson::SessionInf::userName>("userName")
+        .data<&anson::SessionInf::roleName>("roleName")
+        .data<&anson::SessionInf::ssToken>("ssToken")
+        .data<&anson::SessionInf::seq>("seq")
+        .data<&anson::SessionInf::device>("device")
+        ;
 
     //
     ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{

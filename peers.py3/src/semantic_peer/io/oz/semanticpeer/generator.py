@@ -3,8 +3,29 @@ from pathlib import Path
 from typing import cast, List
 
 from anson.io.odysz.anson import Anson
-from anson.io.odysz.common import Utils, LangExt
-from semanticshare.io.odysz.reflect import AnsonBodyAst, PeerSettings, AnsonAst, primtypes
+from anson.io.odysz.common import Utils, LangExt, primtypes
+from semanticshare.io.odysz.reflect import AnsonBodyAst, PeerSettings, AnsonAst, init_asts
+
+
+def entt_ctors(ast: AnsonAst) -> List[str]:
+    '''
+    :param ctorstrs: e.g.
+        [[["echo", "string", "m"], ["r/query"]],
+        [[], ["r/query"]]]
+    :return: .ctor<>().ctor<string>()
+    '''
+    # return [f'        entf.ctor<{c}>();\n' for ctor in ast.ctors for c in ctor[0]]
+    ctorss = []
+    for ctor in ast.ctors:
+        lst = []
+        for c in ctor[1:]:
+            if len(c) > 1:
+                # string echo m
+                # string ssInf.ssid = sid
+                lst.append(c[0])
+        ctorss.append(f'        entf.ctor<{", ".join(lst)}>();\n')
+
+    return ctorss
 
 
 @dataclass
@@ -44,11 +65,17 @@ public:
     [3] inline static const string...
     '''
 
-    def class_fields(self, ast: AnsonAst):
+    def class_fields(self, asts: dict[str, AnsonAst], ast: AnsonAst):
         fields = []
 
         for fn, fd in ast.fields.items():
-            fields.append(f'    {primtypes.C20[fd["dataAnclass"]]} {fn};\n')
+            ftype = fd['dataAnclass']
+            if ftype in primtypes['C20']:
+                fields.append(f'    {primtypes["C20"][ftype]} {fn};\n')
+            elif ftype in asts:
+                fields.append(f'    {asts[ftype].c_class()} {fn};\n')
+            else:
+                fields.append(f'    {ftype.split(".")[-1]} {fn};\n')
 
         return fields
 
@@ -65,6 +92,11 @@ public:
         for ctorss in ast.ctors:
             # e.g. [['r/peer-test'], ['string', 'echo', 'm']]
             parlist, fieldini = [], []
+
+            # e.g. semntics = {"ssInf.ssid=ssid", "ssInf.uid=uid", "ssInf.roleId=roleId"}
+            #      [[[], ["string", "ssInf.ssid", "=", "ssid"], ["string", "ssInf.uid", "=", "uid"], ["string", "ssInf.roleId", "=", "roleId"]], ...
+            ctor_body = []
+
             if LangExt.len(ctorss[0]) == 0:
                 base_ini_list = '_type_'
             else:
@@ -73,13 +105,22 @@ public:
             for parass in ctorss[1:]:
                 if LangExt.len(parass) == 0:
                     continue
-                if LangExt.len(parass) != 3:
-                    Utils.warn("Error: ", parass)
-                    continue
-                parlist.append(parass[0] + " " + parass[2])
-                fieldini.append(f'{parass[1]}({parass[2]})')
+                # if LangExt.len(parass) != 3 and LangExt.len(parass) != 2:
+                    # Utils.warn("Error: ", parass)
+                    # continue
+                if LangExt.len(parass) == 3:
+                    parlist.append(parass[0] + " " + parass[2])
+                    fieldini.append(f'{parass[1]}({parass[2]})')
+                elif LangExt.len(parass) == 4 and parass[2] == '=':
+                    parlist.append(parass[0] + " " + parass[3])
+                    # fieldini.append(f'{parass[1]}({parass[2]})')
+                    ctor_body.append(f'\n        {parass[1]} = {parass[3]};')
 
-            ctors.append(f'    {ast.c_class()}({", ".join(parlist)}) : {ast.c_base()}({base_ini_list}){"," if len(fieldini) > 0 else ""} {", ".join(fieldini)} {{}};\n')
+                else: Utils.warn("Error: Cannot parse ctor's initializer list: " + "\,".join(parass))
+
+            base_ini = f'{ast.c_base()}({base_ini_list}){", " if len(fieldini) > 0 else " "}'
+            ctor_body = ''.join(ctor_body) + ('' if len(ctor_body) == 0 else '\n    ')
+            ctors.append(f'\n    {ast.c_class()}({", ".join(parlist)}) : {base_ini}{", ".join(fieldini)} {{{ctor_body}}};\n')
         return ctors
 
     inline_static = True
@@ -91,24 +132,6 @@ public:
 
     entt_ctor = '''
     entf.ctor<&{0}{1}>();'''
-
-    def entt_ctors(self, ast: AnsonAst) -> List[str]:
-        '''
-        :param ctorstrs: e.g.
-            [[["echo", "string", "m"], ["r/query"]],
-            [[], ["r/query"]]]
-        :return: .ctor<>().ctor<string>()
-        '''
-        # return [f'        entf.ctor<{c}>();\n' for ctor in ast.ctors for c in ctor[0]]
-        ctorss = []
-        for ctor in ast.ctors:
-            lst = []
-            for c in ctor[1:]:
-                if len(c) > 0:
-                    lst.append(c[0])
-            ctorss.append(f'        entf.ctor<{", ".join(lst)}>();\n')
-
-        return ctorss
 
     entt_data = '''
         entf.data<&{0}::{1}>("{1}");'''
@@ -137,7 +160,7 @@ public:
 
     end_ns = '\n}'
 
-    def specialize_req(self, ast: AnsonBodyAst) -> List[str]:
+    def specialize_req(self, asts: dict[str, AnsonAst], ast: AnsonBodyAst) -> List[str]:
         '''
         Example
         =======
@@ -184,7 +207,7 @@ public:
                 self.struct_A,
                 *[f'\n        inline static const string {k} = "{v}";' for k, v in ast.A.items()],
                 '\n\t};\n',
-                *self.class_fields(ast),
+                *self.class_fields(asts, ast),
                 *self.class_ctors(ast),
                 '};\n',
 
@@ -193,10 +216,57 @@ public:
                     ast.c_class().lower(), ast.c_class()),
                 *[self.entt_data.format(ast.c_class(), fn) for fn, _ in ast.fields.items()],
                 '\n',
-                *self.entt_ctors(ast),
+                *entt_ctors(ast),
                 self.field_getter0.format(ast.c_class()),
                 *[self.field_getif.format(fn) for fn, _ in ast.fields.items()],
                 self.field_getter9.format(ast.c_class()),
+                ]
+
+@dataclass
+class AnsonLines:
+    regist_anson: str = '''inline static void register_{}Ast(AstMap & asts) {{
+    //
+    AnsonAst * ast = createAST <{}, AnsonAst> (
+        asts, {}, map <string, AnsonField> {{'''
+    anson_field: str = '        {{"{}", {{.dataAnclass="{}"}} }}\n'
+    '''
+    {"scopeEnums", {.dataAnclass = "list<string"}},
+    {"cpp_gen", {.dataAnclass = "string"}}
+    });
+    '''
+
+    entt_facotry = '''
+    entt::meta_factory <anson::{}> ()
+        .type(ast->enttypeid)
+        .base<{}>()
+    '''
+    '''
+    entt::meta_factory < anson::PeerSettings > ()
+        .type(ast->enttypeid)
+        .base < Anson > ()
+        .ctor <> ()
+        .data < & anson::PeerSettings::ansons > ("ansons")
+        .data < & anson::PeerSettings::scopeEnums > ("scopeEnums")
+        .data < & anson::PeerSettings::javaEnums > ("javaEnums")
+        .data < & anson::PeerSettings::ansonMsg > ("ansonMsg")
+        .data < & anson::PeerSettings::ansonBody > ("ansonBody")
+        .data < & anson::PeerSettings::anRequests > ("anRequests")
+        .data < & anson::PeerSettings::cpp_gen > ("cpp_gen") \
+        ;
+    }
+    '''
+    entt_data = '''
+        .data<&anson::{0}::{1}>("{0}")'''
+
+    def cppcode(self, ast: AnsonAst) -> List[str]:
+        return [self.regist_anson.format(ast.c_class().lower(), ast.c_class(), ast.c_base()),
+                *[self.anson_field.format(fn, f['dataAnclass']) for fn, f in ast.fields.items()],
+                '       })\n',
+                self.entt_facotry.format(ast.c_class(), ast.c_base()),
+                *entt_ctors(ast),
+                self.entt_facotry.format(ast.c_class(), ast.c_base()),
+                *[self.entt_data.format(ast.c_class(), fn) for fn, _ in ast.fields.items()],
+                '        ;\n}'
                 ]
 
 
@@ -208,19 +278,26 @@ def gen_cpp_peer(settings: PeerSettings, ast_folder: Path):
     '''
 
     msglines = MsgLines()
+    ansonlines = AnsonLines()
 
     gen_pth = Path(settings.cpp_gen)
     gen_pth.parent.mkdir(parents=True, exist_ok=True)
+
+    asts = init_asts()
 
     with open(gen_pth, 'w') as gen:
         gen.writelines(msglines.start_header)
 
         for astjson in settings.anRequests:
             if Path(ast_folder / astjson).exists():
-                ast = cast(AnsonBodyAst, Anson.from_file(str(ast_folder / astjson)))
-                # Utils.log_arr(msglines.class_ctors(ast))
-                # Utils.log_arr(msglines.specialize_req(ast))
-                gen.writelines(msglines.specialize_req(ast))
+                ast: AnsonAst = cast(AnsonAst, Anson.from_file(str(ast_folder / astjson)))
+                asts[ast.dataAnclass] = ast
+
+                if (isinstance(ast, AnsonBodyAst)):
+                    bdast = cast(AnsonBodyAst, ast)
+                    gen.writelines(msglines.specialize_req(asts, bdast))
+                else:
+                    gen.writelines(ansonlines.cppcode(ast))
             else:
                 Utils.warn('Cannot find file ' + astjson)
 

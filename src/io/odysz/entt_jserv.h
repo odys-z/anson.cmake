@@ -47,7 +47,6 @@ inline static void setup_jserv_crud_deprecated(AstMap &asts) {
 }
 
 inline static void setup_jserv_crud(AstMap &asts) {
-    //AnsonBodyAst *ast = createAST<AnsonResp,  AnsonBodyAst>(asts, AnsonBody::_type_,
     AnsonBodyAst *bdast = createAST<AnQueryReq, AnsonBodyAst>(asts, AnsonBody::_type_,
         map<string, AnsonField>{
             /**Main table */

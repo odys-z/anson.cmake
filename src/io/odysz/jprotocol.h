@@ -16,11 +16,6 @@ namespace anson {
 class AnsonBody : public anson::Anson {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonBody";
-    // virtual string _type_special(string msgtype) {
-    //     anerror("[ERROR] AnsonBody::_type_special(): any type id generation reached here can be an error.\n"s
-    //           + _type_ + " must not be used as an ast-id part, etc.");
-    //     return msgtype + "<" + _type_;
-    // }
 
     string a;
     string uri;
@@ -75,6 +70,9 @@ public:
 class Port : public JavaEnum {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.Port";
+
+    inline static const std::string heartbeat = "ping.serv";
+    inline static const std::string session = "login.serv";
 
     inline static const std::string query = "r.serv";
     inline static const std::string update = "u.serv";
@@ -136,8 +134,8 @@ public:
     map<string, Anson> map;
 
     AnsonResp() : AnsonBody("NA", _type_) {}
-
-    AnsonResp(string a) : AnsonBody(a, _type_) {}
+    AnsonResp(string type) : AnsonBody("NA", type) {}
+    AnsonResp(string a, string type) : AnsonBody(a, type) {}
 
     AnsonResp* msg(string_view m) {
         this->m = std::move(m);
