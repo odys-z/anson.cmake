@@ -22,7 +22,7 @@ public:
 
     AnsonBody() : Anson(_type_) {}
 
-    AnsonBody(string a) : Anson(_type_) , a(a) {}
+    AnsonBody(string type) : Anson(type) , a("") {}
 
     AnsonBody(string a, string type) : Anson(type), a(a) {}
 };

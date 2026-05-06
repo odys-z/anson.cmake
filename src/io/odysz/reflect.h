@@ -80,7 +80,7 @@ public:
             auto& concrete = static_cast<const Anson&>(ans);
             return entt::forward_as_meta(concrete.type);
         }
-        anwarn(std::format("[WARN] AnsonAst({}): Requring field '{}.{}', this is supposed to be overriden by AST {}.",
+        anwarn(std::format("[WARN] AnsonAst({}): Requring field '{}[{}]', this is supposed to be overriden by AST {}.",
                             this->dataAnclass, ans.anclass, fn, ans.anclass));
         return meta_any{false};
     };

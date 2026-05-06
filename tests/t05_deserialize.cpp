@@ -51,7 +51,7 @@ TEST(Anson, AnsonBody) {
     AnsonBody testbody{"test"}; // instantatiate abstract class?
 
     auto b = entt::resolve(hashed_string{AnsonBody::_type_.c_str()});
-    auto v = b.construct(std::string("r/ds"));
+    auto v = b.construct(std::string("r/ds"), AnsonBody::_type_);
     AnsonBody* anb = v.try_cast<AnsonBody>();
     cout << "[1] anb.type: " << anb->anclass << endl;
     ASSERT_EQ(AnsonBody::_type_, anb->anclass);

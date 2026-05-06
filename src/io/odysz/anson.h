@@ -81,7 +81,7 @@ public:
 
     IJsonable(string anclass) : anclass(anclass) {}
 
-    virtual IJsonable* toBlock(ostream& os, const JsonOpt& opts) = 0;
+    virtual const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const = 0;
 
     /** @see #toBlock(OutputStream, JsonOpt...) */
     virtual string toBlock(JsonOpt& opt) {
@@ -99,7 +99,7 @@ public:
      * @throws IOException
      * @throws AnsonException
      */
-    virtual IJsonable* toJson(string& buf) = 0;
+    virtual const IJsonable* toJson(string& buf) const = 0;
 
     virtual ~IJsonable() {}
 };
@@ -128,12 +128,12 @@ public:
     //     return stub;
     // }
 
-    IJsonable* toBlock(ostream& stream, const JsonOpt& opts) override {
+    const IJsonable* toBlock(ostream& stream, const JsonOpt& opts) const override {
         stream << this;
         return this;
     }
 
-    IJsonable* toJson(string& buf) override {
+    const IJsonable* toJson(string& buf) const override {
         buf += '\"' + valof() + '\"';
         return this;
     }
@@ -188,13 +188,13 @@ public:
         return std::move(ss).str();
     }
 
-    IJsonable* toBlock(ostream& os, const JsonOpt& opts) override;
+    const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const override;
     // {
     //     serialize_envelope(os, *this, opts);
     //     return this;
     // }
 
-    IJsonable* toJson(string& buf) override {
+    const IJsonable* toJson(string& buf) const override {
         anerror("Don't call this in cpp");
         return this;
     }

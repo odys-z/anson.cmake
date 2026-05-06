@@ -89,8 +89,8 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
     }
 
     if (val_ast.isJsonable) {
-        IJsonable *jsonval = val.try_cast<IJsonable>();
-        const IJsonable *anson = val.try_cast<Anson>();
+        const IJsonable *jsonval = val.try_cast<const IJsonable>();
+        const IJsonable *anson = val.try_cast<const Anson>();
         if(jsonval)
             jsonval->toBlock(os, opts);
         else
@@ -99,9 +99,9 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
         return os;
     }
 
-    if (val_ast.isVar) {
+    // if (val_ast.isVar) {
 
-    }
+    // }
 
     return os << R"("Cannot handle value of )" << val_ast.anclass << '\"';
 }
@@ -253,7 +253,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
  * * }
  */
 inline static ostream& serialize_fields(ostream &os,
-                    const map<string, AnsonField> &fields, anson::Anson& anson, const JsonOpt &opts) {
+                    const map<string, AnsonField> &fields, const anson::Anson& anson, const JsonOpt &opts) {
 
      if (fields.size() > 0) {
 
@@ -275,7 +275,7 @@ inline static ostream& serialize_fields(ostream &os,
     return os;
 }
 
-inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &opts) {
+inline static ostream& serialize_kvs(ostream &os, const Anson& anson, const JsonOpt &opts) {
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     bool has_basefields = false;
@@ -295,7 +295,7 @@ inline static ostream& serialize_kvs(ostream &os, Anson& anson, const JsonOpt &o
     return serialize_fields(os, fields, anson, opts);
 }
 
-inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonOpt &opts) {
+inline static ostream& serialize_envelope(ostream &os, const Anson& anson, const JsonOpt &opts) {
     os << R"({"type": ")" + anson.type + '"';
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
@@ -305,7 +305,7 @@ inline static ostream& serialize_envelope(ostream &os, Anson& anson, const JsonO
     return  os << '}';
 }
 
-inline IJsonable* Anson::toBlock(ostream& os, const JsonOpt& opts) {
+inline const IJsonable* Anson::toBlock(ostream& os, const JsonOpt& opts) const {
     serialize_envelope(os, *this, opts);
     return this;
 }
@@ -469,7 +469,8 @@ private:
                 anerror(std::format("set_value(): Cannot find field by key-id: {}",
                                     active_key));
 
-                auto debug_agin = find_field_recursive(top.instance.type(), active_key);
+                meta_type t = top.instance.type();
+                auto debug_agin = find_field_recursive(t, active_key);
             }
         }
     }
@@ -495,8 +496,8 @@ public:
     EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : EnTTSaxParser(obj, obj.anclass, opts) {}
 
     bool start_object(std::size_t size) override {
-        bool k0 = active_key != 0;
-        bool es = !stack.empty();
+        // bool k0 = active_key != 0;
+        // bool es = !stack.empty();
 
         if (active_key != 0 && !stack.empty()) {
             ParseNode top = stack.back();
@@ -533,8 +534,10 @@ public:
                         fd_astid = ast->find_field_astid(contxt->asts, fieldname);
 
                         if (contxt->asts->contains(fd_astid))
-                            stack.push_back({.instance = datafield.get(stack.back()),
-                                 .val_astid=fd_astid});
+                            stack.push_back({
+                                    .instance = datafield.get(stack.back().instance),
+                                    .val_astid=fd_astid, .activekey = active_key
+                            });
                         else { // e.g. map<string, string
                             meta_any inst = datafield.get(stack.back().instance);
                             push_map(inst, active_key, fd_astid);

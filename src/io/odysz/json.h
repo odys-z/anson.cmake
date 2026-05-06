@@ -368,7 +368,7 @@ inline static void register_msgs(AstMap &asts) {
         {"roleName", {.dataAnclass = "string"}},
         {"ssToken", {.dataAnclass = "string"}},
         {"seq", {.dataAnclass = "int"}},
-        {"deivce", {.dataAnclass = "string"}}
+        {"device", {.dataAnclass = "string"}}
     });
 
     ast->get_field_instance
@@ -559,9 +559,8 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
         entt::meta_factory<BD>()
             .type(enttype)
             .template base<BD_Base>()
-            // .template base<AnsonBody>()
             .template ctor<>()
-            .template ctor<string>()
+            // .template ctor<string>()
             .func<+[](const BD &inst) -> std::shared_ptr<BD> {
                 andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
                 return std::make_shared<BD>(inst);
