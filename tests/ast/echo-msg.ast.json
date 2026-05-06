@@ -1,5 +1,4 @@
 { "type"       : "io.odysz.anson.AnsonMsgAst",
-  "base"       : "io.odysz.semantic.anson.Anson",
   "dataAnclass": "io.odysz.semantic.jprotocol.AnsonMsg",
   "bodyAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
   "bodyAst"    : "ast/echo.ast.json",

@@ -152,17 +152,24 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::static_val>("static_val")
         .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
-        // .data<&anson::AnsonAst::ctors>("ctors")
+        .data<&anson::AnsonAst::ctors>("ctors")
         ;
 
     //
-    createAST<AnsonAst, AnsonAst>(asts, "", map<string, AnsonField>{});
+    createAST<AnsonAst, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+            {"ctors", {.dataAnclass="list<list<list<string"}}
+        });
+
+    AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonJavaEnumAst *jeast = createAST<AnsonJavaEnumAst, AnsonJavaEnumAst>(
         asts, AnsonAst::_type_, map<string, AnsonField>{
             {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
             {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
+
     entt::meta_factory<anson::AnsonJavaEnumAst>()
         .type(jeast->enttypeid)
         .base<AnsonAst>()
@@ -171,10 +178,12 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
 
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonBodyAst>()
         .type(bdast->enttypeid)
@@ -185,12 +194,13 @@ inline static void register_asts(AstMap &asts) {
         ;
 
     //
-    AnsonMsgAst *msgast = createAST<AnsonMsgAst, AnsonMsgAst>(asts, Anson::_type_, map<string, AnsonField>{
+    AnsonMsgAst *msgast = createAST<AnsonMsgAst, AnsonMsgAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"bodyAnclass", {.fieldname="bodyAnclass", .dataAnclass = "string"}},
         {"bodyAst", {.fieldname="bodyAst", .dataAnclass = "string"}},
         {"portAnclass", {.fieldname="portAnclass", .dataAnclass = "string"}},
         {"portAst", {.fieldname="portAst", .dataAnclass = "string"}}
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonMsgAst>()
         .type(msgast->enttypeid)

@@ -162,12 +162,9 @@ public:
 
     string type;
 
-    Anson() : IJsonable(_type_), type(_type_) {
-    }
+    Anson() : IJsonable(_type_), type(_type_) {}
 
-    Anson(string t) : IJsonable(t), type(t) {
-        // andebug("override constructor, type = "s + t);
-    }
+    Anson(string tp) : IJsonable(tp), type(tp) {}
 
     /**
      * @brief Anson
@@ -189,10 +186,6 @@ public:
     }
 
     const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const override;
-    // {
-    //     serialize_envelope(os, *this, opts);
-    //     return this;
-    // }
 
     const IJsonable* toJson(string& buf) const override {
         anerror("Don't call this in cpp");

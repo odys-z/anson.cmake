@@ -1,5 +1,4 @@
 { "type": "io.odysz.reflect.AnsonBodyAst",
-  "base": "io.odysz.reflect.AnsonAst",
   "dataAnclass": "io.odysz.semantic.jsession.AnSessionResp",
   "baseAnclass": "io.odysz.semantic.jprotocol.AnsonResp",
   "fields" : {

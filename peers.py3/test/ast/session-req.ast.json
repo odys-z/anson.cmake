@@ -1,5 +1,4 @@
 { "type": "io.odysz.reflect.AnsonBodyAst",
-  "base": "io.odysz.reflect.AnsonAst",
   "A": {
     "login": "login", "logout": "logout", "pswd": "pswd",
     "init": "init", "touch": "touch", "ping": "ping"

@@ -466,8 +466,8 @@ private:
             }
             else {
                 // Debug Notes: to avoid error: SEH exception, don't call top.instance.type().name()
-                anerror(std::format("set_value(): Cannot find field by key-id: {}",
-                                    active_key));
+                anerror(std::format("set_value(): Cannot find field by key-id: {}, top.map_key: {}",
+                                    active_key, top.map_key));
 
                 meta_type t = top.instance.type();
                 auto debug_agin = find_field_recursive(t, active_key);
