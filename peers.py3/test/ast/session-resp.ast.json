@@ -6,7 +6,9 @@
     "ssInf": {"dataAnclass": "io.odysz.semantics.SessionInf"},
     "profile": {"dataAnclass": "io.odysz.anson.Anson"}
   },
-  "ctors": [[[], ["string", "ssInf.ssid", "=", "ssid"], ["string", "ssInf.uid", "=", "uid"], ["string", "ssInf.roleId", "=", "roleId"]],
+  "ctors": [[[], ["string", "ssInf.ssid", "=", "ssid"],
+                 ["string", "ssInf.uid", "=", "uid"],
+                 ["string", "ssInf.roleId", "=", "roleId"]],
             [[], ["SessionInf", "ssInf", "ss_inf"]],
             [["\"\""], []]]
 }

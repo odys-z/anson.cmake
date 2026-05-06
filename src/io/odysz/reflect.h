@@ -54,6 +54,7 @@ public:
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
 
     map<string, AnsonField> fields;
+    vector<vector<vector<string>>> ctors;
     map<string, int> enums;
 
     /** Only one static string value is allowed in semantic-* ? */

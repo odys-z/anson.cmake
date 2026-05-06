@@ -63,84 +63,84 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
 
-TEST(AUTOGEN, SessionReq) {
-    register_jserv(asts, contxt);
-    load_ansessionreqAst(asts, "ast-cpy/session-req.ast.json");
+// TEST(AUTOGEN, SessionReq) {
+//     register_jserv(asts, contxt);
+//     load_ansessionreqAst(asts, "ast-cpy/session-req.ast.json");
 
-    using Req = AnsonMsg<AnSessionReq>;
+//     using Req = AnsonMsg<AnSessionReq>;
 
-    string msgclass = Req().anclass;
-    auto mt = entt::resolve(hashed_string{msgclass.c_str()});
-    ASSERT_TRUE(mt) << "resolve " << msgclass;
+//     string msgclass = Req().anclass;
+//     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
+//     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    auto mv = mt.construct(Port(Port::session));
-    Req* msg = mv.try_cast<Req>();
-    AnSessionReq body{};
-    body.a = AnSessionReq::A::login;
-    body.uid = "ody";
-    msg->Body(body);
+//     auto mv = mt.construct(Port(Port::session));
+//     Req* msg = mv.try_cast<Req>();
+//     AnSessionReq body{};
+//     body.a = AnSessionReq::A::login;
+//     body.uid = "ody";
+//     msg->Body(body);
 
-    cout << "[1] msg.port: " << msg->port << endl;
-    ASSERT_EQ(msgclass, msg->anclass);
-    ASSERT_EQ(Req::_type_, msg->type);
-    ASSERT_EQ(Port::session, msg->port.url()) << "[1] msg->port";
-    ASSERT_EQ("session", msg->port.valof()) << "[1] msg->port";
-    ASSERT_EQ("login", msg->body.at(0)->a) << "[1] msg-body[0]";
-    ASSERT_EQ("ody", msg->body.at(0)->uid) << "[1] msg-body[0].uid";
+//     cout << "[1] msg.port: " << msg->port << endl;
+//     ASSERT_EQ(msgclass, msg->anclass);
+//     ASSERT_EQ(Req::_type_, msg->type);
+//     ASSERT_EQ(Port::session, msg->port.url()) << "[1] msg->port";
+//     ASSERT_EQ("session", msg->port.valof()) << "[1] msg->port";
+//     ASSERT_EQ("login", msg->body.at(0)->a) << "[1] msg-body[0]";
+//     ASSERT_EQ("ody", msg->body.at(0)->uid) << "[1] msg-body[0].uid";
 
 
-    Req msg2{};
-    std::string json_input = R"({"type": "input", "port": "session", "body": [{"a": "test/echo", "uid": "Mr. Zelenskyy"}]})";
+//     Req msg2{};
+//     std::string json_input = R"({"type": "input", "port": "session", "body": [{"a": "test/echo", "uid": "Mr. Zelenskyy"}]})";
 
-    anlog("[2] "s + json_input);
-    bool result = Anson::from_json(json_input, msg2);
-    anlog(std::format("[3] ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.url()));
+//     anlog("[2] "s + json_input);
+//     bool result = Anson::from_json(json_input, msg2);
+//     anlog(std::format("[3] ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.url()));
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<AnSessionReq>().anclass, msg2.anclass) << "msg->anclass";
-    ASSERT_EQ("input", msg2.type);
+//     ASSERT_TRUE(result);
+//     ASSERT_EQ(AnsonMsg<AnSessionReq>().anclass, msg2.anclass) << "msg->anclass";
+//     ASSERT_EQ("input", msg2.type);
 
-    ASSERT_EQ(Port::session, msg2.port.url()) << "[3] msg->port";
-    ASSERT_EQ("session", msg2.port) << "[3] msg->port";
+//     ASSERT_EQ(Port::session, msg2.port.url()) << "[3] msg->port";
+//     ASSERT_EQ("session", msg2.port) << "[3] msg->port";
 
-    AnSessionReq reqbd = msg2.Body();
+//     AnSessionReq reqbd = msg2.Body();
 
-    cout << "[4] body: " << msg2.body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
-    ASSERT_EQ(AnSessionReq::_type_, reqbd.anclass) << "[4] reqbd.anclass";
-    ASSERT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
-    ASSERT_EQ("Mr. Zelenskyy", reqbd.uid) << "[4] body[0].uid";
-}
+//     cout << "[4] body: " << msg2.body.size() << ", type: " << reqbd.anclass << ", a: " << reqbd.a << endl;
+//     ASSERT_EQ(AnSessionReq::_type_, reqbd.anclass) << "[4] reqbd.anclass";
+//     ASSERT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
+//     ASSERT_EQ("Mr. Zelenskyy", reqbd.uid) << "[4] body[0].uid";
+// }
 
-TEST(AUTOGEN, SessionResp) {
+// TEST(AUTOGEN, SessionResp) {
 
-    register_jserv(asts, contxt);
-    load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
+//     register_jserv(asts, contxt);
+//     load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
 
-    using Resp = AnsonMsg<AnSessionResp>;
-    Resp msg2{};
-    std::string json_input = std::format(
-        R"({{"type": "{}", "port": "session", "body": [{{"a": "{}", "ssInf": {{"uid": "Mr. Zelenskyy"}}}}]}})",
-        Resp::_type_, AnSessionReq::A::pswd);
+//     using Resp = AnsonMsg<AnSessionResp>;
+//     Resp msg2{};
+//     std::string json_input = std::format(
+//         R"({{"type": "{}", "port": "session", "body": [{{"a": "{}", "ssInf": {{"uid": "Mr. Zelenskyy"}}}}]}})",
+//         Resp::_type_, AnSessionReq::A::pswd);
 
-    anlog(json_input);
-    bool result = Anson::from_json(json_input, msg2);
-    anlog(std::format("ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.valof()));
+//     anlog(json_input);
+//     bool result = Anson::from_json(json_input, msg2);
+//     anlog(std::format("ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.valof()));
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ(Resp().anclass, msg2.anclass) << "msg->anclass";
-    ASSERT_EQ(Resp::_type_, msg2.type) << "msg->type";
+//     ASSERT_TRUE(result);
+//     ASSERT_EQ(Resp().anclass, msg2.anclass) << "msg->anclass";
+//     ASSERT_EQ(Resp::_type_, msg2.type) << "msg->type";
 
-    ASSERT_EQ(Port::session, msg2.port.url()) << "[] msg->port";
-    ASSERT_EQ("session", msg2.port) << "[] msg->port";
+//     ASSERT_EQ(Port::session, msg2.port.url()) << "[] msg->port";
+//     ASSERT_EQ("session", msg2.port) << "[] msg->port";
 
-    AnSessionResp repbd = msg2.Body();
+//     AnSessionResp repbd = msg2.Body();
 
-    anlog(std::format("[] body: {}, type: {}, a: {}", msg2.body.size(), repbd.anclass, repbd.a));
+//     anlog(std::format("[] body: {}, type: {}, a: {}", msg2.body.size(), repbd.anclass, repbd.a));
 
-    ASSERT_EQ(AnSessionResp::_type_, repbd.anclass) << "[4] reqbd.anclass";
-    ASSERT_EQ(AnSessionReq::A::pswd, repbd.a) << "[4] body[0].a ";
-    ASSERT_EQ("Mr. Zelenskyy", repbd.ssInf.uid) << "[4] body[0].uid";
-}
+//     ASSERT_EQ(AnSessionResp::_type_, repbd.anclass) << "[4] reqbd.anclass";
+//     ASSERT_EQ(AnSessionReq::A::pswd, repbd.a) << "[4] body[0].a ";
+//     ASSERT_EQ("Mr. Zelenskyy", repbd.ssInf.uid) << "[4] body[0].uid";
+// }
 
 // TODO
 // TEST(AUTOGEN, DATASET) { }

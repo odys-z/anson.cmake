@@ -152,6 +152,7 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::static_val>("static_val")
         .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
+        // .data<&anson::AnsonAst::ctors>("ctors")
         ;
 
     //
