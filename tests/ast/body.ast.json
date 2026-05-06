@@ -1,5 +1,4 @@
 { "type": "io.odysz.semantier.AnsonAst",
-  "base"  : "io.odysz.anson.Anson",
   "dataAnclass": "io.odysz.semantic.jprotocol.AnsonBody",
   "fields" : {
     "uri": {"antype": "String"},

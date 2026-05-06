@@ -54,6 +54,7 @@ public:
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
 
     map<string, AnsonField> fields;
+    vector<vector<vector<string>>> ctors;
     map<string, int> enums;
 
     /** Only one static string value is allowed in semantic-* ? */
@@ -80,7 +81,7 @@ public:
             auto& concrete = static_cast<const Anson&>(ans);
             return entt::forward_as_meta(concrete.type);
         }
-        anwarn(std::format("[WARN] AnsonAst({}): Requring field '{}.{}', this is supposed to be overriden by AST {}.",
+        anwarn(std::format("[WARN] AnsonAst({}): Requring field '{}[{}]', this is supposed to be overriden by AST {}.",
                             this->dataAnclass, ans.anclass, fn, ans.anclass));
         return meta_any{false};
     };
@@ -170,9 +171,9 @@ public:
     string portAnclass;
     string portAst;
 
-    AnsonMsgAst() : AnsonAst() { }
+    AnsonMsgAst() : AnsonAst(_type_, _type_) { }
 
-    AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass, _type_) { }
+    AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass, anclass) { }
 };
 
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {

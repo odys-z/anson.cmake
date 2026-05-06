@@ -107,17 +107,37 @@ TEST(Load, AnsonAst_Port) {
     ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
-              {"echo", "echo.less"},
-              {"del", "d.serv"},
-              {"heartbeat", "ping.serv"},
-              {"query", "r.serv"}
-              }), portAst.encode) << "echoAst.encode";
+                {"heartbeat", "ping.serv"},
+                {"session", "login.serv"},
+                {"echo", "echo.less"},
+                {"del", "d.serv"},
+                {"query", "r.serv"},
+                {"insert", "c.serv"},
+                {"update", "u.serv"},
+                {"file", "file.serv"},
+                {"userstier", "users.tier"},
+                {"stree", "s-tree.serv"},
+                {"dataset", "ds.serv"},
+                {"datasetier", "ds.tier"},
+                {"docstier", "docs.tier"},
+                {"syntier", "sync.tier"}
+        }), portAst.encode) << "echoAst.encode";
 
     ASSERT_EQ((map<string, string>{
-              {"echo.less", "echo"},
-              {"d.serv", "del"},
-              {"ping.serv", "heartbeat"},
-              {"r.serv", "query"}
+                {"ping.serv", "heartbeat"},
+                {"login.serv", "session"},
+                {"echo.less", "echo"},
+                {"d.serv", "del"},
+                {"r.serv", "query"},
+                {"c.serv", "insert"},
+                {"u.serv", "update"},
+                {"file.serv", "file"},
+                {"users.tier", "userstier"},
+                {"s-tree.serv", "stree"},
+                {"ds.serv", "dataset", },
+                {"ds.tier", "datasetier"},
+                {"docs.tier", "docstier"},
+                {"sync.tier", "syntier"}
               }), portAst.decode) << "echoAst.decode";
 }
 

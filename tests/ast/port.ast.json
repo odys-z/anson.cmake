@@ -3,14 +3,34 @@
   "dataAnclass": "io.odysz.semantic.jprotocol.Port",
   "encode" : {
     "heartbeat": "ping.serv",
-    "echo": "echo.less",
+    "session": "login.serv",
+    "query": "r.serv",
+    "update": "u.serv",
+    "insert": "c.serv",
     "del": "d.serv",
-    "query": "r.serv"
+    "echo": "echo.less",
+    "file": "file.serv",
+    "userstier": "users.tier",
+		"stree": "s-tree.serv",
+		"dataset": "ds.serv",
+		"datasetier": "ds.tier",
+		"docstier": "docs.tier",
+		"syntier": "sync.tier"
   },
   "decode" : {
     "ping.serv": "heartbeat",
-    "echo.less": "echo",
+    "login.serv": "session",
+    "r.serv": "query",
+    "u.serv": "update",
+    "c.serv": "insert",
     "d.serv": "del",
-    "r.serv": "query"
+    "echo.less": "echo",
+    "file.serv": "file",
+    "users.tier": "userstier",
+    "s-tree.serv": "stree",
+    "ds.serv": "dataset",
+    "ds.tier": "datasetier",
+    "docs.tier": "docstier",
+    "sync.tier": "syntier"
   }
 }

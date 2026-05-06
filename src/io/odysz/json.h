@@ -152,16 +152,24 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::static_val>("static_val")
         .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
+        .data<&anson::AnsonAst::ctors>("ctors")
         ;
 
     //
-    createAST<AnsonAst, AnsonAst>(asts, "", map<string, AnsonField>{});
+    createAST<AnsonAst, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+            {"ctors", {.dataAnclass="list<list<list<string"}}
+        });
+
+    AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonJavaEnumAst *jeast = createAST<AnsonJavaEnumAst, AnsonJavaEnumAst>(
         asts, AnsonAst::_type_, map<string, AnsonField>{
             {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
             {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
+
     entt::meta_factory<anson::AnsonJavaEnumAst>()
         .type(jeast->enttypeid)
         .base<AnsonAst>()
@@ -170,10 +178,12 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
 
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonBodyAst>()
         .type(bdast->enttypeid)
@@ -184,12 +194,13 @@ inline static void register_asts(AstMap &asts) {
         ;
 
     //
-    AnsonMsgAst *msgast = createAST<AnsonMsgAst, AnsonMsgAst>(asts, Anson::_type_, map<string, AnsonField>{
+    AnsonMsgAst *msgast = createAST<AnsonMsgAst, AnsonMsgAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"bodyAnclass", {.fieldname="bodyAnclass", .dataAnclass = "string"}},
         {"bodyAst", {.fieldname="bodyAst", .dataAnclass = "string"}},
         {"portAnclass", {.fieldname="portAnclass", .dataAnclass = "string"}},
         {"portAst", {.fieldname="portAst", .dataAnclass = "string"}}
     });
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonMsgAst>()
         .type(msgast->enttypeid)
@@ -306,9 +317,11 @@ inline static void specialize_respmsg(AstMap & asts) {
 }
 
 inline static void register_msgs(AstMap &asts) {
-    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
-        {"data", {.fieldname="data", .dataAnclass = "map<string, string"}}
+    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+            {"data", {.fieldname="data", .dataAnclass = "map<string, string"}}
     });
+
     entt::meta_factory<anson::SemanticObject>()
         .type(ast->enttypeid)
         .ctor<>()
@@ -321,14 +334,6 @@ inline static void register_msgs(AstMap &asts) {
         {"columns", {.dataAnclass = "map<string, list<VarType"}},
         {"rows", {.dataAnclass = "list<list<VarType"}}
     });
-
-    entt::meta_factory<anson::AnResultset>()
-        .type(ast->enttypeid)
-        .ctor<>()
-        .base<anson::Anson>()
-        .data<&anson::AnResultset::colnames>("columns")
-        .data<&anson::AnResultset::rows>("rows")
-        ;
 
     ast->get_field_instance
         = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
@@ -349,6 +354,79 @@ inline static void register_msgs(AstMap &asts) {
         anerror("get_field_instance<AnResultset>(): Failed to get entt instance (meta_any): "s + fieldname);
         return {};
     };
+
+    entt::meta_factory<anson::AnResultset>()
+        .type(ast->enttypeid)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::AnResultset::colnames>("columns")
+        .data<&anson::AnResultset::rows>("rows")
+        ;
+
+    // String ssid;
+    // String uid;
+    // String roleId;
+    // String userName;
+    // String roleName;
+    // String ssToken;
+    // int seq;
+    // String device;
+    ast = createAST<SessionInf, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+        {"ssid", {.dataAnclass = "string"}},
+        {"uid", {.dataAnclass = "string"}},
+        {"roleId", {.dataAnclass = "string"}},
+        {"userName", {.dataAnclass = "string"}},
+        {"roleName", {.dataAnclass = "string"}},
+        {"ssToken", {.dataAnclass = "string"}},
+        {"seq", {.dataAnclass = "int"}},
+        {"device", {.dataAnclass = "string"}}
+    });
+
+    ast->get_field_instance
+        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const SessionInf&>(ans);
+            if ("ssid" == fieldname)
+                return entt::forward_as_meta(concrete.ssid);
+            else if ("uid" == fieldname)
+                return entt::forward_as_meta(concrete.uid);
+            else if ("roleId" == fieldname)
+                return entt::forward_as_meta(concrete.roleId);
+            else if ("userName" == fieldname)
+                return entt::forward_as_meta(concrete.userName);
+            else if ("roleName" == fieldname)
+                return entt::forward_as_meta(concrete.roleName);
+            else if ("ssToken" == fieldname)
+                return entt::forward_as_meta(concrete.ssToken);
+            else if ("seq" == fieldname)
+                return entt::forward_as_meta(concrete.seq);
+            else if ("device" == fieldname)
+                return entt::forward_as_meta(concrete.device);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<SessionInf>(): Failed to get entt instance (meta_any): "s + fieldname);
+        return {};
+    };
+
+    entt::meta_factory<anson::SessionInf>()
+        .type(ast->enttypeid)
+        .ctor<>()
+        .base<anson::Anson>()
+        .data<&anson::SessionInf::ssid>("ssid")
+        .data<&anson::SessionInf::uid>("uid")
+        .data<&anson::SessionInf::roleId>("roleId")
+        .data<&anson::SessionInf::userName>("userName")
+        .data<&anson::SessionInf::roleName>("roleName")
+        .data<&anson::SessionInf::ssToken>("ssToken")
+        .data<&anson::SessionInf::seq>("seq")
+        .data<&anson::SessionInf::device>("device")
+        ;
 
     //
     ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{
@@ -492,9 +570,8 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
         entt::meta_factory<BD>()
             .type(enttype)
             .template base<BD_Base>()
-            // .template base<AnsonBody>()
             .template ctor<>()
-            .template ctor<string>()
+            // .template ctor<string>()
             .func<+[](const BD &inst) -> std::shared_ptr<BD> {
                 andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
                 return std::make_shared<BD>(inst);

@@ -4,7 +4,9 @@
   "scopeEnums": ["io.odysz.semantic.jprotocol.MsgCode"],
   "javaEnums" : ["io.odysz.semantic.jprotocol.Port"],
   "ansonBody" : "io.odysz.semantic.jprotocol.AnsonBody",
-  "anRequests": ["ast/echo2.ast.json",
-                "io.odysz.semantic.jprotocol.SessionReq"],
-  "cpp_gen"   : "test/gen/t_02_synode.hpp"
+  "anRequests": ["ast/docsreq.ast.json",
+                "ast/docsresp.ast.json",
+                "ast/session-resp.ast.json",
+                "ast/session-req.ast.json"],
+  "cpp_gen"   : "test/gen/t_03_synode.hpp"
 }

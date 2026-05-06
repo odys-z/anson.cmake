@@ -16,7 +16,9 @@ public:
         inline static const string inet = "inet";
 	};
     string echo;
+
     EchoReq2(string m) : AnsonBody("r/peertest", _type_), echo(m) {};
+
     EchoReq2() : AnsonBody("r/peertest", _type_)  {};
 };
 

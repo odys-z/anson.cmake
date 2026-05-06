@@ -47,7 +47,6 @@ inline static void setup_jserv_crud_deprecated(AstMap &asts) {
 }
 
 inline static void setup_jserv_crud(AstMap &asts) {
-    //AnsonBodyAst *ast = createAST<AnsonResp,  AnsonBodyAst>(asts, AnsonBody::_type_,
     AnsonBodyAst *bdast = createAST<AnQueryReq, AnsonBodyAst>(asts, AnsonBody::_type_,
         map<string, AnsonField>{
             /**Main table */
@@ -277,9 +276,13 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
 
     register_varctors();
     register_asts(asts);
+    AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     register_msgs(asts);
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     register_enums<MsgCode>(asts);
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     register_port(asts, "ast/port.ast.json");
+    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     specialize_respmsg(asts);
     setup_jserv_crud(asts);
     register_peersettings(asts);

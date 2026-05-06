@@ -16,6 +16,6 @@ class GenEchomsgTest(TestCase):
 
         gen_peers(settings, testpath)
 
-        with (open('../tests/expect/t_01_semantier.hpp', 'r') as e,
+        with (open('../tests/expect/t_01_echomsg.hpp', 'r') as e,
               open(settings.cpp_gen, 'r') as f):
             self.assertEqual(e.readlines(), f.readlines())
