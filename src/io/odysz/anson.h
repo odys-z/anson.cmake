@@ -179,7 +179,7 @@ public:
         return parse(json, an, opts);
     }
 
-    string toBlock(const JsonOpt &jsopt) {
+    string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) {
         std::stringstream ss;
         toBlock(ss, jsopt);
         return std::move(ss).str();
