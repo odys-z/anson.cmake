@@ -321,26 +321,6 @@ public:
     inline static void register_ctor(const string & tp, std::function<entt::meta_any()> *c) {
         var_ctors[tp] = c;
     }
-
-    // friend bool operator == (const VarType& u, const std::string& v) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const std::string& v, const VarType& u) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const VarType& u, const char* v) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const char* v, const VarType& u) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
 };
 
 inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
@@ -672,8 +652,6 @@ inline static int default_port(const string &scheme) {
  */
 inline static bool validUrlPort(int port, const std::vector<int>& range) {
     if (range.empty()) return port > 0;
-    // TODO delete: A relic of LLM Programming (The java logic is actually given)
-    // return std::find(range.begin(), range.end(), port) != range.end();
     return (range[0] < 0 || port >= range[0])
            && (range.size() < 2 || range[1] < 0 || port <= range[1]);
 }

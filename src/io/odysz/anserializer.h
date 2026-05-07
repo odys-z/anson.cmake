@@ -98,11 +98,6 @@ inline static ostream& serialize_jsonable(ostream &os, meta_any& val,
                                 val_ast.dataAnclass));
         return os;
     }
-
-    // if (val_ast.isVar) {
-
-    // }
-
     return os << R"("Cannot handle value of )" << val_ast.anclass << '\"';
 }
 
@@ -142,11 +137,6 @@ inline static ostream& serialize_val(ostream& os, meta_any &inst,
 
     return os;
 }
-
-// inline static ostream& serialize_anson_prim_ptr(ostream& os, const meta_any &inst,
-//                        const vector<string> &val_type, const JsonOpt &opts) {
-//     return os;
-// }
 
 inline static ostream& serialize_list(ostream& os, const meta_any &list_any,
                        const vector<string> &val_type, const JsonOpt &opts) {
@@ -496,9 +486,6 @@ public:
     EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : EnTTSaxParser(obj, obj.anclass, opts) {}
 
     bool start_object(std::size_t size) override {
-        // bool k0 = active_key != 0;
-        // bool es = !stack.empty();
-
         if (active_key != 0 && !stack.empty()) {
             ParseNode top = stack.back();
             meta_type type = top.instance.type();
@@ -524,13 +511,6 @@ public:
                     }
 
                     else {
-                        // if (!ast->fields.contains(fieldname))
-                        //     anerror(std::format(
-                        //         "start_obj(): AST {{anclass: {}, datatype: {}}} has no field {}.",
-                        //         ast->anclass, ast->dataAnclass, fieldname));
-
-                        // else
-                        //     fd_astid = ast->fields.at(fieldname).dataAnclass;
                         fd_astid = ast->find_field_astid(contxt->asts, fieldname);
 
                         if (contxt->asts->contains(fd_astid))
@@ -737,17 +717,10 @@ public:
                     anerror(std::format("start_array(): Cannot find list value type {}.",
                                         stack.back().val_astid));
                 }
-                // else if (!ast->fields.contains(fieldname))
-                //     anerror(std::format(
-                //         "start_array(): AST {{anclass: {}, datatype: {}}} has no field {}.",
-                //         ast->anclass, ast->dataAnclass, fieldname));
-                // else
-                //     val_astid = ast->fields.at(fieldname).dataAnclass;
                 else
                     val_astid = ast->find_field_astid(contxt->asts, fieldname);
 
                 meta_any list = data.get(stack.back().instance);
-                // push_list(list, active_key, val_astid, ast->fields.at(fieldname).nest_val_ctor);
                 push_list(list, active_key, val_astid);
 
                 andebug(std::format("start_array(): [1] list container addr: {:P}",

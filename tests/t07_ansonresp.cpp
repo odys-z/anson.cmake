@@ -34,7 +34,6 @@ TEST(AnsonRespons, Deserialize) {
     anlog(std::format("[2] ok: {}, anclass: {}, port: {}", result, resp.anclass, resp.port.valof()));
 
     ASSERT_TRUE(result);
-    // ASSERT_EQ(AnsonResp()._type_special(AnsonMsg<AnsonResp>::_type_), resp.anclass) << "[2]msg->anclass";
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, resp.type);
 
     EXPECT_EQ("query", resp.port.valof()) << "[3] resp->port.valof()";
@@ -43,7 +42,7 @@ TEST(AnsonRespons, Deserialize) {
 
     AnsonResp repbd = resp.Body();
 
-    cout << "[4] body: " << resp.body_size() << ", type: " << repbd.anclass << endl;// ", code: " << repbd.code << endl;
+    cout << "[4] body: " << resp.body_size() << ", type: " << repbd.anclass << endl;
     EXPECT_EQ("ok", AnsonJavaEnumAst::name<MsgCode>(resp.code)) << "[4] body[0].code = 'ok'";
     EXPECT_EQ(MsgCode::Code::ok, resp.code) << "[4] body[0].code = ok";
 }

@@ -163,15 +163,12 @@ public:
 
     MsgCode::Code code;
 
-    // AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
     AnsonMsg() : Anson(_type_, _type_ + '<' + T::_type_), port("_sentinel_") { }
 
-    // AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
     AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         cout << port.enm;
     }
 
-    // AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
     AnsonMsg(Port port, const T& body) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         this->Body(body);
     }
