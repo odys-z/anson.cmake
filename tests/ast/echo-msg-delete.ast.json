@@ -1,0 +1,7 @@
+{ "type"       : "io.odysz.anson.AnsonMsgAst",
+  "dataAnclass": "io.odysz.semantic.jprotocol.AnsonMsg",
+  "bodyAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
+  "bodyAst"    : "ast/echo.ast.json",
+  "portAnclass": "io.odysz.semantic.jprotocol.Port",
+  "portAst"    : "ast/port.ast.json"
+}
