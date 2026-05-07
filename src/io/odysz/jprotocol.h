@@ -233,7 +233,11 @@ public:
     }
 
     string jserv() {
-        return format("{}://{}:{}/{}", this->scheme, this->host, this->port, this->protocolroot);
+        return format("{}://{}:{}/{}",
+                      LangExt::isblank(this->scheme) ? "http" : this->scheme,
+                      this->host,
+                      this->port <= 0 ? 80 : this->port,
+                      this->protocolroot);
     }
 };
 
