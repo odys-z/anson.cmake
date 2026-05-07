@@ -9,6 +9,7 @@
 #include <entt/meta/container.hpp>
 #include <string>
 #include "json.h"
+#include "semantier.h"
 
 namespace anson {
 using namespace entt;
@@ -281,6 +282,8 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     register_port(asts);
     specialize_respmsg(asts);
     setup_jserv_crud(asts);
+    load_usereqAst_ext(asts);
+    load_echoAst_ext(asts);
     register_peersettings(asts);
 }
 
