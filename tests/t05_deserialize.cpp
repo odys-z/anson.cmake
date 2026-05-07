@@ -81,7 +81,7 @@ TEST(Anson, AnsonBody) {
 }
 
 TEST(Anson, PORT) {
-    register_port(enums, "ast/port.ast.json");
+    register_port(enums);
     string portclass = Port::_type_;
     AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
     hashed_string portype{portclass.c_str()};

@@ -494,7 +494,7 @@ inline static void register_enums(AstMap& asts) {
     asts[anclass] = unique_ptr<AnsonJavaEnumAst>(ast);
 }
 
-inline static void register_port(AstMap &asts, const string &port_ast_pth = "") {
+inline static void register_port(AstMap &asts) {
     // std::ifstream ifstream(port_ast_pth);
     // if (!ifstream.is_open()) {
     //     anerror(string_view(std::format("Could not open the file {}! ", port_ast_pth)));
@@ -529,7 +529,7 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth = "") 
         asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
     }
     else
-        anerror(string_view(std::format("Could not load AST from {}!", port_ast_pth)));
+        anerror("Could not setup Port AST!");
 }
 
 inline static void register_varctors() {

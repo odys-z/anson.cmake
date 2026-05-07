@@ -278,7 +278,7 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
     register_asts(asts);
     register_msgs(asts);
     register_enums<MsgCode>(asts);
-    register_port(asts, "ast/port.ast.json");
+    register_port(asts);
     specialize_respmsg(asts);
     setup_jserv_crud(asts);
     register_peersettings(asts);

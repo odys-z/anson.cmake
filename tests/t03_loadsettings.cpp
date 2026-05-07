@@ -82,7 +82,7 @@ TEST(Load, AnsonAst_Port) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts, "ast/port.ast.json");
+    register_port(asts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string ast_port = "ast/port.ast.json";
@@ -169,7 +169,7 @@ TEST(Load, EchoAst) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts, "ast/port.ast.json");
+    register_port(asts);
 
     string echo_msg = "ast/echo-msg.ast.json";
     std::ifstream ifmsgstream(echo_msg);
