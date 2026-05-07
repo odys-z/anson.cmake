@@ -142,7 +142,10 @@ public:
         return this;
     }
 
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    AnsonResp& msg(const string & m) {
+        this->m = string{m};
+        return *this;
+    }
 };
 
 template <typename T //anson::AnsonBody
@@ -202,6 +205,13 @@ public:
             throw std::runtime_error("Body list is empty");
         }
         return *body.at(0);
+    }
+
+    T& Body(int ix, T& deflt) {
+        if (body.empty()) {
+            body.push_back(std::make_shared<T>(std::move(deflt)));
+        }
+        return *body.at(ix);
     }
 
     size_t body_size() {
