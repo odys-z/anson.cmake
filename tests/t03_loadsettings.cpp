@@ -145,7 +145,7 @@ TEST(Load, EchoReq) {
     AstMap asts;
     JsonOpt contxt{&asts};
     register_jserv(asts, contxt);
-    load_echoAst_expect(asts, "ast/echo.ast.json");
+    load_echoAst_ext(asts, "ast/echo.ast.json");
 
     string t03_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t03_echo_json);
