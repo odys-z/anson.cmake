@@ -33,7 +33,7 @@ public:
      * @brief EchoReq
      * @param m
      */
-    EchoReq(string m) : AnsonBody("na", EchoReq::_type_), echo(m) {}
+    EchoReq(const string &m) : AnsonBody("na", EchoReq::_type_), echo(m){}
 };
 
 inline static void load_usereqAst_ext(AstMap &asts) {
@@ -77,7 +77,7 @@ inline static void load_echoAst_ext(AstMap &asts) {
 
     load_msg_specialAst<EchoReq>(asts, ast_is,
       [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
-
+        entf.ctor<string>();
         entf.data<&EchoReq::echo>("echo");
 
         ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {

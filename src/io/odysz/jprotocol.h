@@ -220,9 +220,10 @@ public:
 class JServUrl : public HttpParts {
 public:
     // static UrlValidator urlValidator;
-    string protocolroot;
+    // string protocolroot;
+    const JProtocol *jprotocol;
 
-    JServUrl(string url) : HttpParts() {
+    JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts() {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
 
@@ -230,17 +231,18 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->paths = std::move(parts.paths);
-        this->query = std::move(parts.query);
-        this->fragment = std::move(parts.fragment);
+        // this->paths = std::move(parts.paths);
+        // this->query = std::move(parts.query);
+        // this->fragment = std::move(parts.fragment);
+        this->jprotocol = &jprotocol;
     }
 
-    string jserv() {
+    string jserv() const {
         return format("{}://{}:{}/{}",
                       LangExt::isblank(this->scheme) ? "http" : this->scheme,
                       this->host,
                       this->port <= 0 ? 80 : this->port,
-                      this->protocolroot);
+                      this->jprotocol->protocolpath);
     }
 };
 

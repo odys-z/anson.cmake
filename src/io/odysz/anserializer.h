@@ -729,7 +729,7 @@ public:
             else if (stack.back().is_map) { // map<string, list<...
                 vector<std::string> valtype = Regex::parseListValtype(stack.back().val_astid); // debug
                 if (!LangExt::has_ctor(stack.back().val_astid)) {
-                    anerror("start_array(): Not able to create list value without var_ctor in map of map<"
+                    anerror("start_array(): Not able to create list value without var_ctor in map of map<string, "
                             + stack.back().val_astid);
                     return false;
                 }
@@ -795,7 +795,7 @@ public:
                 }
                 else if (stack.back().is_map) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
-                        anerror("end_array(): Not able to create map value without var_ctor in map of map<"
+                        anerror("end_array(): Not able to create map value without var_ctor in map of map<string, "
                                 + stack.back().val_astid);
                         return false;
                     }
