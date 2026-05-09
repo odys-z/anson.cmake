@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -166,3 +167,68 @@ TEST(RegexTest, TestPareseTypes) {
     ASSERT_EQ((std::vector<std::string>{"map.string, shared_ptr<T_List", "false"}),
               Regex::parseMapValtype(R"(map.string, shared_ptr<T_List)")) << "::-1";
 }
+
+class AESHelperTest : public ::testing::Test {
+public:
+    inline static const std::string jarPath = "../../../tests/res/semantics.transact-1.5.77-SNAPSHOT.jar";
+    inline static const std::string tempFile = "test_output.txt";
+
+    // Helper to read the file content
+    inline static std::string readOutputFile() {
+        std::ifstream file(tempFile);
+        std::string content, line;
+        while (std::getline(file, line)) {
+            content += line + "\n";
+        }
+        return content;
+    }
+};
+
+std::string key = "Героям слава!";
+
+TEST(AESHelper, Decrypt) {
+    char buff[FILENAME_MAX];
+    _getcwd(buff, FILENAME_MAX);
+    anlog("Current working dir: "s + buff);
+
+    std::string input = std::format("encrypt {} \"Слава Україні!\"", key);
+    std::string command = std::format("java -Dfile.encoding=UTF-8 -jar {} {} > {}",
+                          AESHelperTest::jarPath, input, AESHelperTest::tempFile);
+
+    anlog(command);
+    int exitCode = std::system(command.c_str());
+    ASSERT_EQ(exitCode, 0) << "Java process failed to execute.";
+
+    std::string output = AESHelperTest::readOutputFile();
+
+    std::regex expectedPattern("re-decrpyted:\\s+Слава Україні!");
+
+    ASSERT_TRUE(std::regex_search(output, expectedPattern))
+        << "Output did not match the regex pattern. Output was: " << endl << output;
+
+
+}
+
+// TEST(AESHelper, Encrypt) {
+//     char buff[FILENAME_MAX];
+//     _getcwd(buff, FILENAME_MAX);
+//     anlog("Current working dir: "s + buff);
+
+//     std::string iv64    = "9PvT0X2hwBpPRevuu++3eg==";
+//     std::string cipher  = "ocUPIn3aFlYGKKF9x3E3Bm2q/9K3WzX6gKc8Mslt76w="; // => "Слава Україні!"
+
+//     std::string input   = std::format("decrypt \"{}\" \"{}\" \"{}\"", key, iv64, cipher);
+//     std::string command = std::format("java -Dfile.encoding=UTF-8 -jar {} {} > {}",
+//                           AESHelperTest::jarPath, input, AESHelperTest::tempFile);
+
+//     anlog(command);
+//     int exitCode = std::system(command.c_str());
+//     ASSERT_EQ(exitCode, 0) << "Java process failed to execute.";
+
+//     std::string output = AESHelperTest::readOutputFile();
+
+//     std::regex expectedPattern("plain:\\s+Слава Україні!");
+
+//     ASSERT_TRUE(std::regex_search(output, expectedPattern))
+//         << "Output did not match the regex pattern. Output was: " << endl << output;
+// }
