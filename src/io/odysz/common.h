@@ -20,6 +20,10 @@
 #include <chrono>
 #include <entt/entt.hpp>
 #include <entt/meta/meta.hpp>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/sha.h>
 
 #include "utils.h"
 
@@ -691,5 +695,27 @@ public:
 private:
     uint64_t options_;
     std::unordered_set<std::string> allowed_schemes_;
+};
+
+class AESHelper2 {
+public:
+    inline static std::vector<unsigned char> base64_decode(const std::string& base64) {
+        BIO *bio, *b64;
+        std::vector<unsigned char> buffer(base64.length());
+        bio = BIO_new_mem_buf(base64.c_str(), -1);
+        b64 = BIO_new(BIO_f_base64());
+        bio = BIO_push(b64, bio);
+        BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // Important: No newlines
+        int length = BIO_read(bio, buffer.data(), base64.length());
+        buffer.resize(length);
+        BIO_free_all(bio);
+        return buffer;
+    }
+
+    inline static std::vector<unsigned char> hash_key_sha256(const std::string& raw_key) {
+        std::vector<unsigned char> hash(SHA256_DIGEST_LENGTH);
+        SHA256(reinterpret_cast<const unsigned char*>(raw_key.data()), raw_key.size(), hash.data());
+        return hash;
+    }
 };
 }

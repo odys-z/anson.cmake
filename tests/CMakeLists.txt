@@ -13,7 +13,8 @@ include(GoogleTest)
 add_executable(unit_tests
   semantier.h
   echoreq.expect.h # Keep this as the testing stepstone. (All code can be generated)
-  t01_common.cpp
+  t01_aeshelper.cpp
+  # t01_common.cpp
   # t01_typs_java_vs.cpp
   # t02_type_java_tests.cpp
   # t02_type_java_tests.h
@@ -65,6 +66,7 @@ target_link_libraries(unit_tests
         gtest_main
         Boost::url
         nlohmann_json::nlohmann_json
+        OpenSSL::Crypto OpenSSL::SSL
         anson
 )
 
