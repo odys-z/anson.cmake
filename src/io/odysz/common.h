@@ -717,5 +717,59 @@ public:
         SHA256(reinterpret_cast<const unsigned char*>(raw_key.data()), raw_key.size(), hash.data());
         return hash;
     }
+
+    /**
+     * @brief decrypt
+     * Java: public static String decrypt(String cypher, String key, byte[] iv);
+     * @return
+     */
+    inline static string decrypt(string cipher64, string key, vector<unsigned char> iv) {
+        EVP_CIPHER_CTX *ctx;
+        try {
+            // Setup OpenSSL Decryption
+            ctx = EVP_CIPHER_CTX_new(); // Performance overhead but not thread safe
+
+            // 1. Decode inputs
+            std::vector<unsigned char> cipherbytes = AESHelper2::base64_decode(cipher64);
+            std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
+
+            int len, plain_len;
+
+            std::vector<unsigned char> plainbytes(cipherbytes.size());
+
+            // Initialize Decryption: AES-128-CBC or AES-256-CBC depending on key size
+            // Java's "AES/CBC/PKCS5Padding" is equivalent to OpenSSL's default PKCS7 padding
+            const EVP_CIPHER* cipherType = nullptr;
+
+            if (key_bytes.size() == 16) {
+                cipherType = EVP_aes_128_cbc();
+            } else if (key_bytes.size() == 32) {
+                cipherType = EVP_aes_256_cbc();
+            } else {
+                throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
+            }
+
+            if(EVP_DecryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
+                throw std::runtime_error("Init failed");
+
+            if(EVP_DecryptUpdate(ctx, plainbytes.data(), &len, cipherbytes.data(), cipherbytes.size()) != 1)
+                throw std::runtime_error("Update failed");
+            plain_len = len;
+
+            if(EVP_DecryptFinal_ex(ctx, plainbytes.data() + len, &len) != 1)
+                throw std::runtime_error("Finalize failed (Check your key/padding)");
+            plain_len += len;
+
+            std::string decrypted_text(reinterpret_cast<char*>(plainbytes.data()), plain_len);
+            andebug("OpenSSL Decrypted: " + decrypted_text);
+
+            EVP_CIPHER_CTX_free(ctx);
+            return decrypted_text;
+        } catch (const std::exception& e) {
+            if (ctx) EVP_CIPHER_CTX_free(ctx);
+            anerror("OpenSSL error: "s + e.what());
+            return "";
+        }
+    }
 };
 }

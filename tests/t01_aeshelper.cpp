@@ -79,51 +79,58 @@ TEST(AESHelper, Decrypt) {
 
         std::vector<unsigned char> iv = AESHelper2::base64_decode(b64_iv);
 
-        EVP_CIPHER_CTX *ctx;
-        try {
-            // Setup OpenSSL Decryption
-            ctx = EVP_CIPHER_CTX_new(); // Performance overhead but not thread safe
+        string decrypted = AESHelper2::decrypt(b64_cipher, key, iv);
+        if (decrypted.length() == 0)
+            FAIL() << "decrypt(): null";
 
-            // 1. Decode inputs
-            std::vector<unsigned char> cipherbytes = AESHelper2::base64_decode(b64_cipher);
-            std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
+        else
+            ASSERT_EQ(decrypted, "Слава Україні!");
 
-            int len, plain_len;
+    //     EVP_CIPHER_CTX *ctx;
+    //     try {
+    //         // Setup OpenSSL Decryption
+    //         ctx = EVP_CIPHER_CTX_new(); // Performance overhead but not thread safe
 
-            std::vector<unsigned char> plainbytes(cipherbytes.size());
+    //         // 1. Decode inputs
+    //         std::vector<unsigned char> cipherbytes = AESHelper2::base64_decode(b64_cipher);
+    //         std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
 
-            // Initialize Decryption: AES-128-CBC or AES-256-CBC depending on key size
-            // Java's "AES/CBC/PKCS5Padding" is equivalent to OpenSSL's default PKCS7 padding
-            const EVP_CIPHER* cipherType = nullptr;
+    //         int len, plain_len;
 
-            if (key_bytes.size() == 16) {
-                cipherType = EVP_aes_128_cbc();
-            } else if (key_bytes.size() == 32) {
-                cipherType = EVP_aes_256_cbc();
-            } else {
-                throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
-            }
+    //         std::vector<unsigned char> plainbytes(cipherbytes.size());
 
-            if(EVP_DecryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
-                throw std::runtime_error("Init failed");
+    //         // Initialize Decryption: AES-128-CBC or AES-256-CBC depending on key size
+    //         // Java's "AES/CBC/PKCS5Padding" is equivalent to OpenSSL's default PKCS7 padding
+    //         const EVP_CIPHER* cipherType = nullptr;
 
-            if(EVP_DecryptUpdate(ctx, plainbytes.data(), &len, cipherbytes.data(), cipherbytes.size()) != 1)
-                throw std::runtime_error("Update failed");
-            plain_len = len;
+    //         if (key_bytes.size() == 16) {
+    //             cipherType = EVP_aes_128_cbc();
+    //         } else if (key_bytes.size() == 32) {
+    //             cipherType = EVP_aes_256_cbc();
+    //         } else {
+    //             throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
+    //         }
 
-            if(EVP_DecryptFinal_ex(ctx, plainbytes.data() + len, &len) != 1)
-                throw std::runtime_error("Finalize failed (Check your key/padding)");
-            plain_len += len;
+    //         if(EVP_DecryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
+    //             throw std::runtime_error("Init failed");
 
-            std::string decrypted_text(reinterpret_cast<char*>(plainbytes.data()), plain_len);
-            anlog("OpenSSL Decrypted: " + decrypted_text);
+    //         if(EVP_DecryptUpdate(ctx, plainbytes.data(), &len, cipherbytes.data(), cipherbytes.size()) != 1)
+    //             throw std::runtime_error("Update failed");
+    //         plain_len = len;
+
+    //         if(EVP_DecryptFinal_ex(ctx, plainbytes.data() + len, &len) != 1)
+    //             throw std::runtime_error("Finalize failed (Check your key/padding)");
+    //         plain_len += len;
+
+    //         std::string decrypted_text(reinterpret_cast<char*>(plainbytes.data()), plain_len);
+    //         anlog("OpenSSL Decrypted: " + decrypted_text);
             
-            ASSERT_EQ(decrypted_text, "Слава Україні!");
+    //         ASSERT_EQ(decrypted_text, "Слава Україні!");
 
-        } catch (const std::exception& e) {
-            if (ctx) EVP_CIPHER_CTX_free(ctx);
-            FAIL() << "OpenSSL error: " << e.what();
-        }
-        EVP_CIPHER_CTX_free(ctx);
+    //     } catch (const std::exception& e) {
+    //         if (ctx) EVP_CIPHER_CTX_free(ctx);
+    //         FAIL() << "OpenSSL error: " << e.what();
+    //     }
+    //     EVP_CIPHER_CTX_free(ctx);
     }
 }
