@@ -62,14 +62,16 @@ public:
 
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
-    AnsonAst() : Anson(_type_),
-        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
+    // AnsonAst() : Anson(_type_),
+    //     isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
-    AnsonAst(string anclass, bool isEnum = false) : Anson(_type_, anclass),
+    AnsonAst(string anclass, bool isEnum = false) : Anson(anclass),
         isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
-    AnsonAst(string anclass, string type) : Anson(type, anclass),
-        isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
+    AnsonAst() : AnsonAst(_type_) {}
+
+    // AnsonAst(string anclass, string type) : Anson(type, anclass),
+    //     isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     std::function<meta_any(IJsonable&, id_type)> get_entt_instance = [](IJsonable& j, id_type t) -> meta_any {
         return {};
@@ -157,9 +159,9 @@ public:
     string uri;
     map<string, string> A;
 
-    AnsonBodyAst() : AnsonAst(_type_, _type_) { }
+    AnsonBodyAst() : AnsonAst(_type_) { }
 
-    AnsonBodyAst(string anclass, bool isEnum = false) : AnsonAst(anclass, _type_) { }
+    AnsonBodyAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
 class AnsonMsgAst : public AnsonAst {
@@ -171,9 +173,9 @@ public:
     string portAnclass;
     string portAst;
 
-    AnsonMsgAst() : AnsonAst(_type_, _type_) { }
+    AnsonMsgAst() : AnsonAst(_type_) { }
 
-    AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass, anclass) { }
+    AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
 inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {

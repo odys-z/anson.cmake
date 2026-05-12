@@ -136,7 +136,7 @@ inline static void register_asts(AstMap &asts) {
         .base<Anson>()
         .ctor<>()
         .ctor<std::string, bool>()
-        .ctor<std::string, std::string>()
+        // .ctor<std::string, std::string>()
         .data<&anson::AnsonAst::isInt>("isInt")
         .data<&anson::AnsonAst::isDouble>("isDouble")
         .data<&anson::AnsonAst::isEnum>("isEnum")

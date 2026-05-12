@@ -24,6 +24,7 @@
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/sha.h>
+#include <openssl/rand.h>
 
 #include "utils.h"
 
@@ -699,23 +700,56 @@ private:
 
 class AESHelper2 {
 public:
-    inline static std::vector<unsigned char> base64_decode(const std::string& base64) {
-        BIO *bio, *b64;
-        std::vector<unsigned char> buffer(base64.length());
-        bio = BIO_new_mem_buf(base64.c_str(), -1);
-        b64 = BIO_new(BIO_f_base64());
-        bio = BIO_push(b64, bio);
-        BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // Important: No newlines
-        int length = BIO_read(bio, buffer.data(), base64.length());
-        buffer.resize(length);
-        BIO_free_all(bio);
-        return buffer;
-    }
 
     inline static std::vector<unsigned char> hash_key_sha256(const std::string& raw_key) {
         std::vector<unsigned char> hash(SHA256_DIGEST_LENGTH);
         SHA256(reinterpret_cast<const unsigned char*>(raw_key.data()), raw_key.size(), hash.data());
         return hash;
+    }
+
+    inline static std::string encrypt(string plain, string key, vector<unsigned char> iv) {
+        EVP_CIPHER_CTX *ctx = nullptr;
+        try {
+            ctx = EVP_CIPHER_CTX_new();
+
+            std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
+
+            std::vector<unsigned char> cipherbytes(plain.size() + 16);
+
+            int len, cipher_len;
+
+            // Select Cipher Type
+            const EVP_CIPHER* cipherType = nullptr;
+            if (key_bytes.size() == 16) {
+                cipherType = EVP_aes_128_cbc();
+            } else if (key_bytes.size() == 32) {
+                cipherType = EVP_aes_256_cbc();
+            } else {
+                throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
+            }
+
+            if(EVP_EncryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
+                throw std::runtime_error("Encryption Init failed");
+
+            if(EVP_EncryptUpdate(ctx, cipherbytes.data(), &len,
+                                  reinterpret_cast<const unsigned char*>(plain.data()), plain.size()) != 1)
+                throw std::runtime_error("Encryption Update failed");
+            cipher_len = len;
+
+            if(EVP_EncryptFinal_ex(ctx, cipherbytes.data() + len, &len) != 1)
+                throw std::runtime_error("Encryption Finalize failed");
+            cipher_len += len;
+
+            EVP_CIPHER_CTX_free(ctx);
+
+            cipherbytes.resize(cipher_len);
+            return AESHelper2::encode64(cipherbytes);
+
+        } catch (const std::exception& e) {
+            if (ctx) EVP_CIPHER_CTX_free(ctx);
+            anerror("OpenSSL encryption error: "s + e.what());
+            return "";
+        }
     }
 
     /**
@@ -724,13 +758,13 @@ public:
      * @return
      */
     inline static string decrypt(string cipher64, string key, vector<unsigned char> iv) {
-        EVP_CIPHER_CTX *ctx;
+        EVP_CIPHER_CTX *ctx = nullptr;
         try {
             // Setup OpenSSL Decryption
             ctx = EVP_CIPHER_CTX_new(); // Performance overhead but not thread safe
 
             // 1. Decode inputs
-            std::vector<unsigned char> cipherbytes = AESHelper2::base64_decode(cipher64);
+            std::vector<unsigned char> cipherbytes = AESHelper2::decode64(cipher64);
             std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
 
             int len, plain_len;
@@ -771,5 +805,123 @@ public:
             return "";
         }
     }
+
+    inline static vector<unsigned char> getRandom() {
+        const int IV_SIZE = 16;
+        vector<unsigned char> iv(IV_SIZE);
+
+        if (RAND_bytes(iv.data(), IV_SIZE) != 1) {
+            throw std::runtime_error("OpenSSL: Failed to generate random bytes.");
+        }
+
+        return iv;
+    }
+
+    inline static const char* base64_chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "0123456789+/";
+
+    inline static std::string encode64(const std::vector<unsigned char>& data) {
+        std::string encoded;
+        encoded.reserve(((data.size() + 2) / 3) * 4);
+
+        for (size_t i = 0; i < data.size(); i += 3) {
+            uint32_t temp = (static_cast<unsigned char>(data[i]) << 16);
+            if (i + 1 < data.size()) temp |= (static_cast<unsigned char>(data[i+1]) << 8);
+            if (i + 2 < data.size()) temp |= static_cast<unsigned char>(data[i+2]);
+
+            encoded += base64_chars[(temp >> 18) & 0x3F];
+            encoded += base64_chars[(temp >> 12) & 0x3F];
+
+            if (i + 1 < data.size())
+                encoded += base64_chars[(temp >> 6) & 0x3F];
+            else
+                encoded += '=';
+
+            if (i + 2 < data.size())
+                encoded += base64_chars[temp & 0x3F];
+            else
+                encoded += '=';
+        }
+
+        return encoded;
+    }
+
+    // inline static uint8_t base64CharToValue(char c) {
+    //     if (c >= 'A' && c <= 'Z') return c - 'A';
+    //     if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    //     if (c >= '0' && c <= '9') return c - '0' + 52;
+    //     if (c == '+') return 62;
+    //     if (c == '/') return 63;
+    //     return 255; // invalid
+    // }
+
+    inline static std::vector<unsigned char> decode64(const std::string& base64) {
+        BIO *bio, *b64;
+        std::vector<unsigned char> buffer(base64.length());
+        bio = BIO_new_mem_buf(base64.c_str(), -1);
+        b64 = BIO_new(BIO_f_base64());
+        bio = BIO_push(b64, bio);
+        BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // Important: No newlines
+        int length = BIO_read(bio, buffer.data(), base64.length());
+        buffer.resize(length);
+        BIO_free_all(bio);
+        return buffer;
+    }
+
+    // inline static std::vector<unsigned char> decode64(const std::string& input) {
+    //     if (input.empty())
+    //         return {};
+
+    //     if (input.size() % 4 != 0)
+    //         return {};
+
+    //     size_t padding = 0;
+
+    //     // Check padding only at the end
+    //     if (!input.empty() && input.back() == '=') padding++;
+    //     if (input.size() >= 2 && input[input.size() - 2] == '=') padding++;
+
+    //     // More than 2 padding chars is invalid
+    //     // if (padding > 2) return {};
+
+    //     // Validate all characters
+    //     // for (size_t i = 0; i < input.size() - padding; ++i) {
+    //     //     if (base64CharToValue(input[i]) == 255)
+    //     //         return {};  // invalid character
+    //     // }
+
+    //     // Validate padding positions (only at the end)
+    //     // for (size_t i = input.size() - padding; i < input.size(); ++i) {
+    //     //     if (input[i] != '=')
+    //     //         return {};  // non-padding char in padding area
+    //     // }
+
+    //     // Now decode
+    //     std::vector<unsigned char> output;
+    //     output.reserve((input.size() * 3) / 4 - padding);
+
+    //     for (size_t i = 0; i < input.size(); i += 4) {
+    //         uint32_t val = 0;
+    //         int chars_used = 0;
+
+    //         for (int j = 0; j < 4; ++j)
+    //         {
+    //             if (i + j >= input.size() || input[i + j] == '=')
+    //                 break;
+
+    //             uint8_t v = base64CharToValue(input[i + j]);
+    //             val = (val << 6) | v;
+    //             chars_used++;
+    //         }
+
+    //         if (chars_used >= 2) output.push_back((val >> 16) & 0xFF);
+    //         if (chars_used >= 3) output.push_back((val >> 8)  & 0xFF);
+    //         if (chars_used >= 4) output.push_back(val & 0xFF);
+    //     }
+
+    //     return output;
+    // }
 };
 }

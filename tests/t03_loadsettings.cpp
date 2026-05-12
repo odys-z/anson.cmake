@@ -85,7 +85,7 @@ TEST(Load, AnsonAst_Port) {
     register_port(asts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-    string ast_port = "ast/port.ast.json";
+    string ast_port = "ast/port.ast-only-4-t03.json";
     std::ifstream ifstream(ast_port);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << ast_port << endl;
@@ -171,7 +171,7 @@ TEST(Load, EchoAst) {
     register_asts(asts);
     register_port(asts);
 
-    string echo_msg = "ast/echo-msg.ast.json";
+    string echo_msg = "ast/echo-msg.ast-only-4-t03.json";
     std::ifstream ifmsgstream(echo_msg);
     if (!ifmsgstream.is_open()) {
         FAIL() << "Could not open the file! " << echo_msg << endl;
