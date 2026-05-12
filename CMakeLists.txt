@@ -7,13 +7,7 @@ cmake_minimum_required(VERSION 3.30)
 # share global packages, can causing problem:
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed" CACHE PATH "vcpkg install dir")
-# set(VCPKG_MANIFEST_MODE OFF CACHE BOOL "" FORCE)
-# set(Botan_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed/x64-windows/share/botan" CACHE PATH "")
 
-# set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-# set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
-# set(VCPKG_MANIFEST_MODE OFF CACHE BOOL "" FORCE)
-# set(Botan_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages/installed/x64-windows/share/botan" CACHE PATH "")
 
 project(anson.cmake
     VERSION 0.1.0
@@ -39,13 +33,6 @@ endif()
 
 # vcpkg install boost-url
 find_package(Boost CONFIG REQUIRED COMPONENTS url)
-
-# upto May 2026, Requires botan 3.12.0:
-# Ubuntu: sudo apt install libbotan-3-dev
-# Windows & macOS: # vcpkg install botan
-# set(Botan_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages/installed/x64-windows/share/botan" CACHE PATH "")
-# set(Botan_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed/x64-windows/share/botan" CACHE PATH "")
-# find_package(Botan CONFIG REQUIRED)
 
  # vcpkg install openssl:x64-windows
 find_package(OpenSSL REQUIRED)

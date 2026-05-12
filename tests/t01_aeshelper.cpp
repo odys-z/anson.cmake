@@ -5,7 +5,6 @@
 #include <regex>
 #include <vector>
 #include <string>
-#include <fstream>
 #include "io/odysz/common.h"
 
 class AESHelperTest : public ::testing::Test {
@@ -15,49 +14,6 @@ public:
     inline static const std::string ivbase64= "ivbase64.txt";
     inline static const std::string encrypted = "encrypt_output.txt";
     inline static const std::string decrypting= "decrypt_output.txt";
-
-    // Helper to read the file content
-    // inline static std::string readOutputFile(std::string f) {
-    //     std::ifstream file(f);
-    //     std::string content, line;
-    //     while (std::getline(file, line)) {
-    //         content += line + '\n';
-    //     }
-    //     return content;
-    // }
-    inline static std::string readOutputFile(std::string f) {
-        std::ifstream file(f, std::ios::in | std::ios::binary);
-        if (!file) return "";
-
-        return std::string((std::istreambuf_iterator<char>(file)),
-                           std::istreambuf_iterator<char>());
-    }
-
-    inline static std::vector<unsigned char> readBinaryFile(const std::string& f) {
-        std::ifstream file(f, std::ios::binary | std::ios::ate); // Open at end to get size
-        if (!file) return {};
-
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        std::vector<unsigned char> buffer(size);
-        if (file.read(reinterpret_cast<char*>(buffer.data()), size)) {
-            return buffer;
-        }
-        return {};
-    }
-
-    inline static void writeBinaryFile(std::string f, vector<unsigned char> content) {
-        std::ofstream file(f, std::ios::binary);
-
-        if (!file) {
-            throw std::runtime_error("Failed to open file: " + f);
-        }
-
-        if (!content.empty()) {
-            file.write(reinterpret_cast<const char*>(content.data()), content.size());
-        }
-    }
 };
 
 inline static std::string key = "Героям слава!";
@@ -65,7 +21,7 @@ inline static std::string slava_ukraini = "Слава Україні!";
 
 TEST(AESHelper, Base64) {
     vector<unsigned char> iv = anson::AESHelper2::getRandom();
-    AESHelperTest::writeBinaryFile(AESHelperTest::ivbytes, iv);
+    anson::Utils::writeBinaryFile(AESHelperTest::ivbytes, iv);
 
     std::string command = std::format("java -Dfile.encoding=UTF-8 -jar {} encode64 {} > {}",
                           AESHelperTest::jarPath, AESHelperTest::ivbytes, AESHelperTest::ivbase64);
@@ -74,7 +30,7 @@ TEST(AESHelper, Base64) {
     int exitCode = std::system(command.c_str());
     ASSERT_EQ(exitCode, 0) << "command encode.";
 
-    std::string output = AESHelperTest::readOutputFile(AESHelperTest::ivbase64);
+    std::string output = anson::Utils::readOutputFile(AESHelperTest::ivbase64);
     ASSERT_EQ(anson::AESHelper2::encode64(iv), output);
 
     //
@@ -84,7 +40,7 @@ TEST(AESHelper, Base64) {
     exitCode = std::system(command.c_str());
     ASSERT_EQ(exitCode, 0) << "command decode.";
 
-    std::vector<unsigned char> decoded_iv = AESHelperTest::readBinaryFile(AESHelperTest::ivbytes);
+    std::vector<unsigned char> decoded_iv = anson::Utils::readBinaryFile(AESHelperTest::ivbytes);
 
     ASSERT_EQ(iv.size(), decoded_iv.size());
     ASSERT_EQ(iv, decoded_iv) << "Binary mismatch after Java decode64 cycle";
@@ -105,7 +61,7 @@ TEST(AESHelper, Decrypt) {
     int exitCode = std::system(command.c_str());
     ASSERT_EQ(exitCode, 0) << "Java process failed to execute.";
 
-    std::string output = AESHelperTest::readOutputFile(AESHelperTest::encrypted);
+    std::string output = anson::Utils::readOutputFile(AESHelperTest::encrypted);
 
     std::regex expectedPattern("re-decrpyted:\\s+" + slava_ukraini);
 
@@ -151,7 +107,7 @@ TEST(AESHelper, Encrypt) {
     int exitCode = std::system(command.c_str());
     ASSERT_EQ(exitCode, 0) << "Java process failed to execute.";
 
-    std::string output = AESHelperTest::readOutputFile(AESHelperTest::decrypting);
+    std::string output = anson::Utils::readOutputFile(AESHelperTest::decrypting);
 
     std::regex expectedPattern("plain:\\s+" + slava_ukraini);
 

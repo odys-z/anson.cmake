@@ -848,15 +848,6 @@ public:
         return encoded;
     }
 
-    // inline static uint8_t base64CharToValue(char c) {
-    //     if (c >= 'A' && c <= 'Z') return c - 'A';
-    //     if (c >= 'a' && c <= 'z') return c - 'a' + 26;
-    //     if (c >= '0' && c <= '9') return c - '0' + 52;
-    //     if (c == '+') return 62;
-    //     if (c == '/') return 63;
-    //     return 255; // invalid
-    // }
-
     inline static std::vector<unsigned char> decode64(const std::string& base64) {
         BIO *bio, *b64;
         std::vector<unsigned char> buffer(base64.length());
@@ -869,59 +860,5 @@ public:
         BIO_free_all(bio);
         return buffer;
     }
-
-    // inline static std::vector<unsigned char> decode64(const std::string& input) {
-    //     if (input.empty())
-    //         return {};
-
-    //     if (input.size() % 4 != 0)
-    //         return {};
-
-    //     size_t padding = 0;
-
-    //     // Check padding only at the end
-    //     if (!input.empty() && input.back() == '=') padding++;
-    //     if (input.size() >= 2 && input[input.size() - 2] == '=') padding++;
-
-    //     // More than 2 padding chars is invalid
-    //     // if (padding > 2) return {};
-
-    //     // Validate all characters
-    //     // for (size_t i = 0; i < input.size() - padding; ++i) {
-    //     //     if (base64CharToValue(input[i]) == 255)
-    //     //         return {};  // invalid character
-    //     // }
-
-    //     // Validate padding positions (only at the end)
-    //     // for (size_t i = input.size() - padding; i < input.size(); ++i) {
-    //     //     if (input[i] != '=')
-    //     //         return {};  // non-padding char in padding area
-    //     // }
-
-    //     // Now decode
-    //     std::vector<unsigned char> output;
-    //     output.reserve((input.size() * 3) / 4 - padding);
-
-    //     for (size_t i = 0; i < input.size(); i += 4) {
-    //         uint32_t val = 0;
-    //         int chars_used = 0;
-
-    //         for (int j = 0; j < 4; ++j)
-    //         {
-    //             if (i + j >= input.size() || input[i + j] == '=')
-    //                 break;
-
-    //             uint8_t v = base64CharToValue(input[i + j]);
-    //             val = (val << 6) | v;
-    //             chars_used++;
-    //         }
-
-    //         if (chars_used >= 2) output.push_back((val >> 16) & 0xFF);
-    //         if (chars_used >= 3) output.push_back((val >> 8)  & 0xFF);
-    //         if (chars_used >= 4) output.push_back(val & 0xFF);
-    //     }
-
-    //     return output;
-    // }
 };
 }

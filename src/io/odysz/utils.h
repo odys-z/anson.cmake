@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -18,6 +19,40 @@ struct PrintFormat {
 
 class Utils {
 public:
+     inline static std::string readOutputFile(std::string f) {
+        std::ifstream file(f, std::ios::in | std::ios::binary);
+        if (!file) return "";
+
+        return std::string((std::istreambuf_iterator<char>(file)),
+                           std::istreambuf_iterator<char>());
+    }
+
+    inline static std::vector<unsigned char> readBinaryFile(const std::string& f) {
+        std::ifstream file(f, std::ios::binary | std::ios::ate); // Open at end to get size
+        if (!file) return {};
+
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        std::vector<unsigned char> buffer(size);
+        if (file.read(reinterpret_cast<char*>(buffer.data()), size)) {
+            return buffer;
+        }
+        return {};
+    }
+
+    inline static void writeBinaryFile(std::string f, vector<unsigned char> content) {
+        std::ofstream file(f, std::ios::binary);
+
+        if (!file) {
+            throw std::runtime_error("Failed to open file: " + f);
+        }
+
+        if (!content.empty()) {
+            file.write(reinterpret_cast<const char*>(content.data()), content.size());
+        }
+    }
+
     template <typename Range>
     inline static ostream& _print(ostream& oss, Range list, const PrintFormat& f = {}) {
         auto it = std::begin(list);
