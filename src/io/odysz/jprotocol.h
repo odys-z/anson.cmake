@@ -125,7 +125,7 @@ template<> constexpr std::array<std::string_view, 9> MsgCode::noms = {
     "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinal_"
 };
 
-class AnsonResp : public AnsonBody{
+class AnsonResp : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 

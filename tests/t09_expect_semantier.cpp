@@ -140,6 +140,20 @@ TEST(AUTOGEN, SessionResp) {
     ASSERT_EQ(AnSessionResp::_type_, repbd.anclass) << "[4] reqbd.anclass";
     ASSERT_EQ(AnSessionReq::A::pswd, repbd.a) << "[4] body[0].a ";
     ASSERT_EQ("Mr. Zelenskyy", repbd.ssInf.uid) << "[4] body[0].uid";
+
+    // Real Example, jsample
+    json_input =R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg", )"
+                R"("code": "exSession", "opts": null, "port": "session", "header": null, )"
+                R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp", "rs": null, "parent": "io.odysz.semantic.jprotocol.AnsonMsg", )"
+                R"("a": null, "m": "Since 2.0.0, client uri cannot be empty for session checking, logging in, etc.", )"
+                R"("map": null, "uri": null}
+], "addr": null, "version": "1.1", "seq": 0})";
+
+    result = Anson::from_json(json_input, msg2);
+    repbd = msg2.Body();
+    ASSERT_TRUE(result);
+    ASSERT_EQ("Since 2.0.0, client uri cannot be empty for session checking, logging in, etc.", repbd.m)
+        << "session error msg";
 }
 
 // TODO

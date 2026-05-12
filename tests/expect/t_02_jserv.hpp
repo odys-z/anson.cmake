@@ -63,8 +63,7 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
 class AnSessionResp : public anson::AnsonResp {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionResp";
-    struct A {
-	};
+    // struct A { };
     SessionInf ssInf;
     Anson profile;
 
