@@ -137,10 +137,10 @@ public:
     AnsonResp(string type) : AnsonBody("NA", type) {}
     AnsonResp(string a, string type) : AnsonBody(a, type) {}
 
-    AnsonResp* msg(string_view m) {
-        this->m = std::move(m);
-        return this;
-    }
+    // AnsonResp* msg(string_view m) {
+    //     this->m = std::move(m);
+    //     return this;
+    // }
 
     AnsonResp& msg(const string & m) {
         this->m = string{m};
