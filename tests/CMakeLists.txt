@@ -32,7 +32,7 @@ add_executable(unit_tests
   t09_expect_semantier.cpp
   expect/t_01_echomsg.hpp
   expect/t_02_jserv.hpp
-  expect/t_03_synode.hpp
+  # expect/t_03_synode.hpp
 )
 
 if(MSVC)

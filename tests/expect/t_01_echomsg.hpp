@@ -7,14 +7,17 @@
 #include <io/odysz/jprotocol.h>
 #include <io/odysz/entt_jserv.h>
 
+
 namespace anson {
+
 class EchoReq2 : public anson::AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jserv.echo.EchoReq2";
+
     struct A {
         inline static const string echo = "echo";
         inline static const string inet = "inet";
-	};
+    };
     string echo;
 
     EchoReq2(string m) : AnsonBody("r/peertest", _type_), echo(m) {};
@@ -47,4 +50,5 @@ inline static void load_echoreq2Ast(AstMap &asts, const string &ast_path) {
         };
   });
 }
+
 }

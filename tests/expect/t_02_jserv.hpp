@@ -7,10 +7,13 @@
 #include <io/odysz/jprotocol.h>
 #include <io/odysz/entt_jserv.h>
 
+
 namespace anson {
+
 class AnSessionReq : public anson::AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionReq";
+
     struct A {
         inline static const string login = "login";
         inline static const string logout = "logout";
@@ -18,7 +21,7 @@ public:
         inline static const string init = "init";
         inline static const string touch = "touch";
         inline static const string ping = "ping";
-	};
+    };
     string uid;
     string token;
     string iv;
@@ -60,10 +63,13 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
         };
   });
 }
+
 class AnSessionResp : public anson::AnsonResp {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionResp";
-    // struct A { };
+
+    struct A {
+    };
     SessionInf ssInf;
     Anson profile;
 
@@ -107,4 +113,5 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
         };
   });
 }
+
 }
