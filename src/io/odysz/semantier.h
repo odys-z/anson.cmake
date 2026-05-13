@@ -44,7 +44,7 @@ inline static void load_usereqAst_ext(AstMap &asts) {
         R"("fields" : { "data": {"dataAnclass": "map<string, string"} })"
         R"(})"};
 
-    load_msg_specialAst<UserReq>(asts, ast_is,
+    load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,
       [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
         entf.ctor<string>();
@@ -75,7 +75,7 @@ inline static void load_echoAst_ext(AstMap &asts) {
     R"("fields" : { "echo": {"dataAnclass": "java.lang.String"} })"
     R"(})"};
 
-    load_msg_specialAst<EchoReq>(asts, ast_is,
+    load_msg_specialAst<EchoReq, AnsonBody>(asts, ast_is,
       [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
         entf.ctor<string>();
         entf.data<&EchoReq::echo>("echo");

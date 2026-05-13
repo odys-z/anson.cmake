@@ -73,9 +73,8 @@ public:
     // AnsonAst(string anclass, string type) : Anson(type, anclass),
     //     isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
-    std::function<meta_any(IJsonable&, id_type)> get_entt_instance = [](IJsonable& j, id_type t) -> meta_any {
-        return {};
-    };
+    std::function<meta_any(IJsonable&, id_type)> get_entt_instance
+        = [](IJsonable& j, id_type t) -> meta_any { return {}; };
 
     std::function<meta_any(const IJsonable&, const string& fieldname)> get_field_instance =
         [this] (const IJsonable& ans, string fn) -> meta_any{

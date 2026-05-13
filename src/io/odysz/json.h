@@ -588,7 +588,7 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     specialize_req<BD>(asts, bodyAst);
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)>& registerBodyFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
@@ -596,26 +596,26 @@ inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
-        body_specialize_msg<Rq, AnsonBody>(asts, bodyAst, registerBodyFields);
+        body_specialize_msg<Rq, RqBase>(asts, bodyAst, registerBodyFields);
     }
     return result;
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static bool setup_msg_specialAst(AstMap &asts, const string &ast_json,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> registerBodyFields) {
     std::istringstream iss(ast_json);
-    return load_msg_specialAst<Rq>(asts, iss, registerBodyFields);
+    return load_msg_specialAst<Rq, RqBase>(asts, iss, registerBodyFields);
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> & registerBodyFields) {
     std::ifstream ifstream(ast_pth);
     if (!ifstream.is_open()) {
         anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
     }
-    else if (!load_msg_specialAst<Rq>(asts, ifstream, registerBodyFields))
+    else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields))
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 

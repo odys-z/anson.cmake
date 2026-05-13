@@ -23,7 +23,7 @@ public:
 };
 
 inline static void load_echoreq2Ast(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<EchoReq2>(asts, ast_path,
+    specialize_msg_astpth<EchoReq2, AnsonBody>(asts, ast_path,
       [](meta_factory<EchoReq2> &entf, AnsonBodyAst *ast) {
         entf.data<&EchoReq2::echo>("echo");
         entf.ctor<string>();

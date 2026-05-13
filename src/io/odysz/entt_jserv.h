@@ -16,7 +16,7 @@ using namespace entt;
 using namespace entt::literals;
 
 inline static void setup_jserv_crud_deprecated(AstMap &asts) {
-    setup_msg_specialAst<AnQueryReq>(asts,
+    setup_msg_specialAst<AnQueryReq, AnsonBody>(asts,
         std::format(R"({{"type": "{}")", AnsonBodyAst::_type_) +
         std::format(R"("base": "{}")", AnsonAst::_type_) +
         R"("A": {"echo":  "echo", "inet":  "inet"},)" +

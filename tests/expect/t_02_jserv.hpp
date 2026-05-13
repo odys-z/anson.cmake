@@ -28,7 +28,7 @@ public:
 };
 
 inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionReq>(asts, ast_path,
+    specialize_msg_astpth<AnSessionReq, AnsonBody>(asts, ast_path,
       [](meta_factory<AnSessionReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionReq::uid>("uid");
         entf.data<&AnSessionReq::token>("token");
@@ -79,7 +79,7 @@ public:
 };
 
 inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionResp>(asts, ast_path,
+    specialize_msg_astpth<AnSessionResp, AnsonResp>(asts, ast_path,
       [](meta_factory<AnSessionResp> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionResp::ssInf>("ssInf");
         entf.data<&AnSessionResp::profile>("profile");
