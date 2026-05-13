@@ -9,6 +9,7 @@
 
 class AESHelperTest : public ::testing::Test {
 public:
+    /** To install the jar package, semantic.transact$ mvn install */
     inline static const std::string jarPath = "../../../tests/res/semantics.transact-1.5.77-SNAPSHOT.jar";
     inline static const std::string ivbytes = "iv-bytes.bin";
     inline static const std::string ivbase64= "ivbase64.txt";
