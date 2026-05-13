@@ -1,3 +1,0 @@
-{
-  "dependencies": ["gtest", "botan", "boost-url", "openssl", "entt", "nlohmann-json"]
-}
