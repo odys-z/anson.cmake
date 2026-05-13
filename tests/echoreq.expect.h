@@ -15,7 +15,7 @@ namespace anson{
  * @param ast_path
  */
 inline static void load_usereqAst_test(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<UserReq>(asts, ast_path,
+    specialize_msg_astpth<UserReq, AnsonBody>(asts, ast_path,
       [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
         entf.data<&UserReq::data>("data");
@@ -46,7 +46,7 @@ inline static void load_usereqAst_test(AstMap &asts, const string &ast_path) {
  * @param ast_path ast json path
  */
 inline static void load_echoAst_test(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<EchoReq>(asts, ast_path,
+    specialize_msg_astpth<EchoReq, AnsonBody>(asts, ast_path,
       [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
 
         entf.data<&EchoReq::echo>("echo");
