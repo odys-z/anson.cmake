@@ -25,9 +25,12 @@ public:
     AnsonBody(string type) : Anson(type) , a("") {}
 
     AnsonBody(string a, string type) : Anson(type), a(a) {}
+
+    AnsonBody(string a, string type, string ignored) : Anson(type), a(a) {}
 };
 
 class AnsonHeader : public anson::Anson {
+public:
     string uid;
     string ssid;
     string iv64;
@@ -40,6 +43,15 @@ class AnsonHeader : public anson::Anson {
      * @since java 1.4.36, cmake 0.1
      */
     string ssToken;
+
+    AnsonHeader() {}
+
+    AnsonHeader(const string& uid, const string &ssid, const string &iv64) : uid(uid), ssid(ssid), iv64(iv64) {}
+
+    AnsonHeader & Act(const string &funcId, const string &cmd, const string &cate, const string &remarks = "") {
+        usrAct = {funcId, cmd, cate, remarks};
+        return *this;
+    }
 };
 
 class JProtocol {
@@ -58,8 +70,8 @@ class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
     map<string, entt::any> data;
-    UserReq() : UserReq("null") {}
-    UserReq(string a) : AnsonBody(a, _type_) {}
+    UserReq() : UserReq("null", _type_) {}
+    UserReq(string a, string type) : AnsonBody(a, type) {}
 
     // virtual string _type_special(string msgtype) { return msgtype + "<" + type; }
 };
@@ -213,6 +225,12 @@ public:
 
     AnsonMsg<T>& Code(MsgCode::Code c) {
         code = c;
+        return *this;
+    }
+
+    AnsonHeader header;
+    AnsonMsg<T>& Header(AnsonHeader header) {
+        this->header = header;
         return *this;
     }
 };

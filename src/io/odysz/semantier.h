@@ -47,7 +47,9 @@ inline static void load_usereqAst_ext(AstMap &asts) {
     load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,
       [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
-        entf.ctor<string>();
+        entf.ctor<>();
+        entf.ctor<string, string>();
+
         entf.data<&UserReq::data>("data");
 
         ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {

@@ -34,6 +34,7 @@ TEST(Load, PeerSettings) {
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
     string t03_json = "t03-settings.json";
+    /*
     std::ifstream ifstream(t03_json);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t03_json << endl;
@@ -42,6 +43,8 @@ TEST(Load, PeerSettings) {
     EnTTSaxParser handler2(settings, IJsonable::contxt_ptr);
     settings.type = "";
     result = nlohmann::json::sax_parse(ifstream, &handler2);
+    */
+    result = Anson::from_file(t03_json, settings);
     ASSERT_TRUE(result);
 
     aninfo(settings.javaEnums);

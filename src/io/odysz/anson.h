@@ -179,6 +179,18 @@ public:
         return parse(json, an, opts);
     }
 
+    template <typename An>
+    static bool from_file(const string t03_json, An & an) {
+        std::ifstream ifstream(t03_json);
+        if (!ifstream.is_open()) {
+            throw runtime_error("Could not open the file! "s + t03_json);
+        }
+
+        EnTTSaxParser h(an, IJsonable::contxt_ptr);
+        an.type = "";
+        return nlohmann::json::sax_parse(ifstream, &h);
+    }
+
     string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) {
         std::stringstream ss;
         toBlock(ss, jsopt);

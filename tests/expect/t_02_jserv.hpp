@@ -6,6 +6,8 @@
 #include <io/odysz/anson.h>
 #include <io/odysz/jprotocol.h>
 #include <io/odysz/entt_jserv.h>
+#include <io/odysz/module/rs.h>
+
 
 
 namespace anson {
