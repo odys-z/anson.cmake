@@ -88,7 +88,8 @@ TEST(JUNIT, NestedList) {
     bool result = Anson::from_json(jblock, req);
     ASSERT_TRUE(result);
     ASSERT_EQ("type\"\"type", LangExt::var_str(req.nvs[0][0]));
-    // ISSUE The java side is "\"type\"", which is not expected.
+    // ISSUE Descripency in anson.java:
+    // The java side is "\"type\"", which is not expected.
     ASSERT_EQ("type", LangExt::var_str(req.nvs[0][1]));
 
     ASSERT_EQ("0-0-0.0 0-0-0.1", LangExt::var_str(req.nvss[0][0][0]));

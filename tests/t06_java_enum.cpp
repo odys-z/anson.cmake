@@ -21,7 +21,7 @@ map<string, meta_type> enttypes;
 TEST(JAVAENUM, PORT) {
     JsonOpt contxt{&enums};
     register_jserv(enums, contxt);
-    load_usereqAst(enums, "ast/usereq.ast.json");
+    load_usereqAst_test(enums, "ast/usereq.ast.json");
 
     anlog(to_aststring(enums));
 

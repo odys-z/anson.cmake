@@ -136,7 +136,7 @@ inline static void register_asts(AstMap &asts) {
         .base<Anson>()
         .ctor<>()
         .ctor<std::string, bool>()
-        .ctor<std::string, std::string>()
+        // .ctor<std::string, std::string>()
         .data<&anson::AnsonAst::isInt>("isInt")
         .data<&anson::AnsonAst::isDouble>("isDouble")
         .data<&anson::AnsonAst::isEnum>("isEnum")
@@ -161,14 +161,13 @@ inline static void register_asts(AstMap &asts) {
             {"ctors", {.dataAnclass="list<list<list<string"}}
         });
 
-    AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
+    // Debug: AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonJavaEnumAst *jeast = createAST<AnsonJavaEnumAst, AnsonJavaEnumAst>(
         asts, AnsonAst::_type_, map<string, AnsonField>{
             {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
             {"decode", {.fieldname="decode", .dataAnclass = "map<string, string"}},
     });
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonJavaEnumAst>()
         .type(jeast->enttypeid)
@@ -178,12 +177,10 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonJavaEnumAst::decode>("decode")
         ;
 
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
     AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonBodyAst>()
         .type(bdast->enttypeid)
@@ -200,7 +197,6 @@ inline static void register_asts(AstMap &asts) {
         {"portAnclass", {.fieldname="portAnclass", .dataAnclass = "string"}},
         {"portAst", {.fieldname="portAst", .dataAnclass = "string"}}
     });
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
 
     entt::meta_factory<anson::AnsonMsgAst>()
         .type(msgast->enttypeid)
@@ -498,11 +494,18 @@ inline static void register_enums(AstMap& asts) {
     asts[anclass] = unique_ptr<AnsonJavaEnumAst>(ast);
 }
 
-inline static void register_port(AstMap &asts, const string &port_ast_pth) {
-    std::ifstream ifstream(port_ast_pth);
-    if (!ifstream.is_open()) {
-        anerror(string_view(std::format("Could not open the file {}! ", port_ast_pth)));
-    }
+inline static void register_port(AstMap &asts) {
+    // std::ifstream ifstream(port_ast_pth);
+    // if (!ifstream.is_open()) {
+    //     anerror(string_view(std::format("Could not open the file {}! ", port_ast_pth)));
+    // }
+    std::istringstream ifstream(
+    R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum", "dataAnclass": "io.odysz.semantic.jprotocol.Port",
+    "encode" : { "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
+      "file": "file.serv", "userstier": "users.tier", "stree": "s-tree.serv", "dataset": "ds.serv", "datasetier": "ds.tier", "docstier": "docs.tier", "syntier": "sync.tier" },
+    "decode" : { "ping.serv": "heartbeat", "login.serv": "session", "r.serv": "query", "u.serv": "update", "c.serv": "insert", "d.serv": "del", "echo.less": "echo",
+      "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
+    );
 
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     portAst->dataAnclass = Port::_type_;
@@ -526,7 +529,7 @@ inline static void register_port(AstMap &asts, const string &port_ast_pth) {
         asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
     }
     else
-        anerror(string_view(std::format("Could not load AST from {}!", port_ast_pth)));
+        anerror("Could not setup Port AST!");
 }
 
 inline static void register_varctors() {
@@ -550,7 +553,6 @@ inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const An
     return make_shared<Anson>(inst);
 };
 
-// template <typename BD>
 template <typename BD, typename BD_Base>
 inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                    const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
@@ -562,7 +564,6 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                 f.fieldname = fn;
         }
 
-    // TODO merge with load_ast()?
     string anclass = bodyAst->dataAnclass;
     hashed_string enttype = hashed_string{anclass.c_str()};
 
@@ -587,7 +588,7 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     specialize_req<BD>(asts, bodyAst);
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)>& registerBodyFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
@@ -595,26 +596,26 @@ inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
-        body_specialize_msg<Rq, AnsonBody>(asts, bodyAst, registerBodyFields);
+        body_specialize_msg<Rq, RqBase>(asts, bodyAst, registerBodyFields);
     }
     return result;
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static bool setup_msg_specialAst(AstMap &asts, const string &ast_json,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> registerBodyFields) {
     std::istringstream iss(ast_json);
-    return load_msg_specialAst<Rq>(asts, iss, registerBodyFields);
+    return load_msg_specialAst<Rq, RqBase>(asts, iss, registerBodyFields);
 }
 
-template <typename Rq>
+template <typename Rq, typename RqBase>
 inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> & registerBodyFields) {
     std::ifstream ifstream(ast_pth);
     if (!ifstream.is_open()) {
         anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
     }
-    else if (!load_msg_specialAst<Rq>(asts, ifstream, registerBodyFields))
+    else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields))
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
 }
 

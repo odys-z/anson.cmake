@@ -1,7 +1,0 @@
-{ "type": "io.odysz.semantier.AnsonMsgAst",
-  "msg" : "io.odysz.semantic.jprotocol.AnsonMsg",
-  "base": "io.odysz.semantic.jprotocol.AnsonBody",
-  "anclass": "io.odysz.semantic.jserv.echo.WSEchoReq",
-  "A": {"echo":  "echo", "x":  "x"},
-  "fields": {"echo": "String"}
-}

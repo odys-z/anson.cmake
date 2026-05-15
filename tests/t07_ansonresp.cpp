@@ -34,7 +34,6 @@ TEST(AnsonRespons, Deserialize) {
     anlog(std::format("[2] ok: {}, anclass: {}, port: {}", result, resp.anclass, resp.port.valof()));
 
     ASSERT_TRUE(result);
-    // ASSERT_EQ(AnsonResp()._type_special(AnsonMsg<AnsonResp>::_type_), resp.anclass) << "[2]msg->anclass";
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, resp.type);
 
     EXPECT_EQ("query", resp.port.valof()) << "[3] resp->port.valof()";
@@ -43,9 +42,20 @@ TEST(AnsonRespons, Deserialize) {
 
     AnsonResp repbd = resp.Body();
 
-    cout << "[4] body: " << resp.body_size() << ", type: " << repbd.anclass << endl;// ", code: " << repbd.code << endl;
+    cout << "[4] body: " << resp.body_size() << ", type: " << repbd.anclass << endl;
     EXPECT_EQ("ok", AnsonJavaEnumAst::name<MsgCode>(resp.code)) << "[4] body[0].code = 'ok'";
     EXPECT_EQ(MsgCode::Code::ok, resp.code) << "[4] body[0].code = ok";
+
+    // issue: there should be an event of on value pasing in the parser.
+    string issue = R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg", )"
+        R"("code": "ok", "opts": null, "port": "echo", "header": null, )"
+        R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp", "rs": null, )"
+        R"(parent": "io.odysz.semantic.jprotocol.AnsonMsg", "a": null, "m": "TEST Echo...", )"
+        R"("map": {"interfaces": ["/127.0.0.1", "/0:0:0:0:0:0:0:1", "/abcd:0:0:0:abcd:abcd:abcd:abcd%wlan0", "/192.168.0.111"]}, )"
+        R"("uri": null}], "addr": null, "version": "1.1", "seq": 0})";
+
+    anwarn("ISSUE: map<string, list<string");
+    anwarn(issue);
 }
 
 TEST(AnsonResponse, Serialize) {

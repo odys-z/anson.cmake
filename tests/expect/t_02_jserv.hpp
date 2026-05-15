@@ -6,11 +6,16 @@
 #include <io/odysz/anson.h>
 #include <io/odysz/jprotocol.h>
 #include <io/odysz/entt_jserv.h>
+#include <io/odysz/module/rs.h>
+
+
 
 namespace anson {
+
 class AnSessionReq : public anson::AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionReq";
+
     struct A {
         inline static const string login = "login";
         inline static const string logout = "logout";
@@ -18,7 +23,7 @@ public:
         inline static const string init = "init";
         inline static const string touch = "touch";
         inline static const string ping = "ping";
-	};
+    };
     string uid;
     string token;
     string iv;
@@ -28,7 +33,7 @@ public:
 };
 
 inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionReq>(asts, ast_path,
+    specialize_msg_astpth<AnSessionReq, AnsonBody>(asts, ast_path,
       [](meta_factory<AnSessionReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionReq::uid>("uid");
         entf.data<&AnSessionReq::token>("token");
@@ -60,11 +65,13 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
         };
   });
 }
+
 class AnSessionResp : public anson::AnsonResp {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionResp";
+
     struct A {
-	};
+    };
     SessionInf ssInf;
     Anson profile;
 
@@ -80,7 +87,7 @@ public:
 };
 
 inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionResp>(asts, ast_path,
+    specialize_msg_astpth<AnSessionResp, AnsonResp>(asts, ast_path,
       [](meta_factory<AnSessionResp> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionResp::ssInf>("ssInf");
         entf.data<&AnSessionResp::profile>("profile");
@@ -108,4 +115,5 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
         };
   });
 }
+
 }

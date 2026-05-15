@@ -34,6 +34,7 @@ TEST(Load, PeerSettings) {
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
     string t03_json = "t03-settings.json";
+    /*
     std::ifstream ifstream(t03_json);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t03_json << endl;
@@ -42,6 +43,8 @@ TEST(Load, PeerSettings) {
     EnTTSaxParser handler2(settings, IJsonable::contxt_ptr);
     settings.type = "";
     result = nlohmann::json::sax_parse(ifstream, &handler2);
+    */
+    result = Anson::from_file(t03_json, settings);
     ASSERT_TRUE(result);
 
     aninfo(settings.javaEnums);
@@ -82,10 +85,10 @@ TEST(Load, AnsonAst_Port) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts, "ast/port.ast.json");
+    register_port(asts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
-    string ast_port = "ast/port.ast.json";
+    string ast_port = "ast/port.ast-only-4-t03.json";
     std::ifstream ifstream(ast_port);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << ast_port << endl;
@@ -145,7 +148,7 @@ TEST(Load, EchoReq) {
     AstMap asts;
     JsonOpt contxt{&asts};
     register_jserv(asts, contxt);
-    load_echoAst_expect(asts, "ast/echo.ast.json");
+    load_echoAst_test(asts, "ast/echo.ast.json");
 
     string t03_echo_json = "t03_echo.body.json";
     std::ifstream ifstream(t03_echo_json);
@@ -169,9 +172,9 @@ TEST(Load, EchoAst) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts, "ast/port.ast.json");
+    register_port(asts);
 
-    string echo_msg = "ast/echo-msg.ast.json";
+    string echo_msg = "ast/echo-msg.ast-only-4-t03.json";
     std::ifstream ifmsgstream(echo_msg);
     if (!ifmsgstream.is_open()) {
         FAIL() << "Could not open the file! " << echo_msg << endl;

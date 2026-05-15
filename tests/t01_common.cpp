@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -166,3 +167,19 @@ TEST(RegexTest, TestPareseTypes) {
     ASSERT_EQ((std::vector<std::string>{"map.string, shared_ptr<T_List", "false"}),
               Regex::parseMapValtype(R"(map.string, shared_ptr<T_List)")) << "::-1";
 }
+
+class AESHelperTest : public ::testing::Test {
+public:
+    inline static const std::string jarPath = "../../../tests/res/semantics.transact-1.5.77-SNAPSHOT.jar";
+    inline static const std::string tempFile = "test_output.txt";
+
+    // Helper to read the file content
+    inline static std::string readOutputFile() {
+        std::ifstream file(tempFile);
+        std::string content, line;
+        while (std::getline(file, line)) {
+            content += line + "\n";
+        }
+        return content;
+    }
+};

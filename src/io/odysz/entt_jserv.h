@@ -9,13 +9,14 @@
 #include <entt/meta/container.hpp>
 #include <string>
 #include "json.h"
+#include "semantier.h"
 
 namespace anson {
 using namespace entt;
 using namespace entt::literals;
 
 inline static void setup_jserv_crud_deprecated(AstMap &asts) {
-    setup_msg_specialAst<AnQueryReq>(asts,
+    setup_msg_specialAst<AnQueryReq, AnsonBody>(asts,
         std::format(R"({{"type": "{}")", AnsonBodyAst::_type_) +
         std::format(R"("base": "{}")", AnsonAst::_type_) +
         R"("A": {"echo":  "echo", "inet":  "inet"},)" +
@@ -276,15 +277,13 @@ inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
 
     register_varctors();
     register_asts(asts);
-    AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     register_msgs(asts);
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     register_enums<MsgCode>(asts);
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
-    register_port(asts, "ast/port.ast.json");
-    a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
+    register_port(asts);
     specialize_respmsg(asts);
     setup_jserv_crud(asts);
+    load_usereqAst_ext(asts);
+    load_echoAst_ext(asts);
     register_peersettings(asts);
 }
 

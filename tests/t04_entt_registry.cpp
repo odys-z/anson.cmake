@@ -17,7 +17,7 @@ TEST(ENTT_META, JSON_REGISTRY) {
     IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    load_echoAst_expect(asts, "ast/echo.ast.json");
+    load_echoAst_test(asts, "ast/echo.ast.json");
 
     JsonOpt jsonopts{&asts};
     IJsonable::contxt_ptr = &jsonopts;

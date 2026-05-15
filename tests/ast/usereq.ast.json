@@ -1,7 +1,7 @@
 { "type": "io.odysz.anson.AnsonBodyAst",
   "A": {"test":  "test.only"},
   "dataAnclass": "io.odysz.semantic.jserv.echo.UserReq",
-  "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBodyAst",
+  "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",
   "fields" : {
     "data": {"fieldname": "data", "dataAnclass": "map<string, string>"}
   }

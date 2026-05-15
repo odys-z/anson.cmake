@@ -81,7 +81,7 @@ TEST(Anson, AnsonBody) {
 }
 
 TEST(Anson, PORT) {
-    register_port(enums, "ast/port.ast.json");
+    register_port(enums);
     string portclass = Port::_type_;
     AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
     hashed_string portype{portclass.c_str()};
@@ -96,7 +96,7 @@ TEST(Anson, PORT) {
 
 TEST(Anson, AnsonMsg_EchoReq) {
     register_jserv(enums, contxt);
-    load_echoAst_expect(enums, "ast/echo.ast.json");
+    load_echoAst_test(enums, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
 
@@ -145,7 +145,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
 TEST(Anson, Servialize_Msg) {
     JsonOpt opts{&enums};
     register_jserv(enums, opts);
-    load_echoAst_expect(enums, "ast/echo.ast.json");
+    load_echoAst_ext(enums);
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<EchoReq>;

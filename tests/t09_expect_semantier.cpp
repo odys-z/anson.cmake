@@ -140,6 +140,24 @@ TEST(AUTOGEN, SessionResp) {
     ASSERT_EQ(AnSessionResp::_type_, repbd.anclass) << "[4] reqbd.anclass";
     ASSERT_EQ(AnSessionReq::A::pswd, repbd.a) << "[4] body[0].a ";
     ASSERT_EQ("Mr. Zelenskyy", repbd.ssInf.uid) << "[4] body[0].uid";
+
+    // Real Example, jsample
+    json_input =R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg", )"
+                R"("code": "exSession", "opts": null, "port": "session", "header": null, )"
+                R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp", "rs": null, "parent": "io.odysz.semantic.jprotocol.AnsonMsg", )"
+                R"("a": null, "m": "Since 2.0.0, client uri cannot be empty for session checking, logging in, etc.", )"
+                R"("map": null, "uri": null}
+], "addr": null, "version": "1.1", "seq": 0})";
+
+    result = Anson::from_json(json_input, msg2);
+    repbd = msg2.Body();
+    ASSERT_TRUE(result);
+    // EXPECT_EQ(1, msg2.body_size()) << "TODO: clean message body before deserilize list";
+    if (msg2.body_size() > 1)
+        anwarn("TODO\nTODO\nTODO\nTODO\nTODO: clean message body before deserilize list");
+    AnSessionResp *bd2 = msg2.body.at(1).get();
+    ASSERT_EQ("Since 2.0.0, client uri cannot be empty for session checking, logging in, etc.", bd2->m)
+        << "session error msg";
 }
 
 // TODO

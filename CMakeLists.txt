@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.30)
 
 # in my/github/vcpkg
 # See README
+
+# ./vcpkg install entt botan boost-url nlohmann_json --x-install-root="../anson.cmake/vcpkg_packages"
+# share global packages, can causing problem:
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-# ./vcpkg install entt:x64-windows --x-install-root="../anclient/examples/example.qml/vcpkg_packages"
-# set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_packages" CACHE PATH "vcpkg install dir")
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed" CACHE PATH "vcpkg install dir")
+
 
 project(anson.cmake
     VERSION 0.1.0
@@ -31,6 +33,9 @@ endif()
 
 # vcpkg install boost-url
 find_package(Boost CONFIG REQUIRED COMPONENTS url)
+
+ # vcpkg install openssl:x64-windows
+find_package(OpenSSL REQUIRED)
 
 find_package(EnTT CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

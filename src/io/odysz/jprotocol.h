@@ -25,9 +25,12 @@ public:
     AnsonBody(string type) : Anson(type) , a("") {}
 
     AnsonBody(string a, string type) : Anson(type), a(a) {}
+
+    AnsonBody(string a, string type, string ignored) : Anson(type), a(a) {}
 };
 
 class AnsonHeader : public anson::Anson {
+public:
     string uid;
     string ssid;
     string iv64;
@@ -40,6 +43,15 @@ class AnsonHeader : public anson::Anson {
      * @since java 1.4.36, cmake 0.1
      */
     string ssToken;
+
+    AnsonHeader() {}
+
+    AnsonHeader(const string& uid, const string &ssid, const string &iv64) : uid(uid), ssid(ssid), iv64(iv64) {}
+
+    AnsonHeader & Act(const string &funcId, const string &cmd, const string &cate, const string &remarks = "") {
+        usrAct = {funcId, cmd, cate, remarks};
+        return *this;
+    }
 };
 
 class JProtocol {
@@ -58,8 +70,8 @@ class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
     map<string, entt::any> data;
-    UserReq() : UserReq("null") {}
-    UserReq(string a) : AnsonBody(a, _type_) {}
+    UserReq() : UserReq("null", _type_) {}
+    UserReq(string a, string type) : AnsonBody(a, type) {}
 
     // virtual string _type_special(string msgtype) { return msgtype + "<" + type; }
 };
@@ -125,7 +137,7 @@ template<> constexpr std::array<std::string_view, 9> MsgCode::noms = {
     "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinal_"
 };
 
-class AnsonResp : public AnsonBody{
+class AnsonResp : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonResp";
 
@@ -137,12 +149,15 @@ public:
     AnsonResp(string type) : AnsonBody("NA", type) {}
     AnsonResp(string a, string type) : AnsonBody(a, type) {}
 
-    AnsonResp* msg(string_view m) {
-        this->m = std::move(m);
-        return this;
-    }
+    // AnsonResp* msg(string_view m) {
+    //     this->m = std::move(m);
+    //     return this;
+    // }
 
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    AnsonResp& msg(const string & m) {
+        this->m = string{m};
+        return *this;
+    }
 };
 
 template <typename T //anson::AnsonBody
@@ -163,15 +178,12 @@ public:
 
     MsgCode::Code code;
 
-    // AnsonMsg() : Anson(_type_, T()._type_special(_type_)), port("_sentinel_") { }
     AnsonMsg() : Anson(_type_, _type_ + '<' + T::_type_), port("_sentinel_") { }
 
-    // AnsonMsg(Port port) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
     AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         cout << port.enm;
     }
 
-    // AnsonMsg(Port port, const T& body) : Anson(_type_, T()._type_special(_type_)), port(port.enm) {
     AnsonMsg(Port port, const T& body) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         this->Body(body);
     }
@@ -215,14 +227,21 @@ public:
         code = c;
         return *this;
     }
+
+    AnsonHeader header;
+    AnsonMsg<T>& Header(AnsonHeader header) {
+        this->header = header;
+        return *this;
+    }
 };
 
 class JServUrl : public HttpParts {
 public:
     // static UrlValidator urlValidator;
-    string protocolroot;
+    // string protocolroot;
+    const JProtocol *jprotocol;
 
-    JServUrl(string url) : HttpParts() {
+    JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts() {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
 
@@ -230,13 +249,18 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->paths = std::move(parts.paths);
-        this->query = std::move(parts.query);
-        this->fragment = std::move(parts.fragment);
+        // this->paths = std::move(parts.paths);
+        // this->query = std::move(parts.query);
+        // this->fragment = std::move(parts.fragment);
+        this->jprotocol = &jprotocol;
     }
 
-    string jserv() {
-        return format("{}://{}:{}/{}", this->scheme, this->host, this->port, this->protocolroot);
+    string jserv() const {
+        return format("{}://{}:{}/{}",
+                      LangExt::isblank(this->scheme) ? "http" : this->scheme,
+                      this->host,
+                      this->port <= 0 ? 80 : this->port,
+                      this->jprotocol->protocolpath);
     }
 };
 

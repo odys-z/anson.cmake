@@ -20,6 +20,11 @@
 #include <chrono>
 #include <entt/entt.hpp>
 #include <entt/meta/meta.hpp>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
 
 #include "utils.h"
 
@@ -321,26 +326,6 @@ public:
     inline static void register_ctor(const string & tp, std::function<entt::meta_any()> *c) {
         var_ctors[tp] = c;
     }
-
-    // friend bool operator == (const VarType& u, const std::string& v) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const std::string& v, const VarType& u) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const VarType& u, const char* v) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
-
-    // friend bool operator == (const char* v, const VarType& u) {
-    //     return (std::holds_alternative<std::monostate>(u) && LangExt::isblank(v))
-    //            || (LangExt::var_str(u).value_or("") == v);
-    // }
 };
 
 inline std::chrono::system_clock::time_point operator ""_t(const char* str, std::size_t len) {
@@ -672,8 +657,6 @@ inline static int default_port(const string &scheme) {
  */
 inline static bool validUrlPort(int port, const std::vector<int>& range) {
     if (range.empty()) return port > 0;
-    // TODO delete: A relic of LLM Programming (The java logic is actually given)
-    // return std::find(range.begin(), range.end(), port) != range.end();
     return (range[0] < 0 || port >= range[0])
            && (range.size() < 2 || range[1] < 0 || port <= range[1]);
 }
@@ -713,5 +696,169 @@ public:
 private:
     uint64_t options_;
     std::unordered_set<std::string> allowed_schemes_;
+};
+
+class AESHelper2 {
+public:
+
+    inline static std::vector<unsigned char> hash_key_sha256(const std::string& raw_key) {
+        std::vector<unsigned char> hash(SHA256_DIGEST_LENGTH);
+        SHA256(reinterpret_cast<const unsigned char*>(raw_key.data()), raw_key.size(), hash.data());
+        return hash;
+    }
+
+    inline static std::string encrypt(string plain, string key, vector<unsigned char> iv) {
+        EVP_CIPHER_CTX *ctx = nullptr;
+        try {
+            ctx = EVP_CIPHER_CTX_new();
+
+            std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
+
+            std::vector<unsigned char> cipherbytes(plain.size() + 16);
+
+            int len, cipher_len;
+
+            // Select Cipher Type
+            const EVP_CIPHER* cipherType = nullptr;
+            if (key_bytes.size() == 16) {
+                cipherType = EVP_aes_128_cbc();
+            } else if (key_bytes.size() == 32) {
+                cipherType = EVP_aes_256_cbc();
+            } else {
+                throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
+            }
+
+            if(EVP_EncryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
+                throw std::runtime_error("Encryption Init failed");
+
+            if(EVP_EncryptUpdate(ctx, cipherbytes.data(), &len,
+                                  reinterpret_cast<const unsigned char*>(plain.data()), plain.size()) != 1)
+                throw std::runtime_error("Encryption Update failed");
+            cipher_len = len;
+
+            if(EVP_EncryptFinal_ex(ctx, cipherbytes.data() + len, &len) != 1)
+                throw std::runtime_error("Encryption Finalize failed");
+            cipher_len += len;
+
+            EVP_CIPHER_CTX_free(ctx);
+
+            cipherbytes.resize(cipher_len);
+            return AESHelper2::encode64(cipherbytes);
+
+        } catch (const std::exception& e) {
+            if (ctx) EVP_CIPHER_CTX_free(ctx);
+            anerror("OpenSSL encryption error: "s + e.what());
+            return "";
+        }
+    }
+
+    /**
+     * @brief decrypt
+     * Java: public static String decrypt(String cypher, String key, byte[] iv);
+     * @return
+     */
+    inline static string decrypt(string cipher64, string key, vector<unsigned char> iv) {
+        EVP_CIPHER_CTX *ctx = nullptr;
+        try {
+            // Setup OpenSSL Decryption
+            ctx = EVP_CIPHER_CTX_new(); // Performance overhead but not thread safe
+
+            // 1. Decode inputs
+            std::vector<unsigned char> cipherbytes = AESHelper2::decode64(cipher64);
+            std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
+
+            int len, plain_len;
+
+            std::vector<unsigned char> plainbytes(cipherbytes.size());
+
+            // Initialize Decryption: AES-128-CBC or AES-256-CBC depending on key size
+            // Java's "AES/CBC/PKCS5Padding" is equivalent to OpenSSL's default PKCS7 padding
+            const EVP_CIPHER* cipherType = nullptr;
+
+            if (key_bytes.size() == 16) {
+                cipherType = EVP_aes_128_cbc();
+            } else if (key_bytes.size() == 32) {
+                cipherType = EVP_aes_256_cbc();
+            } else {
+                throw std::runtime_error(std::format("Unsupported key size: {}", key_bytes.size()));
+            }
+
+            if(EVP_DecryptInit_ex(ctx, cipherType, NULL, key_bytes.data(), iv.data()) != 1)
+                throw std::runtime_error("Init failed");
+
+            if(EVP_DecryptUpdate(ctx, plainbytes.data(), &len, cipherbytes.data(), cipherbytes.size()) != 1)
+                throw std::runtime_error("Update failed");
+            plain_len = len;
+
+            if(EVP_DecryptFinal_ex(ctx, plainbytes.data() + len, &len) != 1)
+                throw std::runtime_error("Finalize failed (Check your key/padding)");
+            plain_len += len;
+
+            std::string decrypted_text(reinterpret_cast<char*>(plainbytes.data()), plain_len);
+            andebug("OpenSSL Decrypted: " + decrypted_text);
+
+            EVP_CIPHER_CTX_free(ctx);
+            return decrypted_text;
+        } catch (const std::exception& e) {
+            if (ctx) EVP_CIPHER_CTX_free(ctx);
+            anerror("OpenSSL error: "s + e.what());
+            return "";
+        }
+    }
+
+    inline static vector<unsigned char> getRandom() {
+        const int IV_SIZE = 16;
+        vector<unsigned char> iv(IV_SIZE);
+
+        if (RAND_bytes(iv.data(), IV_SIZE) != 1) {
+            throw std::runtime_error("OpenSSL: Failed to generate random bytes.");
+        }
+
+        return iv;
+    }
+
+    inline static const char* base64_chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "0123456789+/";
+
+    inline static std::string encode64(const std::vector<unsigned char>& data) {
+        std::string encoded;
+        encoded.reserve(((data.size() + 2) / 3) * 4);
+
+        for (size_t i = 0; i < data.size(); i += 3) {
+            uint32_t temp = (static_cast<unsigned char>(data[i]) << 16);
+            if (i + 1 < data.size()) temp |= (static_cast<unsigned char>(data[i+1]) << 8);
+            if (i + 2 < data.size()) temp |= static_cast<unsigned char>(data[i+2]);
+
+            encoded += base64_chars[(temp >> 18) & 0x3F];
+            encoded += base64_chars[(temp >> 12) & 0x3F];
+
+            if (i + 1 < data.size())
+                encoded += base64_chars[(temp >> 6) & 0x3F];
+            else
+                encoded += '=';
+
+            if (i + 2 < data.size())
+                encoded += base64_chars[temp & 0x3F];
+            else
+                encoded += '=';
+        }
+
+        return encoded;
+    }
+
+    inline static std::vector<unsigned char> decode64(const std::string& base64) {
+        BIO *bio, *b64;
+        std::vector<unsigned char> buffer(base64.length());
+        bio = BIO_new_mem_buf(base64.c_str(), -1);
+        b64 = BIO_new(BIO_f_base64());
+        bio = BIO_push(b64, bio);
+        BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // Important: No newlines
+        int length = BIO_read(bio, buffer.data(), base64.length());
+        buffer.resize(length);
+        BIO_free_all(bio);
+        return buffer;
+    }
 };
 }

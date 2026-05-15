@@ -65,9 +65,10 @@ target_link_libraries(unit_tests
         gtest_main
         Boost::url
         nlohmann_json::nlohmann_json
+        OpenSSL::Crypto OpenSSL::SSL
         anson
 )
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=2)
+add_compile_definitions(ANSON_VERBOSE=4)
