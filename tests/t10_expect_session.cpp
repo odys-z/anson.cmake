@@ -17,10 +17,10 @@ static JsonOpt contxt{&asts};
 
 TEST(AUTOGEN, SessionReq) {
     register_jserv(asts, contxt);
-    load_sessionreqAst(asts, "ast-cpy/sessionreq.ast.json");
-    load_sessionrespAst(asts, "ast-cpy/sessionresp.ast.json");
+    load_ansessionreqAst(asts, "ast-cpy/sessionreq.ast.json");
+    load_ansessionrespAst(asts, "ast-cpy/sessionresp.ast.json");
 
-    using Req = AnsonMsg<SessionReq>;
+    using Req = AnsonMsg<AnSessionReq>;
 
     string msgclass = Req().anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
@@ -28,8 +28,8 @@ TEST(AUTOGEN, SessionReq) {
 
     auto mv = mt.construct(Port(Port::echo));
     Req* msg = mv.try_cast<Req>();
-    SessionReq body{};
-    body.a = SessionReq.A.login;
+    AnSessionReq body{};
+    body.a = AnSessionReq::A::login;
     msg->Body(body);
 
     cout << "[1] msg.port: " << msg->port << endl;
@@ -41,7 +41,7 @@ TEST(AUTOGEN, SessionReq) {
     ASSERT_EQ("ody", msg->body.at(0)->uid) << "[1] msg-body[0].uid";
 
 
-    using Resp = AnsonMsg<SessionResp>;
+    using Resp = AnsonMsg<AnSessionResp>;
     Resp resp{};
     std::string json_input = R"({"type": "io.odysz.jprotocol.AnsonMsg", "port": "session",)"
                              R"("body": [{"a": "login", "ssInf": {"ssid": "abc", "token": ""}}]})";
@@ -52,16 +52,16 @@ TEST(AUTOGEN, SessionReq) {
 
     ASSERT_TRUE(result);
     ASSERT_EQ(Resp().anclass, resp.anclass) << "msg->anclass";
-    ASSERT_EQ(AnsonMsg<SessionResp>::_type_, resp.type);
+    ASSERT_EQ(AnsonMsg<AnSessionResp>::_type_, resp.type);
 
     EXPECT_EQ(Port::session, resp.port.url()) << "[3] msg->port";
     EXPECT_EQ("query", resp.port) << "[3] msg->port";
 
-    SessionResp repbd = resp.Body();
+    AnSessionResp repbd = resp.Body();
 
     cout << "[4] body: " << resp.body.size() << ", type: " << repbd.anclass << ", a: " << repbd.a << endl;
-    EXPECT_EQ(SessionResp::_type_, repbd.anclass) << "[4] repbd.anclass";
-    EXPECT_EQ("ody", repbd.body[0]->ssInf.uid) << "[4] msg->body.uid";
+    EXPECT_EQ(AnSessionResp::_type_, repbd.anclass) << "[4] repbd.anclass";
+    EXPECT_EQ("ody", repbd.ssInf.uid) << "[4] msg->body.uid";
     EXPECT_EQ("login", repbd.a) << "[4] body[0].a";
 }
 

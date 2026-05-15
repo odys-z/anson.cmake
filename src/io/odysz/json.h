@@ -76,6 +76,9 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
     string astid = AN().anclass;
 
     andebug(string_view{std::format("create AST: {}", astid)});
+
+    if (astid == ast->baseAnclass)
+        throw runtime_error(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
     asts[astid] = unique_ptr<AST>(ast);
     return ast;
 }
@@ -125,7 +128,7 @@ inline static void register_asts(AstMap &asts) {
         .type(ast->enttypeid)
         .base<IJsonable>()
         .ctor<>()
-        .ctor<const std::string&>()
+        // .ctor<const std::string&>()
         .data<&anson::Anson::type>("type")
         ;
 
@@ -455,7 +458,7 @@ inline static void register_msgs(AstMap &asts) {
         .base<anson::Anson>()
         .ctor()
         .ctor<string>()
-        .ctor<string, string>()
+        // .ctor<string, string>()
         .data<&anson::AnsonBody::a>("a")
         ;
 }
@@ -556,13 +559,15 @@ inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const An
 template <typename BD, typename BD_Base>
 inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
                    const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
-    for (auto& [fn, f] : bodyAst->fields)
-        if (!LangExt::isblank(f.fieldname) && f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
+    int l = bodyAst->fields.size();
+    for (auto& [fn, f] : bodyAst->fields) {
+        if (f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
             anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
                                fn, f.dataAnclass, f.fieldname));
             if (LangExt::isblank(f.fieldname))
                 f.fieldname = fn;
         }
+    }
 
     string anclass = bodyAst->dataAnclass;
     hashed_string enttype = hashed_string{anclass.c_str()};

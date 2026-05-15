@@ -22,15 +22,17 @@ public:
 
     AnsonBody() : Anson(_type_) {}
 
-    AnsonBody(string type) : Anson(type) , a("") {}
+    // AnsonBody(string type) : Anson(type) , a("") {}
 
-    AnsonBody(string a, string type) : Anson(type), a(a) {}
+    AnsonBody(string a) : Anson(_type_), a(a) {}
 
-    AnsonBody(string a, string type, string ignored) : Anson(type), a(a) {}
+    // AnsonBody(string a, string type, string ignored) : Anson(type), a(a) {}
 };
 
 class AnsonHeader : public anson::Anson {
 public:
+    inline static const string _type_ = "io.odysz.semantic.jprotocol.AnsonHeader";
+
     string uid;
     string ssid;
     string iv64;
@@ -44,9 +46,10 @@ public:
      */
     string ssToken;
 
-    AnsonHeader() {}
+    AnsonHeader() : Anson(_type_) {}
 
-    AnsonHeader(const string& uid, const string &ssid, const string &iv64) : uid(uid), ssid(ssid), iv64(iv64) {}
+    AnsonHeader(const string& uid, const string &ssid, const string &iv64)
+        : Anson(_type_), uid(uid), ssid(ssid), iv64(iv64) {}
 
     AnsonHeader & Act(const string &funcId, const string &cmd, const string &cate, const string &remarks = "") {
         usrAct = {funcId, cmd, cate, remarks};
@@ -70,10 +73,9 @@ class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
     map<string, entt::any> data;
-    UserReq() : UserReq("null", _type_) {}
-    UserReq(string a, string type) : AnsonBody(a, type) {}
 
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + type; }
+    UserReq(string a) : AnsonBody(a) { Type(_type_); }
+    UserReq() : UserReq("null") {}
 };
 
 /**
@@ -145,14 +147,9 @@ public:
     vector<AnResultset> rs;
     map<string, Anson> map;
 
-    AnsonResp() : AnsonBody("NA", _type_) {}
-    AnsonResp(string type) : AnsonBody("NA", type) {}
-    AnsonResp(string a, string type) : AnsonBody(a, type) {}
-
-    // AnsonResp* msg(string_view m) {
-    //     this->m = std::move(m);
-    //     return this;
-    // }
+    AnsonResp() : AnsonResp("NA") {}
+    // AnsonResp(string type) : AnsonBody("NA", type) {}
+    AnsonResp(string a) : AnsonBody(a) { Type(_type_); }
 
     AnsonResp& msg(const string & m) {
         this->m = string{m};
@@ -178,14 +175,15 @@ public:
 
     MsgCode::Code code;
 
-    AnsonMsg() : Anson(_type_, _type_ + '<' + T::_type_), port("_sentinel_") { }
 
     AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
-        cout << port.enm;
+        // cout << port.enm;
     }
 
-    AnsonMsg(Port port, const T& body) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
-        this->Body(body);
+    AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
+
+    AnsonMsg(Port port, const T& body) : AnsonMsg(port), body({body}) {
+        // this->Body(body);
     }
 
     AnsonMsg<T>& Body(const T& body) {
@@ -321,11 +319,9 @@ public:
 
     vector<vector<string>> havings;
 
-    AnQueryReq() : AnsonBody(CRUD::R, _type_) {}
+    AnQueryReq(string a) : AnsonBody(a) { Type(_type_); }
 
-    AnQueryReq(string a) : AnsonBody(a, _type_) {}
-
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    AnQueryReq() : AnQueryReq(CRUD::R) {}
 };
 
 class AnUpdateReq : public AnsonBody {
@@ -370,25 +366,21 @@ public:
 
     vector<vector<LangExt::VarType>> attacheds;
 
-    AnUpdateReq() : AnsonBody(CRUD::D, _type_) {}
+    AnUpdateReq(string a) : AnsonBody(a) { Type(_type_); }
 
-    AnUpdateReq(string a) : AnsonBody(a, _type_) {}
+    AnUpdateReq() : AnUpdateReq(CRUD::D) {}
 
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
-
-protected:
-    AnUpdateReq(string a, string tp) : AnsonBody(a, tp) {}
+// protected:
+    // AnUpdateReq(string a, string tp) : AnsonBody(a, tp) {}
 };
 
 class AnInsertReq : public AnUpdateReq {
 public:
     inline static const string _type_ = "io.odysz.semantic.jserv.U.AnInsertReq";
 
-    AnInsertReq() : AnUpdateReq(CRUD::C, _type_) {}
+    AnInsertReq(string a) : AnUpdateReq(a) { Type(_type_); }
 
-    AnInsertReq(string a) : AnUpdateReq(a, _type_) {}
-
-    // virtual string _type_special(string msgtype) { return msgtype + "<" + _type_; }
+    AnInsertReq() : AnInsertReq(CRUD::C) {}
 };
 
 }

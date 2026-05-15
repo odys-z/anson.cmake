@@ -93,7 +93,7 @@ public:
 const string AnsonAst::find_field_astid(const AstMap* asts, const string & fieldname) const {
     if (fields.contains(fieldname))
         return fields.at(fieldname).dataAnclass;
-    else if (asts->contains(baseAnclass)) {
+    else if (!LangExt::isblank(baseAnclass) && asts->contains(baseAnclass)) {
         const AnsonAst *baseAst = asts->at(baseAnclass).get();
         return baseAst->find_field_astid(asts, fieldname);
     }
@@ -177,7 +177,9 @@ public:
     AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
-inline JavaEnum:: JavaEnum(string anclass, string e) : enm(std::move(e)), IJsonable(anclass) {
+inline JavaEnum:: JavaEnum(string anclass, string e) :  IJsonable(), enm(std::move(e)) {
+    Anclass(anclass);
+
     this->anclass = anclass;
     if (contxt_ptr->asts->contains(anclass)) {
         map<string, string> encode =
