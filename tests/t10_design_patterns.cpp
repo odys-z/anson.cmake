@@ -6,6 +6,8 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/anson.h"
 #include "io/odysz/semantier.h"
+#include "expect/dbmeta.h"
+#include "expect/t_10_doctier.hpp"
 
 using namespace anson;
 static AstMap asts;
@@ -59,5 +61,58 @@ TEST(DESGIN, FORCE_TYPE) {
     ASSERT_EQ(AnsonMsg<AnInsertReq>().anclass, im.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, im.type);
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
+}
 
+void DocsReq::format(IFileDescriptor p) {
+
+}
+
+TEST(DESIGN, Enforce_Generator) {
+    IJsonable::contxt_ptr = &contxt;
+
+    PageInf pi{};
+    ASSERT_EQ(PageInf::_type_, pi.type);
+
+    Device dev{};
+    ASSERT_EQ(Device::_type_, dev.type);
+
+    SynEntity se{};
+    ASSERT_EQ(SynEntity::_type_, se.type);
+
+    SynEntity se2{SynEntityMeta{}};
+    ASSERT_EQ(SynEntity::_type_, se2.type);
+
+    PathsPage pp{};
+    ASSERT_EQ(PathsPage::_type_, pp.type);
+
+    PathsPage pp2{"device", 1, 11};
+    ASSERT_EQ(PathsPage::_type_, pp2.type);
+
+    ExpSyncDoc sd{};
+    ASSERT_EQ(ExpSyncDoc::_type_, sd.type);
+
+    DocsReq dr{"fake", {"test-docsreq.file"}};
+    ASSERT_EQ(DocsReq::_type_, dr.type);
+    AnsonMsg<DocsReq> dm{};
+    andebug(dm.anclass);
+    ASSERT_EQ(AnsonMsg<DocsReq>().anclass, dm.anclass);
+    ASSERT_EQ(AnsonMsg<EchoReq>::_type_, dm.type);
+    ASSERT_EQ(AnsonMsg<DocsReq>::_type_, dm.type);
+
+    DocsReq dr2{"h_photos", sd, "uri"};
+    ASSERT_EQ(DocsReq::_type_, dr2.type);
+    AnsonMsg<DocsReq> dm2{};
+    andebug(dm2.anclass);
+    ASSERT_EQ(AnsonMsg<DocsReq>().anclass, dm2.anclass);
+    ASSERT_EQ(AnsonMsg<EchoReq>::_type_, dm2.type);
+    ASSERT_EQ(dm.type, dm2.type);
+
+    DocsResp drp{};
+    ASSERT_EQ(DocsResp::_type_, drp.type);
+    AnsonMsg<DocsResp> rpm{};
+    andebug(rpm.anclass);
+    ASSERT_EQ(AnsonMsg<DocsResp>().anclass, rpm.anclass);
+    ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, rpm.type);
+    ASSERT_EQ(dm.type , rpm.type);
+    ASSERT_EQ(dm2.type, rpm.type);
 }

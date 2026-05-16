@@ -190,7 +190,7 @@ inline JavaEnum:: JavaEnum(string anclass, string e) :  IJsonable(), enm(std::mo
             return;
         }
     }
-    andebug("JavaEnum: "s + enm);
+    andebug(std::format("JavaEnum: {}:{}", anclass, enm));
 }
 
 inline string JavaEnum::valof() const {
