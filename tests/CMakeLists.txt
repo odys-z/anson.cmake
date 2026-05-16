@@ -32,8 +32,9 @@ add_executable(unit_tests
   t09_expect_semantier.cpp
   expect/t_01_echomsg.hpp
   expect/t_02_jserv.hpp
+  expect/dbmeta.h
+  expect/t_10_doctier.hpp
   t10_design_patterns.cpp
-  # expect/t_03_synode.hpp
 )
 
 if(MSVC)
@@ -73,4 +74,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=4)
+add_compile_definitions(ANSON_VERBOSE=5)

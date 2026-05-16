@@ -29,7 +29,7 @@ public:
     string iv;
     string deviceId;
 
-    AnSessionReq() : AnsonBody(_type_)  {};
+    AnSessionReq() : AnsonBody() { Type(_type_); };
 };
 
 inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
@@ -75,7 +75,9 @@ public:
     SessionInf ssInf;
     Anson profile;
 
-    AnSessionResp(string ssid, string uid, string roleId) : AnsonResp(_type_)  {
+    AnSessionResp(string ssid, string uid, string roleId) {
+        Type(_type_);
+
         ssInf.ssid = ssid;
         ssInf.uid = uid;
         ssInf.roleId = roleId;
@@ -83,7 +85,7 @@ public:
 
     AnSessionResp(SessionInf ss_inf) : AnsonResp(_type_), ssInf(ss_inf) {};
 
-    AnSessionResp() : AnsonResp("", _type_)  {};
+    AnSessionResp() : AnSessionResp("", "", "") {};
 };
 
 inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {

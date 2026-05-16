@@ -61,6 +61,11 @@ public:
 };
 
 class IJsonable {
+protected:
+    void Anclass(const string & anc) {anclass = anc;}
+
+    /** Only for direct subclasses, Anson, JavaEnum, etc. */
+    IJsonable(const string &ancls): anclass(ancls) {}
 
 public:
     inline static const string _anclass_ = "io.odysz.anson.IJsonable";
@@ -79,7 +84,8 @@ public:
      */
     string anclass;
 
-    IJsonable(string anclass) : anclass(anclass) {}
+    // IJsonable(string anclass) : anclass(anclass) {}
+    IJsonable() {}
 
     virtual const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const = 0;
 
@@ -124,9 +130,6 @@ public:
     }
 
     string valof() const;
-    // static JavaEnum& valof(string s, JavaEnum& stub) {
-    //     return stub;
-    // }
 
     const IJsonable* toBlock(ostream& stream, const JsonOpt& opts) const override {
         stream << this;
@@ -155,6 +158,25 @@ inline static bool parse(const string& json, T &an, const JsonOpt *opts);
  * java type: io.odysz.anson.Anson
  */
 class Anson : public IJsonable {
+protected:
+    void Type(const string &t, const string &anclass) {
+        type = t;
+        Anclass(anclass);
+    }
+
+    void Type(const string &t) { Type(t, t); }
+
+    /** Shortcut for direct subclasses */
+    Anson(string tp) : IJsonable(tp), type(tp) {}
+
+    /**
+     * Shortcut for direct subclasses
+     * @brief Anson
+     * @param tp
+     * @param ancls (astid) can be different if is a template specialized.
+     */
+    Anson(string tp, string ancls) : IJsonable(ancls), type(tp) {}
+
 public:
     virtual ~Anson() = default;
 
@@ -162,17 +184,7 @@ public:
 
     string type;
 
-    Anson() : IJsonable(_type_), type(_type_) {}
-
-    Anson(string tp) : IJsonable(tp), type(tp) {}
-
-    /**
-     * @brief Anson
-     * @param t
-     * @param astid can be different if is a template specialized.
-     */
-    Anson(string t, string anclass) : IJsonable(anclass), type(t) {
-    }
+    Anson() : type(_type_) { Type(_type_); }
 
     template <typename T>
     static bool from_json(const string& json, T &an, const JsonOpt *opts = nullptr) {
@@ -283,4 +295,3 @@ public:
     SessionInf() : Anson(_type_) { }
 };
 }
-

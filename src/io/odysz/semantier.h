@@ -21,8 +21,6 @@ public:
 
     string echo;
 
-    EchoReq() : AnsonBody("na", EchoReq::_type_) {}
-
     /**
      * Java:
      * @AnsonCtor(initialist="echo(m)", base={"na"})
@@ -33,7 +31,9 @@ public:
      * @brief EchoReq
      * @param m
      */
-    EchoReq(const string &m) : AnsonBody("na", EchoReq::_type_), echo(m){}
+    EchoReq(const string &m) : AnsonBody("na"), echo(m){ Type(_type_); }
+
+    EchoReq() : EchoReq("na") {}
 };
 
 inline static void load_usereqAst_ext(AstMap &asts) {
@@ -48,7 +48,7 @@ inline static void load_usereqAst_ext(AstMap &asts) {
       [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
         entf.ctor<>();
-        entf.ctor<string, string>();
+        entf.ctor<string>();
 
         entf.data<&UserReq::data>("data");
 

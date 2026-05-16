@@ -30,7 +30,8 @@ TEST(Anson, Base) {
     cout << "Actual Type Name: " << anobj.anclass << endl;
     ASSERT_EQ(Anson::_type_, anobj.anclass);
 
-    anptr = an_type.construct(Anson::_type_);
+    // anptr = an_type.construct(Anson::_type_);
+    anptr = an_type.construct();
     Anson& anobj2 = anptr.cast<anson::Anson&>();
     ASSERT_EQ(Anson::_type_, anobj2.anclass) << "1. anobj2.type";
 
@@ -51,7 +52,8 @@ TEST(Anson, AnsonBody) {
     AnsonBody testbody{"test"}; // instantatiate abstract class?
 
     auto b = entt::resolve(hashed_string{AnsonBody::_type_.c_str()});
-    auto v = b.construct(std::string("r/ds"), AnsonBody::_type_);
+    // auto v = b.construct(std::string("r/ds"), AnsonBody::_type_);
+    auto v = b.construct(std::string("r/ds"));
     AnsonBody* anb = v.try_cast<AnsonBody>();
     cout << "[1] anb.type: " << anb->anclass << endl;
     ASSERT_EQ(AnsonBody::_type_, anb->anclass);
