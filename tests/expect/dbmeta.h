@@ -20,8 +20,6 @@ public:
 
 class SynEntityMeta : public SemanticTableMeta {
 public:
-
-
     SynEntityMeta(const string &tab, const string &conn = "") : SemanticTableMeta(tab, conn) {}
 
     SynEntityMeta() : anson::SynEntityMeta("", "") {}
