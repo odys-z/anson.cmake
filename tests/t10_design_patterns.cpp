@@ -6,7 +6,6 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/anson.h"
 #include "io/odysz/semantier.h"
-#include "expect/dbmeta.h"
 #include "expect/t_10_doctier.hpp"
 
 using namespace anson;
@@ -63,9 +62,9 @@ TEST(DESGIN, FORCE_TYPE) {
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
 }
 
-void DocsReq::format(IFileDescriptor p) {
+void DocsReq::format(const IFileDescriptor& p) {}
 
-}
+void format(const AnResultset& rs) {}
 
 TEST(DESIGN, Enforce_Generator) {
     IJsonable::contxt_ptr = &contxt;

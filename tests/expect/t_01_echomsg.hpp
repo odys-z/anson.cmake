@@ -22,9 +22,12 @@ public:
     };
     string echo;
 
-    EchoReq2(string m) : AnsonBody("r/peertest"), echo(m) { Type(_type_); };
+    EchoReq2(string m) : AnsonBody("r/peertest"), echo(m) {
+        Type(_type_);
+        echo = m;
+    }
 
-    EchoReq2() : EchoReq2("r/peertest")  {};
+    EchoReq2() : EchoReq2("r/peertest") {}
 };
 
 inline static void load_echoreq2Ast(AstMap &asts, const string &ast_path) {

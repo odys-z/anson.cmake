@@ -8,7 +8,7 @@
 #include <io/odysz/entt_jserv.h>
 #include <io/odysz/module/rs.h>
 
-#include "dbmeta.h"
+#include <io/odysz/dbmeta.h>
 
 namespace anson {
 
@@ -21,7 +21,9 @@ public:
     vector<vector<string>> arrCondts;
     map<string, list<LangExt::VarType>> mapCondts;
 
-    PageInf() : Anson(_type_) {}
+    PageInf() : Anson() {
+        Type(_type_);
+    }
 };
 
 inline static void register_pageinfAst(AstMap & asts) {
@@ -55,13 +57,16 @@ public:
     string devname;
     string toFolder;
 
-    Device() : Anson(_type_)  {};
+    Device() : Anson() {
+        Type(_type_);
+    }
 
-    Device(string id, string synode0, string devname) : Anson(_type_)  {
-        id = id;
-        synode0 = synode0;
-        devname = devname;
-    };
+    Device(const string& id, const string& synode0, const string& devname) : Anson() {
+        Type(_type_);
+        this->id = id;
+        this->synode0 = synode0;
+        this->devname = devname;
+    }
 };
 
 inline static void register_deviceAst(AstMap & asts) {
@@ -78,7 +83,7 @@ inline static void register_deviceAst(AstMap & asts) {
         .type(ast->enttypeid)
         .base<Anson>()
         .ctor<>()
-        .ctor<string, string, string>()
+        .ctor<const string&, const string&, const string&>()
 
         .data<&anson::Device::id>("Device")
         .data<&anson::Device::synode0>("Device")
@@ -98,19 +103,19 @@ public:
     string synoder;
     long nyquence;
 
-    SynEntity() : Anson(_type_) {};
+    SynEntity() : Anson() {
+        Type(_type_);
+    }
 
-    SynEntity(string type) : Anson(type), entm{"", ""} {};
-
-    SynEntity(SynEntityMeta entMeta) : Anson(_type_), entm(entMeta) {};
-
-    SynEntity(SynEntityMeta entMeta, string type) : Anson(type, _type_), entm(entMeta) {};
+    SynEntity(const SynEntityMeta & m) : SynEntity() {
+        entm = m;
+    }
 };
 
 inline static void register_synentityAst(AstMap & asts) {
 
     AnsonAst * ast = createAST <SynEntity, AnsonAst> (
-        asts, AnsonBody::_type_, map <string, AnsonField> {
+        asts, Anson::_type_, map <string, AnsonField> {
         {"entm", {.dataAnclass="SynEntityMeta"} },
         {"synpageCols", {.dataAnclass="list<string"} },
         {"recId", {.dataAnclass="string"} },
@@ -124,8 +129,7 @@ inline static void register_synentityAst(AstMap & asts) {
         .type(ast->enttypeid)
         .base<Anson>()
         .ctor<>()
-        .ctor<SynEntityMeta>()
-        .ctor<SynEntityMeta, string>()
+        .ctor<const SynEntityMeta &>()
 
         .data<&anson::SynEntity::entm>("SynEntity")
         .data<&anson::SynEntity::synpageCols>("SynEntity")
@@ -145,11 +149,17 @@ public:
     int end;
     map<string, list<LangExt::VarType>> clientPaths;
 
-    PathsPage() : Anson(_type_)  {};
+    PathsPage() : Anson() {
+        Type(_type_);
+    }
 
-    PathsPage(int begin, int afterLast) : Anson(_type_), start(begin), end(afterLast) {};
+    PathsPage(int start, int end) : Anson(), start(start), end(end) {
+        Type(_type_);
+    }
 
-    PathsPage(string device, int begin, int afterLast) : Anson(_type_), device(device), start(begin), end(afterLast) {};
+    PathsPage(const string & dev, int start, int end) : Anson(), device(dev), start(start), end(end) {
+        Type(_type_);
+    }
 };
 
 inline static void register_pathspageAst(AstMap & asts) {
@@ -160,14 +170,14 @@ inline static void register_pathspageAst(AstMap & asts) {
         {"start", {.dataAnclass="int"} },
         {"end", {.dataAnclass="int"} },
         {"clientPaths", {.dataAnclass="map<string, list<VarType"} },
-      });
+       });
 
     entt::meta_factory <anson::PathsPage> ()
         .type(ast->enttypeid)
         .base<Anson>()
         .ctor<>()
         .ctor<int, int>()
-        .ctor<string, int, int>()
+        .ctor<const string &, int, int>()
 
         .data<&anson::PathsPage::device>("PathsPage")
         .data<&anson::PathsPage::start>("PathsPage")
@@ -193,15 +203,20 @@ public:
     string mime;
     string folder;
 
-    ExpSyncDoc() : SynEntity(_type_)  {};
+    ExpSyncDoc() : SynEntity() {
+        Type(_type_);
+    }
 
-    ExpSyncDoc(SynEntityMeta m, string orgId) : SynEntity(m, _type_), org(orgId) {};
+    ExpSyncDoc(const SynEntityMeta& m, const string& orgid) : SynEntity(m), org(orgid) {
+        Type(_type_);
+    }
 
-    void format(AnResultset rs);
+    void format(const AnResultset& rs);
 
-    ExpSyncDoc(SynEntityMeta meta, AnResultset rs) : SynEntity(meta, _type_)  {
+    ExpSyncDoc(const SynEntityMeta& m, const AnResultset& rs) : SynEntity(m) {
+        Type(_type_);
         format(rs);
-    };
+    }
 };
 
 inline static void register_expsyncdocAst(AstMap & asts) {
@@ -227,8 +242,8 @@ inline static void register_expsyncdocAst(AstMap & asts) {
         .type(ast->enttypeid)
         .base<SynEntity>()
         .ctor<>()
-        .ctor<SynEntityMeta, string>()
-        .ctor<SynEntityMeta, AnResultset>()
+        .ctor<const SynEntityMeta&, const string&>()
+        .ctor<const SynEntityMeta&, const AnResultset&>()
 
         .data<&anson::ExpSyncDoc::pname>("ExpSyncDoc")
         .data<&anson::ExpSyncDoc::clientpath>("ExpSyncDoc")
@@ -283,16 +298,23 @@ public:
     bool reset;
     int limit;
 
-    void format(IFileDescriptor p);
+    void format(const IFileDescriptor& p);
 
-    DocsReq(string uri, IFileDescriptor p) : UserReq(uri)  {
+    DocsReq(const string & doctbl, const IFileDescriptor& p) : UserReq() {
         Type(_type_);
         format(p);
-    };
+    }
 
-    DocsReq(string docTabl, ExpSyncDoc doc, string uri) : UserReq(uri), docTabl(docTabl), doc(doc) {
+    void format(const IFileDescriptor & p, const string uri);
+
+    DocsReq(AnsonMsg<AnsonBody> parent, const string uri, const IFileDescriptor & p) : UserReq(uri), synuri(uri) {
         Type(_type_);
-    };
+        format(p, uri);
+    }
+
+    DocsReq(const string & docTabl, const ExpSyncDoc & doc, const string & uri) : UserReq(uri), docTabl(docTabl), doc(doc), synuri(uri) {
+        Type(_type_);
+    }
 };
 
 inline static void load_docsreqAst(AstMap &asts, const string &ast_path) {
@@ -311,7 +333,7 @@ inline static void load_docsreqAst(AstMap &asts, const string &ast_path) {
         entf.data<&DocsReq::org>("org");
         entf.data<&DocsReq::reset>("reset");
         entf.data<&DocsReq::limit>("limit");
-        entf.ctor<string, IFileDescriptor>();
+        entf.ctor<AnsonMsg<AnsonBody>, string, IFileDescriptor>();
         entf.ctor<string, ExpSyncDoc, string>();
 
         //
@@ -373,7 +395,7 @@ public:
     string stamp;
     string syndomain;
 
-    DocsResp() {
+    DocsResp() : AnsonResp() {
         Type(_type_);
     }
 };

@@ -32,7 +32,6 @@ add_executable(unit_tests
   t09_expect_semantier.cpp
   expect/t_01_echomsg.hpp
   expect/t_02_jserv.hpp
-  expect/dbmeta.h
   expect/t_10_doctier.hpp
   t10_design_patterns.cpp
 )
