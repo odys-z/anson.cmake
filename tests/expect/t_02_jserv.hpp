@@ -88,7 +88,8 @@ public:
         Type(_type_);
     }
 
-    AnSessionResp() : AnSessionResp("", "", "") {}
+    AnSessionResp() : AnSessionResp("", "", "") {
+    }
 };
 
 inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {

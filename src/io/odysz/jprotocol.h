@@ -182,8 +182,8 @@ public:
 
     AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
 
-    AnsonMsg(Port port, const T& body) : AnsonMsg(port), body({body}) {
-        // this->Body(body);
+    AnsonMsg(Port port, const T& body) : AnsonMsg(port) {
+        this->Body(body);
     }
 
     AnsonMsg<T>& Body(const T& body) {

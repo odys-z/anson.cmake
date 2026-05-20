@@ -27,7 +27,8 @@ public:
         echo = m;
     }
 
-    EchoReq2() : EchoReq2("r/peertest") {}
+    EchoReq2() : EchoReq2("r/peertest") {
+    }
 };
 
 inline static void load_echoreq2Ast(AstMap &asts, const string &ast_path) {

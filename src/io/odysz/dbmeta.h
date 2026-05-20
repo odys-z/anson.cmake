@@ -35,7 +35,7 @@ class IFileDescriptor {
 public:
     string device;
 
-    string fullpath() {
+    string fullpath() const {
         return "TODO";
     }
 };
