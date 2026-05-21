@@ -17,7 +17,39 @@ struct AnsonField;
 
 using AstMap = map<string, unique_ptr<AnsonAst>>;
 
+class Semantics : public Anson {
+public:
+    inline static const string _type_ = "io.odysz.anson.Semantics";
+
+    Semantics() : Anson(_type_) {}
+};
+
+class SemanExpr : public Semantics {
+public:
+    inline static const string _type_ = "io.odysz.anson.SemanExpr";
+    /** Semantype { "()", "", "ini" } */
+    string stype;
+    vector<string> args;
+    vector<SemanExpr> semantics;
+    string expect_result;
+
+    SemanExpr() : Semantics() { Type(_type_); }
+};
+
+class AnCtor : public Semantics {
+public:
+    inline static const string _type_ = "io.odysz.anson.AnCtor";
+    SemanExpr base;
+    vector<SemanExpr> args;
+    vector<SemanExpr> body;
+    string expect_result;
+
+    AnCtor() { Type(_type_); }
+};
+
 /**
+ * ISSUE: shouldn't be the subclass of SemanExpr or Semnatics?
+ *
  * @brief The AnsonAst class
  *
  *  isEnum: bool
@@ -54,7 +86,10 @@ public:
     AnsonAst& data_anclass(const string & cls) { dataAnclass = cls; return *this; }
 
     map<string, AnsonField> fields;
+    /** @deprecated */
     vector<vector<vector<string>>> ctors;
+    vector<AnCtor> ctorsemantics;
+
     map<string, int> enums;
 
     /** Only one static string value is allowed in semantic-* ? */
@@ -62,16 +97,10 @@ public:
 
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
-    // AnsonAst() : Anson(_type_),
-    //     isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
-
     AnsonAst(string anclass, bool isEnum = false) : Anson(anclass),
         isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     AnsonAst() : AnsonAst(_type_) {}
-
-    // AnsonAst(string anclass, string type) : Anson(type, anclass),
-    //     isInt(false), isDouble(false), isEnum(false), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     std::function<meta_any(IJsonable&, id_type)> get_entt_instance
         = [](IJsonable& j, id_type t) -> meta_any { return {}; };
@@ -222,7 +251,4 @@ public:
 
     PeerSettings() : Anson(_type_), cpp_gen("semantier.gen.h") {}
 };
-
-
 }
-

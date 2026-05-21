@@ -167,7 +167,7 @@ protected:
     void Type(const string &t) { Type(t, t); }
 
     /** Shortcut for direct subclasses */
-    Anson(string tp) : IJsonable(tp), type(tp) {}
+    Anson(const string &tp) : IJsonable(tp), type(tp) {}
 
     /**
      * Shortcut for direct subclasses
@@ -175,7 +175,7 @@ protected:
      * @param tp
      * @param ancls (astid) can be different if is a template specialized.
      */
-    Anson(string tp, string ancls) : IJsonable(ancls), type(tp) {}
+    Anson(const string &tp, const string &ancls) : IJsonable(ancls), type(tp) {}
 
 public:
     virtual ~Anson() = default;

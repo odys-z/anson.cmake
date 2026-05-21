@@ -77,8 +77,10 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
 
     andebug(string_view{std::format("create AST: {}", astid)});
 
-    if (astid == ast->baseAnclass)
+    if (astid == ast->baseAnclass) {
+        anerror(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
         throw runtime_error(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
+    }
     asts[astid] = unique_ptr<AST>(ast);
     return ast;
 }
@@ -128,9 +130,61 @@ inline static void register_asts(AstMap &asts) {
         .type(ast->enttypeid)
         .base<IJsonable>()
         .ctor<>()
-        // .ctor<const std::string&>()
+        // .ctor<const std::string&, const std::string>()
         .data<&anson::Anson::type>("type")
         ;
+
+    //
+    enttype = hashed_string{Semantics::_type_.c_str()};
+    entt::meta_factory<anson::Semantics>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        ;
+
+    createAST<Semantics, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+        });
+
+    //
+    enttype = hashed_string{SemanExpr::_type_.c_str()};
+    entt::meta_factory<anson::SemanExpr>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        .data<&SemanExpr::stype>("stype")
+        .data<&SemanExpr::args>("args")
+        .data<&SemanExpr::semantics>("semantics")
+        .data<&SemanExpr::expect_result>("expect_result");
+        ;
+
+    createAST<SemanExpr, AnsonAst>(asts, Semantics::_type_,
+        map<string, AnsonField>{
+            {"stype", {.dataAnclass="string"}},
+            {"args",  {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"semantics", {.dataAnclass="list<string"}},
+            {"expect_result", {.dataAnclass="string"}}
+        });
+
+    //
+    enttype = hashed_string{AnCtor::_type_.c_str()};
+    entt::meta_factory<anson::AnCtor>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        .data<&AnCtor::base>("base")
+        .data<&AnCtor::args>("args")
+        .data<&AnCtor::body>("body")
+        .data<&AnCtor::expect_result>("expect_result")
+        ;
+
+    createAST<AnCtor, AnsonAst>(asts, SemanExpr::_type_,
+        map<string, AnsonField>{
+            {"base", {.dataAnclass=SemanExpr::_type_}},
+            {"args",  {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"body", {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"expect_result", {.dataAnclass="string"}}
+        });
 
     //
     enttype = hashed_string{AnsonAst::_type_.c_str()};
@@ -139,7 +193,6 @@ inline static void register_asts(AstMap &asts) {
         .base<Anson>()
         .ctor<>()
         .ctor<std::string, bool>()
-        // .ctor<std::string, std::string>()
         .data<&anson::AnsonAst::isInt>("isInt")
         .data<&anson::AnsonAst::isDouble>("isDouble")
         .data<&anson::AnsonAst::isEnum>("isEnum")
@@ -156,12 +209,14 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         .data<&anson::AnsonAst::ctors>("ctors")
+        .data<&anson::AnsonAst::ctorsemantics>("ctorsemantics")
         ;
 
     //
     createAST<AnsonAst, AnsonAst>(asts, Anson::_type_,
         map<string, AnsonField>{
-            {"ctors", {.dataAnclass="list<list<list<string"}}
+            {"ctors", {.dataAnclass="list<list<list<string"}},
+            {"ctorsemantics", {.dataAnclass="list<" + AnCtor::_type_}}
         });
 
     // Debug: AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
@@ -181,7 +236,8 @@ inline static void register_asts(AstMap &asts) {
         ;
 
     //
-    AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
+    AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(
+                            asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
 
@@ -562,10 +618,11 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     int l = bodyAst->fields.size();
     for (auto& [fn, f] : bodyAst->fields) {
         if (f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
-            anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
+            if (!LangExt::isblank(f.fieldname))
+                anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
                                fn, f.dataAnclass, f.fieldname));
-            if (LangExt::isblank(f.fieldname))
-                f.fieldname = fn;
+            // if (LangExt::isblank(f.fieldname))
+            f.fieldname = fn;
         }
     }
 
