@@ -135,4 +135,13 @@ TEST(Generator, Gen_Doctier) {
     ASSERT_EQ(42, pi.total);
     ASSERT_EQ(pi.arrCondts[0], (vector<string>{"n0", "v0"}));
     ASSERT_EQ(pi.arrCondts[1], (vector<string>{"n1", "v1"}));
+
+    pi.page = 2;
+    pi.arrCondts[0][1] = "www";
+    string json = pi.toBlock();
+
+    ASSERT_EQ(json,
+        R"({"type": "io.odysz.transact.sql.PageInf",)"
+        R"("arrCondts": [["n0","www"],["n1","v1"]],"mapCondts": {},"page": 2,"size": 20,"total": 42})"
+        );
 }

@@ -49,6 +49,13 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
         }
     }
 
+    if ("long" == opts.primtypes.at(valtype[0])) {
+        if (inst) {
+            auto *s = inst.try_cast<const long>();
+            return os << *s;
+        }
+    }
+
     if ("VarType" == opts.primtypes.at(valtype[0])) {
         return LangExt::serialize_var(os, inst);
     }

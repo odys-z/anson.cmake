@@ -28,7 +28,7 @@ target_sources(anson INTERFACE
         io/odysz/anson.h
         io/odysz/jprotocol.h
         io/odysz/json.h
-        # io/odysz/json.hpp
+        io/odysz/gen/jserv.hpp
         io/odysz/dbmeta.h
         io/odysz/utils.h
         io/odysz/common.h
