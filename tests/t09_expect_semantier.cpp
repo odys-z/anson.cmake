@@ -114,7 +114,8 @@ TEST(AUTOGEN, SessionReq) {
 TEST(AUTOGEN, SessionResp) {
 
     register_jserv(asts, contxt);
-    load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
+    // load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
+    register_t02(asts, "./");
 
     using Resp = AnsonMsg<AnSessionResp>;
     Resp msg2{};

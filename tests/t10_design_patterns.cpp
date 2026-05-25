@@ -64,9 +64,11 @@ TEST(DESGIN, FORCE_TYPE) {
 
 void DocsReq::format(const IFileDescriptor& p) {}
 
-void format(const AnResultset& rs) {}
+void DocsReq::format(const IFileDescriptor & p, const string uri) {}
 
-TEST(DESIGN, Enforce_Generator) {
+void ExpSyncDoc::format(const AnResultset& rs) {}
+
+TEST(Generator, Enforce_Design) {
     IJsonable::contxt_ptr = &contxt;
 
     PageInf pi{};
@@ -114,4 +116,17 @@ TEST(DESIGN, Enforce_Generator) {
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, rpm.type);
     ASSERT_EQ(dm.type , rpm.type);
     ASSERT_EQ(dm2.type, rpm.type);
+}
+
+TEST(Generator, Gen_Doctier) {
+    AstMap asts;
+    JsonOpt opts{&asts};
+    register_jserv(asts, opts);
+    register_doctier(asts, ".");
+
+    PageInf pi{};
+    bool res = Anson::from_json(
+        R"({"type": ")" + PageInf::_type_ + R"(",")"
+      + R"("page": 1, "size": 20, "total": 42, "arrCondts": [["n0": "v0"], ["n1": v1"]]})",
+        pi);
 }

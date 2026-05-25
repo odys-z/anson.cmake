@@ -53,10 +53,6 @@ add_custom_command(TARGET unit_tests POST_BUILD
         "${CMAKE_CURRENT_SOURCE_DIR}/ast"
         "$<TARGET_FILE_DIR:unit_tests>/ast"
 
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/ast-cpy"
-        "$<TARGET_FILE_DIR:unit_tests>/ast-cpy"
-
     COMMENT "Copying JSON settings to build directory"
 )
 
