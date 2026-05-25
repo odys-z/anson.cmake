@@ -122,11 +122,17 @@ TEST(Generator, Gen_Doctier) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(asts, opts);
-    register_doctier(asts, ".");
+    register_doctier(asts, "./");
 
     PageInf pi{};
     bool res = Anson::from_json(
-        R"({"type": ")" + PageInf::_type_ + R"(",")"
-      + R"("page": 1, "size": 20, "total": 42, "arrCondts": [["n0": "v0"], ["n1": v1"]]})",
+        R"({"type": ")" + PageInf::_type_ + R"(",)"
+      + R"("page": 1, "size": 20, "total": 42, "arrCondts": [["n0", "v0"], ["n1", "v1"]]})",
         pi);
+
+    ASSERT_EQ(1, pi.page);
+    ASSERT_EQ(20, pi.size);
+    ASSERT_EQ(42, pi.total);
+    ASSERT_EQ(pi.arrCondts[0], (vector<string>{"n0", "v0"}));
+    ASSERT_EQ(pi.arrCondts[1], (vector<string>{"n1", "v1"}));
 }

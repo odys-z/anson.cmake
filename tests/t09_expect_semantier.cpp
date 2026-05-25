@@ -18,7 +18,7 @@ static JsonOpt contxt{&asts};
 
 TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     register_jserv(asts, contxt);
-    load_echoreq2Ast(asts, "ast-cpy/echo2.ast.json");
+    load_echoreq2Ast(asts, "ast/echo2.ast.json");
 
     using Req = AnsonMsg<EchoReq2>;
 
@@ -65,7 +65,7 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
 
 TEST(AUTOGEN, SessionReq) {
     register_jserv(asts, contxt);
-    load_ansessionreqAst(asts, "ast-cpy/session-req.ast.json");
+    load_ansessionreqAst(asts, "ast/session-req.ast.json");
 
     using Req = AnsonMsg<AnSessionReq>;
 
