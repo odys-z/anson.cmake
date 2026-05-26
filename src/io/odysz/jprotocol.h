@@ -57,11 +57,6 @@ public:
     }
 };
 
-class JProtocol {
-public:
-    string protocolpath;
-};
-
 struct CRUD {
     inline static const string C = "I";
     inline static const string R = "R";
@@ -105,6 +100,23 @@ public:
         andebug(string_view("Port Cosntructor<string>("s + enum_val + ").enm = " + enm));
     }
 };
+
+class JProtocol {
+public:
+    string protocolpath;
+
+    /**
+     * The very right first line of main, to setup a protocol layer.
+     *
+     * @brief setup
+     * @param urlpath
+     * @param p one of the port value to be understood (Only for java semantics?)
+     */
+    void setup(const string& urlpath, const Port& p) {
+        protocolpath = urlpath;
+    }
+};
+
 
 // MsgCode
 template <typename E, size_t N>
@@ -266,10 +278,13 @@ class OnOk {
     virtual void ok(const AnsonResp &resp);
 };
 
-// class OnError {
-//     // virtual void err(MsgCode c, string& e, string... args);
-//     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
-// };
+/**
+ * @brief The OnError class
+ * class OnError {
+ *     // virtual void err(MsgCode c, string& e, string... args);
+ *     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
+ * };
+ */
 using OnError = std::function<void(MsgCode::Code code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
@@ -384,4 +399,3 @@ public:
 };
 
 }
-

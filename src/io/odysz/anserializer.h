@@ -30,8 +30,11 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
 inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
                        const vector<string> &valtype, const JsonOpt &opts) {
 
-    if (!opts.primtypes.contains(valtype[0]))
-        return os << "\"Cannot serialize " << " [" << valtype[0] << "]\"";
+    if (!opts.primtypes.contains(valtype[0])) {
+        // return os << "\"Cannot serialize [" << valtype[0] << "]\"";
+        anerror(std::format("Cannot serialize [{}]", valtype[0]));
+        return os << "null";
+    }
 
     if ("string" == opts.primtypes.at(valtype[0])) {
         if (inst) {
@@ -266,7 +269,7 @@ inline static ostream& serialize_fields(ostream &os,
             if (first) first = false; else os << ",";
 
             os << '\"' << fn << R"(": )";
-            serialize_val(os, meta_val, vector<string>{f.dataAnclass, f.isptr}, opts);
+            serialize_val(os, meta_val, vector<string>{LangExt::trim(f.dataAnclass), f.isptr}, opts);
         }
     }
     return os;
