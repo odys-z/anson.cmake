@@ -173,6 +173,9 @@ template <typename T //anson::AnsonBody
          >
 class AnsonMsg: public Anson {
 public:
+    string version;
+    int seq;
+
     /**
      * Bodies are proected as the error of a unique-ptr will result in
      * memory error for deletion.
@@ -239,7 +242,7 @@ public:
     }
 
     AnsonHeader header;
-    AnsonMsg<T>& Header(AnsonHeader header) {
+    AnsonMsg<T>& Header(const AnsonHeader &header) {
         this->header = header;
         return *this;
     }

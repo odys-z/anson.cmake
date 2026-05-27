@@ -278,19 +278,19 @@ inline static ostream& serialize_fields(ostream &os,
 inline static ostream& serialize_kvs(ostream &os, const Anson& anson, const JsonOpt &opts) {
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    bool has_basefields = false;
+    bool comma_by_base = false;
     if (opts.has_ast(ast->baseAnclass)) {
         AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
         if (opts.has_ast(base_ast->dataAnclass)) {
             auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
             serialize_fields(os, base_fields, anson, opts);
 
-            has_basefields = base_fields.size() > 0;
+            comma_by_base = base_fields.size() > 0;
         }
     }
 
     auto fields = ast->fields;
-    if (has_basefields && fields.size() > 0) os << ",";
+    if (comma_by_base && fields.size() > 0) os << ",";
 
     return serialize_fields(os, fields, anson, opts);
 }

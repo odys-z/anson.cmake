@@ -79,7 +79,8 @@ TEST(AnsonResponse, Serialize) {
     ASSERT_EQ((R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
                R"("body": [{"type": "io.odysz.semantic.jprotocol.AnsonResp",)"
                R"("a": "NA","uri": "AnsonResponse.Serialize","m": "TEST AnsonRespse Serialize",)"
-               R"("map": {},"rs": []}],)"
-               R"("code": "ok","port": "query"})")
+               R"("map": {},"rs": []}],"code": "ok",)"
+               R"("header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)"
+               R"("port": "query","seq": -842150451,"version": ""})")
               , json_result) << "serialzied josn string";
 }
