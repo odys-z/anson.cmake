@@ -12,7 +12,7 @@ using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(DESGIN, FORCE_TYPE) {
+TEST(DESGIN, FORCE_TYPE_GENERATE) {
     IJsonable::contxt_ptr = &contxt;
 
     AnResultset rs{};
@@ -68,7 +68,7 @@ void DocsReq::format(const IFileDescriptor & p, const string uri) {}
 
 void ExpSyncDoc::format(const AnResultset& rs) {}
 
-TEST(Generator, Enforce_Design) {
+TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
     IJsonable::contxt_ptr = &contxt;
 
     PageInf pi{};
@@ -118,7 +118,7 @@ TEST(Generator, Enforce_Design) {
     ASSERT_EQ(dm2.type, rpm.type);
 }
 
-TEST(Generator, Gen_Doctier) {
+TEST(Generator, Validate_Doctier) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(asts, opts);

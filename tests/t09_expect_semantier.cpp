@@ -6,7 +6,7 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/entt_jserv.h"
 #include "expect/t_01_echomsg.hpp"
-#include "expect/t_02_jserv.hpp"
+#include "expect/t_02_semantier.hpp"
 
 
 using namespace anson;
@@ -115,7 +115,7 @@ TEST(AUTOGEN, SessionResp) {
 
     register_jserv(asts, contxt);
     // load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
-    register_t02(asts, "./");
+    register_semantier(asts, "./");
 
     using Resp = AnsonMsg<AnSessionResp>;
     Resp msg2{};
