@@ -39,9 +39,10 @@ public:
 inline static void load_usereqAst_ext(AstMap &asts) {
     istringstream ast_is {
         R"({ "type": "io.odysz.anson.AnsonBodyAst",)"
-        R"("dataAnclass": "io.odysz.semantic.jserv.echo.UserReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
+        // R"("dataAnclass": "io.odysz.semantic.jserv.echo.UserReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
+        R"("dataAnclass": ")" + UserReq::_type_ + R"(", "baseAnclass": ")" + AnsonBody::_type_ + R"(",)"
         R"("A": {"test":  "test.only"},)"
-        R"("fields" : { "data": {"dataAnclass": "map<string, string"} })"
+        R"("fields" : { "data": {"dataAnclass": "map<string, VarType"} })"
         R"(})"};
 
     load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,

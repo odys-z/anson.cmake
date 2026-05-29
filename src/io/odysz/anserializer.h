@@ -42,7 +42,7 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
             if (s) return os << '"' << *s << '"';
             // else ;
         }
-        else os << "null";
+        else return os << "null";
     }
 
     if ("int" == opts.primtypes.at(valtype[0])) {
@@ -56,6 +56,14 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
         if (inst) {
             auto *s = inst.try_cast<const long>();
             return os << *s;
+        }
+    }
+
+    if ("boolean" == opts.primtypes.at(valtype[0])) {
+        if (inst) {
+            auto *s = inst.try_cast<const bool>();
+            bool b = *s;
+            return os << (b ? "true" : "false"); //*s;
         }
     }
 
@@ -587,6 +595,7 @@ public:
                     "start_obj(): Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
                     std::to_string(active_key), top.val_astid, top.map_key));
 
+                datafield = find_field_recursive(type, active_key); // debug
                 anerror(type.info().name());
                 return true;
             }

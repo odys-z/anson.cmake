@@ -48,8 +48,8 @@ public:
 
     AnsonHeader() : Anson(_type_) {}
 
-    AnsonHeader(const string& uid, const string &ssid, const string &iv64)
-        : Anson(_type_), uid(uid), ssid(ssid), iv64(iv64) {}
+    AnsonHeader(const string& uid, const string &ssid, const string &ssToken)
+        : Anson(_type_), uid(uid), ssid(ssid), ssToken(ssToken) {}
 
     AnsonHeader & Act(const string &funcId, const string &cmd, const string &cate, const string &remarks = "") {
         usrAct = {funcId, cmd, cate, remarks};
@@ -67,7 +67,8 @@ struct CRUD {
 class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
-    map<string, entt::any> data;
+    // map<string, entt::any> data;
+    map<string, LangExt::VarType> data;
 
     UserReq(string a) : AnsonBody(a) { Type(_type_); }
     UserReq() : UserReq("null") {}

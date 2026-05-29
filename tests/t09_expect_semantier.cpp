@@ -65,7 +65,7 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
 
 TEST(AUTOGEN, SessionReq) {
     register_jserv(asts, contxt);
-    load_ansessionreqAst(asts, "ast/session-req.ast.json");
+    register_semantier(asts, "./");
 
     using Req = AnsonMsg<AnSessionReq>;
 
@@ -114,7 +114,6 @@ TEST(AUTOGEN, SessionReq) {
 TEST(AUTOGEN, SessionResp) {
 
     register_jserv(asts, contxt);
-    // load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
     register_semantier(asts, "./");
 
     using Resp = AnsonMsg<AnSessionResp>;
