@@ -48,14 +48,14 @@ TEST(DOCSTIER, SerializeDocsReq) {
     q.Header(header);
 
     string json = q.toBlock();
-    cout << json << endl;
+    anlog(json);
 
     // DocsReq p{"", {}};
     AnsonMsg<DocsReq> p{};
     Anson::from_json(json, p);
 
+    ASSERT_EQ(p.Body().data["x"], LangExt::VarType{"xxx.xxx.yyy.yyy"});
     ASSERT_EQ(p.Body().a, "r/syncflags");
     ASSERT_EQ(p.Body().uri, req.uri);
     ASSERT_EQ(p.Body().synuri, req.synuri);
-    // ASSERT_EQ(p.data["x"], "xxx.xxx.yyy.yyy");
 }

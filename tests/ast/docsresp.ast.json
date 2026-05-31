@@ -11,6 +11,5 @@
     "device": {"dataAnclass": "string"},
     "stamp": {"dataAnclass": "string"},
     "syndomain": {"dataAnclass": "string"}
-  },
-  "ctors": []
+  }
 }

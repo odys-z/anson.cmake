@@ -431,6 +431,10 @@ public:
 
     void format(const IFileDescriptor& p);
 
+    DocsReq() : UserReq() {
+        Type(_type_);
+    }
+
     DocsReq(const string & doctbl, const IFileDescriptor& p) : UserReq() {
         Type(_type_);
         format(p);

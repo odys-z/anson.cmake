@@ -37,7 +37,7 @@ public:
                 {"io.odysz.anson.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
                 {"io.odysz.anson.AnsonBodyAst", "AnsonBodyAst"},
                 {"io.odysz.anson.AnsonMsgAst", "AnsonMsgAst"}}),
-        serialize_type(false) {};
+        serialize_type(true) {};
 
     template<typename AST>
     AST* ast(const string &astid) const {

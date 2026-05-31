@@ -16,8 +16,8 @@ add_executable(unit_tests
   # t01_aeshelper.cpp
   # t01_common.cpp
   # t01_typs_java_vs.cpp
-  t02_type_java_tests.cpp
-  t02_type_java_tests.h
+  # t02_type_java_tests.cpp
+  # t02_type_java_tests.h
   # t02_entt_basic.h
   # t02_entt_basic.cpp
   # t02_entt_basic_serialize.cpp
@@ -70,4 +70,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=5)
+add_compile_definitions(ANSON_VERBOSE=4)

@@ -57,7 +57,7 @@ inline static void load_usereqAst_ext(AstMap &asts) {
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const UserReq&>(ans);
             if ("data" == fieldname)
-            return entt::forward_as_meta(concrete.data);
+                return entt::forward_as_meta(concrete.data);
         }
 
         if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {

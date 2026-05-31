@@ -269,7 +269,7 @@ inline static ostream& serialize_fields(ostream &os,
 
         bool first = true;
         for (auto[fn, f] : fields) {
-            if (opts.serialize_type && "type" == fn)
+            if (!opts.serialize_type && "type" == fn)
                 continue;
 
             entt::meta_any meta_val = ast->get_field_instance(anson, fn);
@@ -287,14 +287,25 @@ inline static ostream& serialize_kvs(ostream &os, const Anson& anson, const Json
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
     bool comma_by_base = false;
-    if (opts.has_ast(ast->baseAnclass)) {
-        AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
-        if (opts.has_ast(base_ast->dataAnclass)) {
-            auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
-            serialize_fields(os, base_fields, anson, opts);
+    // if (opts.has_ast(ast->baseAnclass)) {
+    //     AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
+    //     // if (opts.has_ast(base_ast->dataAnclass)) {
+    //         auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+    //         serialize_fields(os, base_fields, anson, opts);
 
-            comma_by_base = base_fields.size() > 0;
-        }
+    //         comma_by_base = base_fields.size() > 0;
+    //     // }
+    // }
+
+    AnsonAst *base_ast = ast;
+    while (opts.has_ast(base_ast->baseAnclass)) {
+        base_ast = opts.asts->at(base_ast->baseAnclass).get();
+        auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+
+        if (comma_by_base && base_fields.size() > 0) os << ",";
+
+        serialize_fields(os, base_fields, anson, opts);
+        comma_by_base |= base_fields.size() > 0;
     }
 
     auto fields = ast->fields;
@@ -304,10 +315,13 @@ inline static ostream& serialize_kvs(ostream &os, const Anson& anson, const Json
 }
 
 inline static ostream& serialize_envelope(ostream &os, const Anson& anson, const JsonOpt &opts) {
-    os << R"({"type": ")" + anson.type + '"';
+    os << '{';
+    if (opts.serialize_type) {
+        os << R"("type": ")" + anson.type + '"';
+    }
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    if (ast && ast->fields.size() > 0) os << ",";
+    if (ast && ast->fields.size() > 0 && opts.serialize_type) os << ",";
 
     serialize_kvs(os, anson, opts);
     return  os << '}';
@@ -382,6 +396,32 @@ private:
     }
 
     template<typename V>
+    bool insert_map(auto &map_v, const std::string& key, V&& val) {
+        using Tv = std::decay_t<V>;
+        try {
+            auto expected_type = map_v.value_type();
+
+            if (expected_type == entt::resolve<pair<const std::string, LangExt::VarType>>()) {
+                LangExt::VarType variant_val;
+
+                if constexpr (std::is_constructible_v<LangExt::VarType, Tv>) {
+                    variant_val = std::forward<V>(val);
+                } else {
+                    variant_val = std::to_string(val);
+                }
+
+                map_v.insert(key, entt::meta_any{std::move(variant_val)});
+            }
+            else {
+                map_v.insert(key, std::forward<V>(val));
+            }
+            return true;
+        } catch(...) {
+            return false;
+        }
+    }
+
+    template<typename V>
     void set_value(V&& val) {
         if (stack.empty()){
             anerror("set_value(): setting val to empty object");
@@ -405,7 +445,8 @@ private:
             andebug(std::format("set_value(): setting value in map: {}", top.map_key));
             auto view = top.instance.as_associative_container();
             if (view) {
-                view.insert(top.map_key, std::forward<V>(val));
+                // bool ins = view.insert(top.map_key, std::forward<V>(val));
+                insert_map(view, top.map_key, val);
                 andebug("set_value(): Map size: " + std::to_string(view.size()));
             }
             else
@@ -718,10 +759,10 @@ public:
     }
 
     bool binary(binary_t&) override { return true; }
-    bool start_array(std::size_t) override {
+    bool start_array(std::size_t s) override {
 
-        andebug(std::format("start_array(): [0] list container addr: {:P}",
-                (void*)stack.front().instance.try_cast<Anson>()));
+        // andebug(std::format("start_array(): [0] list container addr: {:P}",
+        //         (void*)stack.front().instance.try_cast<Anson>()));
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
