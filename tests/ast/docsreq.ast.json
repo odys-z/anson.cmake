@@ -36,6 +36,7 @@
     "limit": {"dataAnclass": "int"}
   },
   "ctorsemantics": [
+ 	  { "base": { "stype": "()", "args": ["baseAnclass"] }},
  	  { "base": { "stype": "()", "args": ["baseAnclass"] },
 	    "args": [{"stype": "", "args": ["const", "string", "&", "doctbl"]},
 	  			 {"stype": "", "args": ["const IFileDescriptor&", "p"]} ],
