@@ -62,11 +62,11 @@ TEST(DESGIN, FORCE_TYPE_GENERATE) {
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
 }
 
-void DocsReq::format(const IFileDescriptor& p) {}
+// void DocsReq::format(const IFileDescriptor& p) {}
 
-void DocsReq::format(const IFileDescriptor & p, const string uri) {}
+// void DocsReq::format(const IFileDescriptor & p, const string uri) {}
 
-void ExpSyncDoc::format(const AnResultset& rs) {}
+// void ExpSyncDoc::format(const AnResultset& rs) {}
 
 TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
     IJsonable::contxt_ptr = &contxt;

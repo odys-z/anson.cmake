@@ -378,7 +378,9 @@ private:
                 if constexpr (std::is_constructible_v<LangExt::VarType, Tv>) {
                     variant_val = std::forward<V>(val);
                 } else {
+                    // FIXME this is a big problem - can be types other than string.
                     variant_val = std::to_string(val);
+                    // doesn't work: variant_val = LangExt::VarType{val};
                 }
 
                 // Wrap the variant in a meta_any and insert
@@ -861,9 +863,11 @@ public:
                     }
                     else {
                         auto view = stack.back().instance.as_associative_container();
-                        view.insert(stack.back().map_key, finished_list);
-                        andebug(std::format("end_array(): map [{}] , size {}",
-                                            stack.back().map_key, view.size()));
+                        entt::meta_any key_any{stack.back().map_key};
+                        bool res = view.insert(std::move(key_any), finished_list);
+
+                        andebug(std::format("end_array(): map [{}] , result size {}, res = {}",
+                                            stack.back().map_key, view.size(), res));
                     }
                 }
                 else if (stack.back().is_list) {

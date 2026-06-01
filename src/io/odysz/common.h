@@ -615,7 +615,7 @@ public:
         string kvtype = LangExt::join(tss, 1, -1, "<");
         vector<string_view> kvss = LangExt::split(kvtype, ',');
         if (tss.at(0) != "map" || kvss.at(0) != "string" || kvss.size() <= 1) {
-            anwarn(string_view("Not a regular map type: "s + map_type));
+            anerror(string_view("Not a regular map type: "s + map_type));
             return {LangExt::trim(map_type), "false"};
         }
 
