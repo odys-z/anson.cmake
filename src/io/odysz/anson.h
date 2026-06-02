@@ -294,4 +294,8 @@ public:
 
     SessionInf() : Anson(_type_) { }
 };
+
+class AnsonException : public IJsonable, public std::runtime_error {
+};
+
 }

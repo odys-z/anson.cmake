@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(anson INTERFACE
     io/odysz/anson.h
+    io/odysz/transact/x.h
+    io/odysz/semantic/x.h
     io/odysz/reflect.h
     io/odysz/jprotocol.h
     io/odysz/common.h
