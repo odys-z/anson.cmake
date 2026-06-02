@@ -852,8 +852,9 @@ public:
                         anerror("end_array(): Failed to set back (copy) "s + data.name());
 
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
-                        // Why serialize_jsonable(): Connot convert from meta_any to IJasonalbe: io.odysz.anson.T_List ?
-                        andebug(v->toBlock(*IJsonable::contxt_ptr));
+                        // This line causes the lack of get_field_instance() callback problem for some basic type registration, e.g. SemanExpr.
+                        // andebug(v->toBlock(*IJsonable::contxt_ptr));
+                        ;
                 }
                 else if (stack.back().is_map) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {

@@ -4,7 +4,10 @@
 
 namespace anson {
 
-class SemanticException : public IJsonable, public std::logic_error {
+class TransException : public IJsonable, public std::logic_error {
+};
+
+class SsException : public IJsonable, public std::logic_error {
 };
 
 }
