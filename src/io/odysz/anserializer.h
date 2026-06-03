@@ -30,8 +30,11 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
 inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
                        const vector<string> &valtype, const JsonOpt &opts) {
 
-    if (!opts.primtypes.contains(valtype[0]))
-        return os << "\"Cannot serialize " << " [" << valtype[0] << "]\"";
+    if (!opts.primtypes.contains(valtype[0])) {
+        // return os << "\"Cannot serialize [" << valtype[0] << "]\"";
+        anerror(std::format("Cannot serialize [{}]", valtype[0]));
+        return os << "null";
+    }
 
     if ("string" == opts.primtypes.at(valtype[0])) {
         if (inst) {
@@ -39,13 +42,28 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
             if (s) return os << '"' << *s << '"';
             // else ;
         }
-        else os << "null";
+        else return os << "null";
     }
 
     if ("int" == opts.primtypes.at(valtype[0])) {
         if (inst) {
             auto *s = inst.try_cast<const int>();
             return os << *s;
+        }
+    }
+
+    if ("long" == opts.primtypes.at(valtype[0])) {
+        if (inst) {
+            auto *s = inst.try_cast<const long>();
+            return os << *s;
+        }
+    }
+
+    if ("boolean" == opts.primtypes.at(valtype[0])) {
+        if (inst) {
+            auto *s = inst.try_cast<const bool>();
+            bool b = *s;
+            return os << (b ? "true" : "false"); //*s;
         }
     }
 
@@ -251,7 +269,7 @@ inline static ostream& serialize_fields(ostream &os,
 
         bool first = true;
         for (auto[fn, f] : fields) {
-            if (opts.serialize_type && "type" == fn)
+            if (!opts.serialize_type && "type" == fn)
                 continue;
 
             entt::meta_any meta_val = ast->get_field_instance(anson, fn);
@@ -259,7 +277,7 @@ inline static ostream& serialize_fields(ostream &os,
             if (first) first = false; else os << ",";
 
             os << '\"' << fn << R"(": )";
-            serialize_val(os, meta_val, vector<string>{f.dataAnclass, f.isptr}, opts);
+            serialize_val(os, meta_val, vector<string>{LangExt::trim(f.dataAnclass), f.isptr}, opts);
         }
     }
     return os;
@@ -268,28 +286,42 @@ inline static ostream& serialize_fields(ostream &os,
 inline static ostream& serialize_kvs(ostream &os, const Anson& anson, const JsonOpt &opts) {
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    bool has_basefields = false;
-    if (opts.has_ast(ast->baseAnclass)) {
-        AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
-        if (opts.has_ast(base_ast->dataAnclass)) {
-            auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
-            serialize_fields(os, base_fields, anson, opts);
+    bool comma_by_base = false;
+    // if (opts.has_ast(ast->baseAnclass)) {
+    //     AnsonAst *base_ast = opts.asts->at(ast->baseAnclass).get();
+    //     // if (opts.has_ast(base_ast->dataAnclass)) {
+    //         auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+    //         serialize_fields(os, base_fields, anson, opts);
 
-            has_basefields = base_fields.size() > 0;
-        }
+    //         comma_by_base = base_fields.size() > 0;
+    //     // }
+    // }
+
+    AnsonAst *base_ast = ast;
+    while (opts.has_ast(base_ast->baseAnclass)) {
+        base_ast = opts.asts->at(base_ast->baseAnclass).get();
+        auto base_fields = opts.asts->at(base_ast->dataAnclass)->fields;
+
+        if (comma_by_base && base_fields.size() > 0) os << ",";
+
+        serialize_fields(os, base_fields, anson, opts);
+        comma_by_base |= base_fields.size() > 0;
     }
 
     auto fields = ast->fields;
-    if (has_basefields && fields.size() > 0) os << ",";
+    if (comma_by_base && fields.size() > 0) os << ",";
 
     return serialize_fields(os, fields, anson, opts);
 }
 
 inline static ostream& serialize_envelope(ostream &os, const Anson& anson, const JsonOpt &opts) {
-    os << R"({"type": ")" + anson.type + '"';
+    os << '{';
+    if (opts.serialize_type) {
+        os << R"("type": ")" + anson.type + '"';
+    }
 
     AnsonAst *ast = opts.ast<AnsonAst>(anson.anclass);
-    if (ast && ast->fields.size() > 0) os << ",";
+    if (ast && ast->fields.size() > 0 && opts.serialize_type) os << ",";
 
     serialize_kvs(os, anson, opts);
     return  os << '}';
@@ -346,7 +378,9 @@ private:
                 if constexpr (std::is_constructible_v<LangExt::VarType, Tv>) {
                     variant_val = std::forward<V>(val);
                 } else {
+                    // FIXME this is a big problem - can be types other than string.
                     variant_val = std::to_string(val);
+                    // doesn't work: variant_val = LangExt::VarType{val};
                 }
 
                 // Wrap the variant in a meta_any and insert
@@ -356,6 +390,32 @@ private:
                 // The container is vector<int>, vector<string>, etc.
                 // Insert the raw value directly.
                 list_v.insert(list_v.end(), std::forward<V>(val));
+            }
+            return true;
+        } catch(...) {
+            return false;
+        }
+    }
+
+    template<typename V>
+    bool insert_map(auto &map_v, const std::string& key, V&& val) {
+        using Tv = std::decay_t<V>;
+        try {
+            auto expected_type = map_v.value_type();
+
+            if (expected_type == entt::resolve<pair<const std::string, LangExt::VarType>>()) {
+                LangExt::VarType variant_val;
+
+                if constexpr (std::is_constructible_v<LangExt::VarType, Tv>) {
+                    variant_val = std::forward<V>(val);
+                } else {
+                    variant_val = std::to_string(val);
+                }
+
+                map_v.insert(key, entt::meta_any{std::move(variant_val)});
+            }
+            else {
+                map_v.insert(key, std::forward<V>(val));
             }
             return true;
         } catch(...) {
@@ -387,7 +447,8 @@ private:
             andebug(std::format("set_value(): setting value in map: {}", top.map_key));
             auto view = top.instance.as_associative_container();
             if (view) {
-                view.insert(top.map_key, std::forward<V>(val));
+                // bool ins = view.insert(top.map_key, std::forward<V>(val));
+                insert_map(view, top.map_key, val);
                 andebug("set_value(): Map size: " + std::to_string(view.size()));
             }
             else
@@ -577,6 +638,7 @@ public:
                     "start_obj(): Starting object, cannot find object field, key: {}, type: {}, top.map_key: {}",
                     std::to_string(active_key), top.val_astid, top.map_key));
 
+                datafield = find_field_recursive(type, active_key); // debug
                 anerror(type.info().name());
                 return true;
             }
@@ -699,10 +761,10 @@ public:
     }
 
     bool binary(binary_t&) override { return true; }
-    bool start_array(std::size_t) override {
+    bool start_array(std::size_t s) override {
 
-        andebug(std::format("start_array(): [0] list container addr: {:P}",
-                (void*)stack.front().instance.try_cast<Anson>()));
+        // andebug(std::format("start_array(): [0] list container addr: {:P}",
+        //         (void*)stack.front().instance.try_cast<Anson>()));
 
         if (active_key != 0 && !stack.empty()) {
             auto data = find_field_recursive(stack.back().instance.type(), active_key);
@@ -790,8 +852,9 @@ public:
                         anerror("end_array(): Failed to set back (copy) "s + data.name());
 
                     if (Anson* v = stack.back().instance.try_cast<anson::Anson>())
-                        // Why serialize_jsonable(): Connot convert from meta_any to IJasonalbe: io.odysz.anson.T_List ?
-                        andebug(v->toBlock(*IJsonable::contxt_ptr));
+                        // This line causes the lack of get_field_instance() callback problem for some basic type registration, e.g. SemanExpr.
+                        // andebug(v->toBlock(*IJsonable::contxt_ptr));
+                        ;
                 }
                 else if (stack.back().is_map) {
                     if (!LangExt::has_ctor(stack.back().val_astid)) {
@@ -801,9 +864,11 @@ public:
                     }
                     else {
                         auto view = stack.back().instance.as_associative_container();
-                        view.insert(stack.back().map_key, finished_list);
-                        andebug(std::format("end_array(): map [{}] , size {}",
-                                            stack.back().map_key, view.size()));
+                        entt::meta_any key_any{stack.back().map_key};
+                        bool res = view.insert(std::move(key_any), finished_list);
+
+                        andebug(std::format("end_array(): map [{}] , result size {}, res = {}",
+                                            stack.back().map_key, view.size(), res));
                     }
                 }
                 else if (stack.back().is_list) {

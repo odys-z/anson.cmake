@@ -48,12 +48,12 @@ inline static void register_T_List(AstMap &asts) {
         .type(T_List::_type_.c_str())
         .base<Anson>()
         .ctor<>()
-        .func<+[](const T_List &inst) -> std::shared_ptr<anson::T_List> {
+        .template func<+[](const T_List &inst) -> std::shared_ptr<anson::T_List> {
             anlog(std::format("T_List.func<create_ptr>(const inst)"));
             return std::make_shared<anson::T_List>(inst);
         }>("create_ptr")
-        .data<&anson::T_List::val, as_ref_t>("val")
-        .data<&anson::T_List::txt>("txt")
+        .template data<&anson::T_List::val, as_ref_t>("val")
+        .template data<&anson::T_List::txt>("txt")
         ;
 
     anclass = T_List().anclass;

@@ -29,7 +29,9 @@ public:
     string iv;
     string deviceId;
 
-    AnSessionReq() : AnsonBody() { Type(_type_); };
+    AnSessionReq() : AnsonBody() {
+        Type(_type_);
+    }
 };
 
 inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
@@ -63,7 +65,7 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
             anerror("get_field_instance<AnSessionReq>(): Failed to get entt instance (meta_any)");
             return { };
         };
-  });
+    });
 }
 
 class AnSessionResp : public anson::AnsonResp {
@@ -75,17 +77,19 @@ public:
     SessionInf ssInf;
     Anson profile;
 
-    AnSessionResp(string ssid, string uid, string roleId) {
+    AnSessionResp(string ssid, string uid, string roleId) : AnsonResp() {
         Type(_type_);
-
         ssInf.ssid = ssid;
         ssInf.uid = uid;
         ssInf.roleId = roleId;
-    };
+    }
 
-    AnSessionResp(SessionInf ss_inf) : AnsonResp(_type_), ssInf(ss_inf) {};
+    AnSessionResp(SessionInf ss_inf) : ssInf(ss_inf) {
+        Type(_type_);
+    }
 
-    AnSessionResp() : AnSessionResp("", "", "") {};
+    AnSessionResp() : AnSessionResp("", "", "") {
+    }
 };
 
 inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
@@ -115,7 +119,12 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
             anerror("get_field_instance<AnSessionResp>(): Failed to get entt instance (meta_any)");
             return { };
         };
-  });
+    });
+}
+
+inline static void register_semantier(AstMap &asts, const string &ast_folder) {
+    load_ansessionreqAst(asts, ast_folder + "ast/session-req.ast.json");
+    load_ansessionrespAst(asts, ast_folder + "ast/session-resp.ast.json");
 }
 
 }

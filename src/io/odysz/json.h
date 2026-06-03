@@ -77,8 +77,10 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
 
     andebug(string_view{std::format("create AST: {}", astid)});
 
-    if (astid == ast->baseAnclass)
+    if (astid == ast->baseAnclass) {
+        anerror(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
         throw runtime_error(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
+    }
     asts[astid] = unique_ptr<AST>(ast);
     return ast;
 }
@@ -128,9 +130,61 @@ inline static void register_asts(AstMap &asts) {
         .type(ast->enttypeid)
         .base<IJsonable>()
         .ctor<>()
-        // .ctor<const std::string&>()
+        // .ctor<const std::string&, const std::string>()
         .data<&anson::Anson::type>("type")
         ;
+
+    //
+    enttype = hashed_string{Semantics::_type_.c_str()};
+    entt::meta_factory<anson::Semantics>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        ;
+
+    createAST<Semantics, AnsonAst>(asts, Anson::_type_,
+        map<string, AnsonField>{
+        });
+
+    //
+    enttype = hashed_string{SemanExpr::_type_.c_str()};
+    entt::meta_factory<anson::SemanExpr>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        .data<&SemanExpr::stype>("stype")
+        .data<&SemanExpr::args>("args")
+        .data<&SemanExpr::semantics>("semantics")
+        .data<&SemanExpr::expect_result>("expect_result");
+        ;
+
+    createAST<SemanExpr, AnsonAst>(asts, Semantics::_type_,
+        map<string, AnsonField>{
+            {"stype", {.dataAnclass="string"}},
+            {"args",  {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"semantics", {.dataAnclass="list<string"}},
+            {"expect_result", {.dataAnclass="string"}}
+        });
+
+    //
+    enttype = hashed_string{AnCtor::_type_.c_str()};
+    entt::meta_factory<anson::AnCtor>()
+        .type(enttype)
+        .base<Anson>()
+        .ctor<>()
+        .data<&AnCtor::base>("base")
+        .data<&AnCtor::args>("args")
+        .data<&AnCtor::body>("body")
+        .data<&AnCtor::expect_result>("expect_result")
+        ;
+
+    createAST<AnCtor, AnsonAst>(asts, SemanExpr::_type_,
+        map<string, AnsonField>{
+            {"base", {.dataAnclass=SemanExpr::_type_}},
+            {"args",  {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"body", {.dataAnclass="list<" + SemanExpr::_type_}},
+            {"expect_result", {.dataAnclass="string"}}
+        });
 
     //
     enttype = hashed_string{AnsonAst::_type_.c_str()};
@@ -139,7 +193,6 @@ inline static void register_asts(AstMap &asts) {
         .base<Anson>()
         .ctor<>()
         .ctor<std::string, bool>()
-        // .ctor<std::string, std::string>()
         .data<&anson::AnsonAst::isInt>("isInt")
         .data<&anson::AnsonAst::isDouble>("isDouble")
         .data<&anson::AnsonAst::isEnum>("isEnum")
@@ -156,12 +209,14 @@ inline static void register_asts(AstMap &asts) {
         .data<&anson::AnsonAst::baseAnclass>("baseAnclass")
         .data<&anson::AnsonAst::dataAnclass>("dataAnclass")
         .data<&anson::AnsonAst::ctors>("ctors")
+        .data<&anson::AnsonAst::ctorsemantics>("ctorsemantics")
         ;
 
     //
     createAST<AnsonAst, AnsonAst>(asts, Anson::_type_,
         map<string, AnsonField>{
-            {"ctors", {.dataAnclass="list<list<list<string"}}
+            {"ctors", {.dataAnclass="list<list<list<string"}},
+            {"ctorsemantics", {.dataAnclass="list<" + AnCtor::_type_}}
         });
 
     // Debug: AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
@@ -181,7 +236,8 @@ inline static void register_asts(AstMap &asts) {
         ;
 
     //
-    AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(asts, AnsonAst::_type_, map<string, AnsonField>{
+    AnsonBodyAst *bdast = createAST<AnsonBodyAst, AnsonBodyAst>(
+                            asts, AnsonAst::_type_, map<string, AnsonField>{
         {"A",   {.fieldname="A", .dataAnclass = "map<string, string"}}
     });
 
@@ -225,7 +281,11 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         .template base<anson::Anson>()
         .template data<&anson::AnsonMsg<T>::port>("port")
         .template data<&anson::AnsonMsg<T>::code>("code")
-        .template data<&anson::AnsonMsg<T>::body>("body");
+        .template data<&anson::AnsonMsg<T>::version>("version")
+        .template data<&anson::AnsonMsg<T>::seq>("seq")
+        .template data<&anson::AnsonMsg<T>::header>("header")
+        .template data<&anson::AnsonMsg<T>::body>("body")
+        ;
 
     AnsonMsgAst *ast = new AnsonMsgAst(anclass);
     ast->baseAnclass = Anson::_type_;
@@ -235,6 +295,9 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
     ast->fields = map<string, AnsonField>{
         {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
         {"code", {.fieldname = "code", .dataAnclass=MsgCode::_type_}},
+        {"version", {.fieldname = "version", .dataAnclass="string"}},
+        {"seq", {.fieldname = "seq", .dataAnclass="int"}},
+        {"header", {.fieldname = "header", .dataAnclass=AnsonHeader::_type_}},
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
@@ -244,6 +307,12 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
             return entt::forward_as_meta(concrete.port);
         else if ("code" == fieldname)
             return entt::forward_as_meta(concrete.code);
+        else if ("version" == fieldname)
+            return entt::forward_as_meta(concrete.version);
+        else if ("seq" == fieldname)
+            return entt::forward_as_meta(concrete.seq);
+        else if ("header" == fieldname)
+            return entt::forward_as_meta(concrete.header);
         else if ("body" == fieldname)
             return entt::forward_as_meta(concrete.body);
 
@@ -362,14 +431,7 @@ inline static void register_msgs(AstMap &asts) {
         .data<&anson::AnResultset::rows>("rows")
         ;
 
-    // String ssid;
-    // String uid;
-    // String roleId;
-    // String userName;
-    // String roleName;
-    // String ssToken;
-    // int seq;
-    // String device;
+    //
     ast = createAST<SessionInf, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"ssid", {.dataAnclass = "string"}},
         {"uid", {.dataAnclass = "string"}},
@@ -428,6 +490,54 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
+    ast = createAST<AnsonHeader, AnsonAst>(asts, Anson::_type_,
+            map<string, AnsonField>{
+              {"uid", {.dataAnclass = "string"}},
+              {"ssid",   {.dataAnclass = "string"}},
+              {"iv64",   {.dataAnclass = "string"}},
+              {"usrAct",   {.dataAnclass = "list<string"}},
+              {"ssToken",   {.dataAnclass = "string"}}
+            });
+
+    ast->get_field_instance
+        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const AnsonHeader&>(ans);
+            if ("uid" == fieldname)
+                return entt::forward_as_meta(concrete.uid);
+            else if ("ssid" == fieldname)
+                return entt::forward_as_meta(concrete.ssid);
+            else if ("iv64" == fieldname)
+                return entt::forward_as_meta(concrete.iv64);
+            else if ("usrAct" == fieldname)
+                return entt::forward_as_meta(concrete.usrAct);
+            else if ("ssToken" == fieldname)
+                return entt::forward_as_meta(concrete.ssToken);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<AnsonHeader>(): Failed to get entt instance (meta_any): "s + fieldname);
+        return {};
+    };
+
+    entt::meta_factory<anson::AnsonHeader>()
+        .type(ast->enttypeid)
+        .base<anson::Anson>()
+        .ctor()
+        .ctor<const string&, const string&, const string&>()
+        .data<&anson::AnsonHeader::uid>("uid")
+        .data<&anson::AnsonHeader::ssid>("ssid")
+        .data<&anson::AnsonHeader::iv64>("iv64")
+        .data<&anson::AnsonHeader::usrAct>("usrAct")
+        .data<&anson::AnsonHeader::ssToken>("ssToken")
+        ;
+
+    //
     ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{
         {"uri", {.dataAnclass = "string"}},
         {"a",   {.dataAnclass = "string"}}
@@ -458,7 +568,7 @@ inline static void register_msgs(AstMap &asts) {
         .base<anson::Anson>()
         .ctor()
         .ctor<string>()
-        // .ctor<string, string>()
+        .data<&anson::AnsonBody::uri>("uri")
         .data<&anson::AnsonBody::a>("a")
         ;
 }
@@ -562,10 +672,10 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     int l = bodyAst->fields.size();
     for (auto& [fn, f] : bodyAst->fields) {
         if (f.fieldname != fn || LangExt::isblank(f.dataAnclass)) {
-            anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
+            if (!LangExt::isblank(f.fieldname))
+                anwarn(std::format("Error fields configuration : {} (fieldname: {}, dataAnclass: {})",
                                fn, f.dataAnclass, f.fieldname));
-            if (LangExt::isblank(f.fieldname))
-                f.fieldname = fn;
+            f.fieldname = fn;
         }
     }
 
@@ -577,7 +687,6 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
             .type(enttype)
             .template base<BD_Base>()
             .template ctor<>()
-            // .template ctor<string>()
             .func<+[](const BD &inst) -> std::shared_ptr<BD> {
                 andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
                 return std::make_shared<BD>(inst);

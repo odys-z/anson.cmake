@@ -48,18 +48,13 @@ public:
 
     AnsonHeader() : Anson(_type_) {}
 
-    AnsonHeader(const string& uid, const string &ssid, const string &iv64)
-        : Anson(_type_), uid(uid), ssid(ssid), iv64(iv64) {}
+    AnsonHeader(const string& uid, const string &ssid, const string &ssToken)
+        : Anson(_type_), uid(uid), ssid(ssid), ssToken(ssToken) {}
 
     AnsonHeader & Act(const string &funcId, const string &cmd, const string &cate, const string &remarks = "") {
         usrAct = {funcId, cmd, cate, remarks};
         return *this;
     }
-};
-
-class JProtocol {
-public:
-    string protocolpath;
 };
 
 struct CRUD {
@@ -72,7 +67,8 @@ struct CRUD {
 class UserReq : public AnsonBody {
 public:
     inline static const string _type_ = "io.odysz.semantic.jprotocol.UserReq";
-    map<string, entt::any> data;
+    // map<string, entt::any> data;
+    map<string, LangExt::VarType> data;
 
     UserReq(string a) : AnsonBody(a) { Type(_type_); }
     UserReq() : UserReq("null") {}
@@ -105,6 +101,23 @@ public:
         andebug(string_view("Port Cosntructor<string>("s + enum_val + ").enm = " + enm));
     }
 };
+
+class JProtocol {
+public:
+    string protocolpath;
+
+    /**
+     * The very right first line of main, to setup a protocol layer.
+     *
+     * @brief setup
+     * @param urlpath
+     * @param p one of the port value to be understood (Only for java semantics?)
+     */
+    void setup(const string& urlpath, const Port& p) {
+        protocolpath = urlpath;
+    }
+};
+
 
 // MsgCode
 template <typename E, size_t N>
@@ -161,6 +174,9 @@ template <typename T //anson::AnsonBody
          >
 class AnsonMsg: public Anson {
 public:
+    string version;
+    int seq;
+
     /**
      * Bodies are proected as the error of a unique-ptr will result in
      * memory error for deletion.
@@ -182,8 +198,8 @@ public:
 
     AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
 
-    AnsonMsg(Port port, const T& body) : AnsonMsg(port), body({body}) {
-        // this->Body(body);
+    AnsonMsg(Port port, const T& body) : AnsonMsg(port) {
+        this->Body(body);
     }
 
     AnsonMsg<T>& Body(const T& body) {
@@ -227,7 +243,7 @@ public:
     }
 
     AnsonHeader header;
-    AnsonMsg<T>& Header(AnsonHeader header) {
+    AnsonMsg<T>& Header(const AnsonHeader &header) {
         this->header = header;
         return *this;
     }
@@ -266,10 +282,13 @@ class OnOk {
     virtual void ok(const AnsonResp &resp);
 };
 
-// class OnError {
-//     // virtual void err(MsgCode c, string& e, string... args);
-//     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
-// };
+/**
+ * @brief The OnError class
+ * class OnError {
+ *     // virtual void err(MsgCode c, string& e, string... args);
+ *     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
+ * };
+ */
 using OnError = std::function<void(MsgCode::Code code, std::string_view msg, vector<std::string_view> &args)>;
 
 class OnProgress {
@@ -384,4 +403,3 @@ public:
 };
 
 }
-

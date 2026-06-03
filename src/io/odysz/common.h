@@ -6,6 +6,7 @@
 #include <regex>
 #include <map>
 #include <unordered_set>
+// troubleshooting for clangd error, check internet connection then clean, run cmake
 #include <boost/url/parse.hpp>
 #include <boost/url/url_view.hpp>
 #include <boost/url.hpp>
@@ -614,7 +615,7 @@ public:
         string kvtype = LangExt::join(tss, 1, -1, "<");
         vector<string_view> kvss = LangExt::split(kvtype, ',');
         if (tss.at(0) != "map" || kvss.at(0) != "string" || kvss.size() <= 1) {
-            anwarn(string_view("Not a regular map type: "s + map_type));
+            anerror(string_view("Not a regular map type: "s + map_type));
             return {LangExt::trim(map_type), "false"};
         }
 
@@ -859,6 +860,23 @@ public:
         buffer.resize(length);
         BIO_free_all(bio);
         return buffer;
+    }
+
+    inline static std::string repackSessionToken(const string& ssToken, const string& key, const string& uid) {
+
+        vector<string_view> ss = LangExt::split(ssToken, ':');
+        string plain = decrypt(string{ss[0]}, key, decode64(string{ss[1]}));
+
+        vector<unsigned char> iv = AESHelper2::getRandom();
+        string cipher = encrypt(uid + ":" + plain, key, iv);
+        return cipher + ":" + encode64(iv);
+    }
+
+    inline static bool verifyToken(const string& requestoken,
+                  const string& myKnowledge, const string& uid, const string& key) {
+        vector<string_view> sstoken = LangExt::split(requestoken, ':');
+        string enciphered = encrypt(uid + ":" + myKnowledge, key, decode64(string{sstoken[1]}));
+        return enciphered == sstoken[0];
     }
 };
 }

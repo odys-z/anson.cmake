@@ -183,7 +183,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
             {"attacheds", {.dataAnclass="list<list<VarType"}}
     });
 
-    body_specialize_msg<AnUpdateReq, AnsonBody>(asts, bdast,
+    anson::template body_specialize_msg<AnUpdateReq, AnsonBody>(asts, bdast,
       [](meta_factory<AnUpdateReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnUpdateReq::mtabl>("mtabl")
             .data<&AnUpdateReq::nvs>("nvs")
@@ -230,7 +230,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
         asts, AnUpdateReq::_type_,
         map<string, AnsonField>{});
 
-    body_specialize_msg<AnInsertReq, AnUpdateReq>(asts, bdast,
+    anson::template body_specialize_msg<AnInsertReq, AnUpdateReq>(asts, bdast,
       [](meta_factory<AnInsertReq> &entf, AnsonBodyAst *ast) {
 
         ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {

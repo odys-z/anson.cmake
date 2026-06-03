@@ -6,14 +6,13 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/anson.h"
 #include "io/odysz/semantier.h"
-#include "expect/dbmeta.h"
 #include "expect/t_10_doctier.hpp"
 
 using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(DESGIN, FORCE_TYPE) {
+TEST(DESGIN, FORCE_TYPE_GENERATE) {
     IJsonable::contxt_ptr = &contxt;
 
     AnResultset rs{};
@@ -63,11 +62,13 @@ TEST(DESGIN, FORCE_TYPE) {
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
 }
 
-void DocsReq::format(IFileDescriptor p) {
+// void DocsReq::format(const IFileDescriptor& p) {}
 
-}
+// void DocsReq::format(const IFileDescriptor & p, const string uri) {}
 
-TEST(DESIGN, Enforce_Generator) {
+// void ExpSyncDoc::format(const AnResultset& rs) {}
+
+TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
     IJsonable::contxt_ptr = &contxt;
 
     PageInf pi{};
@@ -115,4 +116,32 @@ TEST(DESIGN, Enforce_Generator) {
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, rpm.type);
     ASSERT_EQ(dm.type , rpm.type);
     ASSERT_EQ(dm2.type, rpm.type);
+}
+
+TEST(Generator, Validate_Doctier) {
+    AstMap asts;
+    JsonOpt opts{&asts};
+    register_jserv(asts, opts);
+    register_doctier(asts, "./");
+
+    PageInf pi{};
+    bool res = Anson::from_json(
+        R"({"type": ")" + PageInf::_type_ + R"(",)"
+      + R"("page": 1, "size": 20, "total": 42, "arrCondts": [["n0", "v0"], ["n1", "v1"]]})",
+        pi);
+
+    ASSERT_EQ(1, pi.page);
+    ASSERT_EQ(20, pi.size);
+    ASSERT_EQ(42, pi.total);
+    ASSERT_EQ(pi.arrCondts[0], (vector<string>{"n0", "v0"}));
+    ASSERT_EQ(pi.arrCondts[1], (vector<string>{"n1", "v1"}));
+
+    pi.page = 2;
+    pi.arrCondts[0][1] = "www";
+    string json = pi.toBlock();
+
+    ASSERT_EQ(json,
+        R"({"type": "io.odysz.transact.sql.PageInf",)"
+        R"("arrCondts": [["n0","www"],["n1","v1"]],"mapCondts": {},"page": 2,"size": 20,"total": 42})"
+        );
 }

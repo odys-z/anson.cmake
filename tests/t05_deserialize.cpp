@@ -153,6 +153,7 @@ TEST(Anson, Servialize_Msg) {
     using Req = AnsonMsg<EchoReq>;
     auto msg = std::make_shared<Req>(Port::query);
     msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
+    msg->seq = 8964;
 
     std::ostringstream oss;
 
@@ -163,7 +164,9 @@ TEST(Anson, Servialize_Msg) {
     std::cout << "Serialized JSON: " << json_result << std::endl;
     ASSERT_EQ(R"({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)"
               R"("body": [{"type": "io.odysz.semantic.jserv.echo.EchoReq","a": "na","uri": "","echo": "Hello World"}],)"
-              R"("code": "null","port": "query"})"
+              R"("code": "null",)"
+              R"("header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)"
+              R"("port": "query","seq": 8964,"version": ""})"
               , json_result);
 }
 }

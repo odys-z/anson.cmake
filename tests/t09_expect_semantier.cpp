@@ -6,7 +6,7 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/entt_jserv.h"
 #include "expect/t_01_echomsg.hpp"
-#include "expect/t_02_jserv.hpp"
+#include "expect/t_02_semantier.hpp"
 
 
 using namespace anson;
@@ -18,7 +18,7 @@ static JsonOpt contxt{&asts};
 
 TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     register_jserv(asts, contxt);
-    load_echoreq2Ast(asts, "ast-cpy/echo2.ast.json");
+    load_echoreq2Ast(asts, "ast/echo2.ast.json");
 
     using Req = AnsonMsg<EchoReq2>;
 
@@ -65,7 +65,7 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
 
 TEST(AUTOGEN, SessionReq) {
     register_jserv(asts, contxt);
-    load_ansessionreqAst(asts, "ast-cpy/session-req.ast.json");
+    register_semantier(asts, "./");
 
     using Req = AnsonMsg<AnSessionReq>;
 
@@ -114,7 +114,7 @@ TEST(AUTOGEN, SessionReq) {
 TEST(AUTOGEN, SessionResp) {
 
     register_jserv(asts, contxt);
-    load_ansessionrespAst(asts, "ast-cpy/session-resp.ast.json");
+    register_semantier(asts, "./");
 
     using Resp = AnsonMsg<AnSessionResp>;
     Resp msg2{};

@@ -31,10 +31,10 @@ add_executable(unit_tests
   t08_resultset.h
   t09_expect_semantier.cpp
   expect/t_01_echomsg.hpp
-  expect/t_02_jserv.hpp
-  expect/dbmeta.h
+  expect/t_02_semantier.hpp
   expect/t_10_doctier.hpp
   t10_design_patterns.cpp
+  t11_docstier.cpp
 )
 
 if(MSVC)
@@ -53,10 +53,6 @@ add_custom_command(TARGET unit_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/ast"
         "$<TARGET_FILE_DIR:unit_tests>/ast"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/ast-cpy"
-        "$<TARGET_FILE_DIR:unit_tests>/ast-cpy"
 
     COMMENT "Copying JSON settings to build directory"
 )

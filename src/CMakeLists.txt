@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(anson INTERFACE
     io/odysz/anson.h
+    io/odysz/transact/x.h
+    io/odysz/semantic/x.h
     io/odysz/reflect.h
     io/odysz/jprotocol.h
     io/odysz/common.h
@@ -28,7 +30,8 @@ target_sources(anson INTERFACE
         io/odysz/anson.h
         io/odysz/jprotocol.h
         io/odysz/json.h
-        # io/odysz/json.hpp
+        io/odysz/gen/jserv.hpp
+        io/odysz/dbmeta.h
         io/odysz/utils.h
         io/odysz/common.h
         io/odysz/module/rs.h
@@ -43,6 +46,7 @@ target_include_directories(anson INTERFACE
 target_link_libraries(anson INTERFACE
     Boost::url
     EnTT::EnTT
+    OpenSSL::Crypto
     nlohmann_json::nlohmann_json
 )
 
