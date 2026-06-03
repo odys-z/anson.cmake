@@ -46,6 +46,7 @@ target_include_directories(anson INTERFACE
 target_link_libraries(anson INTERFACE
     Boost::url
     EnTT::EnTT
+    OpenSSL::Crypto
     nlohmann_json::nlohmann_json
 )
 

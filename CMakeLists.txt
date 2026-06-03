@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
+add_compile_options(-std=gnu++20)
+
 # in my/github/vcpkg
 # See README
 
@@ -18,7 +20,10 @@ project(anson.cmake
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(/utf-8)
+if (MSVC)
+    add_compile_options(/utf-8)
+endif()
+
 # I can't solve the MSVC mojibake problem. You might be better remove any MSVC kit's language packs other than English.
 # add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # if(MSVC)
@@ -32,7 +37,8 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # vcpkg install boost-url
-find_package(Boost CONFIG REQUIRED COMPONENTS url)
+# find_package(Boost CONFIG REQUIRED COMPONENTS url)
+find_package(boost_url CONFIG REQUIRED)
 
  # vcpkg install openssl:x64-windows
 find_package(OpenSSL REQUIRED)
