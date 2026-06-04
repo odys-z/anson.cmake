@@ -124,9 +124,9 @@ template <typename E, size_t N>
 struct EnEnregistrement {
     using Code = E;
     Code valeur;
-    static const string _type_;
-    static constexpr size_t compter = N;
-    static const std::array<std::string_view, N> noms;
+    static inline const string _type_;
+    static inline constexpr size_t compter = N;
+    static inline const std::array<std::string_view, N> noms;
 
     EnEnregistrement(E v) : valeur(v) {
         andebug("EnEnregistrement Constructeur: "s + _type_);

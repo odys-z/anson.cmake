@@ -687,7 +687,7 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
             .type(enttype)
             .template base<BD_Base>()
             .template ctor<>()
-            .func<+[](const BD &inst) -> std::shared_ptr<BD> {
+            .template func<+[](const BD &inst) -> std::shared_ptr<BD> {
                 andebug(std::format("{}.func<create_ptr>(const inst)", inst.anclass));
                 return std::make_shared<BD>(inst);
             }>("create_ptr")

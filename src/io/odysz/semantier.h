@@ -45,7 +45,7 @@ inline static void load_usereqAst_ext(AstMap &asts) {
         R"("fields" : { "data": {"dataAnclass": "map<string, VarType"} })"
         R"(})"};
 
-    load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,
+    anson::template load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,
       [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
         entf.ctor<>();

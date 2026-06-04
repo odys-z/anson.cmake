@@ -24,6 +24,13 @@ TEST(JUNIT, AnsTMap) {
         {"Y", {"10", "11"}}
     };
 
+    string x0 = LangExt::var_str(maparr["X"][0]).value();
+    string x1 = LangExt::var_str(maparr["X"][1]).value();
+    anwarn(std::format("MinGW DBG may fial to show: [X]: {}, {}", x0, x1));
+
+    ASSERT_EQ("00", LangExt::var_str(maparr["X"][0])) << "Initialize maparr[X]";
+    ASSERT_EQ(2, maparr["Y"].size()) << "Initialize maparr[Y]";
+
     AnsTMap tmap{{{"u", "v"}}, maparr};
 
     string json = tmap.toBlock(opts);

@@ -31,13 +31,14 @@ public:
     const AstMap *asts;
 
     JsonOpt(const AstMap *asts)
-        : asts(asts), primtypes(primtypes_c20),
-        // this initializer can only be generated?
+        : asts(asts), primtypes(primtypes_c20()),
         astyps({{"io.odysz.anson.AnsonAst", "AnsonAst"},
                 {"io.odysz.anson.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
                 {"io.odysz.anson.AnsonBodyAst", "AnsonBodyAst"},
                 {"io.odysz.anson.AnsonMsgAst", "AnsonMsgAst"}}),
-        serialize_type(true) {};
+        serialize_type(true) {
+        andebug(std::format("prim-types's size: {}", primtypes.size()));
+    };
 
     template<typename AST>
     AST* ast(const string &astid) const {

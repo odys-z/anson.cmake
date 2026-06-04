@@ -92,7 +92,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
             {"havings", {.dataAnclass="list<list<string"}}
         });
 
-    body_specialize_msg<AnQueryReq, AnsonBody>(asts, bdast,
+    anson::template body_specialize_msg<AnQueryReq, AnsonBody>(asts, bdast,
       [](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnQueryReq::mtabl>("mtabl")
             .data<&AnQueryReq::mAlias>("mAlias")
