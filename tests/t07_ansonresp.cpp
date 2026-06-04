@@ -69,6 +69,7 @@ TEST(AnsonResponse, Serialize) {
     bd.m = "TEST AnsonRespse Serialize";
     bd.uri = "AnsonResponse.Serialize";
     msg->Body(bd);
+    msg->seq = 0;
 
     std::ostringstream oss;
 
@@ -81,6 +82,6 @@ TEST(AnsonResponse, Serialize) {
                R"("a": "NA","uri": "AnsonResponse.Serialize","m": "TEST AnsonRespse Serialize",)"
                R"("map": {},"rs": []}],"code": "ok",)"
                R"("header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)"
-               R"("port": "query","seq": -842150451,"version": ""})")
+               R"("port": "query","seq": 0,"version": ""})")
               , json_result) << "serialzied josn string";
 }

@@ -10,7 +10,7 @@ The cmake peer of [Antson](https://github.com/odys-z/antson).
 
 - Jun 4, 2026
 
-Using Qt MinGW with g++ 16.1.0.
+Switch to MinGW with g++ 16.1.0.
 
 Note the official Qt Online Installer does not ship a MinGW package higher than GCC 13.1.
 This source use distribution from [x86_64-16.1.0-release-posix-seh-ucrt-rt_v14-rev1.7z](https://github.com/niXman/mingw-builds-binaries/releases).
