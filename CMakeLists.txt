@@ -49,7 +49,7 @@ endif()
 # find_package(Boost CONFIG REQUIRED COMPONENTS url)
 find_package(boost_url CONFIG REQUIRED)
 
- # vcpkg install openssl:x64-windows
+ # vcpkg install openssl:x64-mingw-dynamic
 find_package(OpenSSL REQUIRED)
 
 find_package(EnTT CONFIG REQUIRED)
