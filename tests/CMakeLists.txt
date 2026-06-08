@@ -58,7 +58,7 @@ add_custom_command(TARGET unit_tests POST_BUILD
     COMMENT "Copying JSON settings to build directory"
 )
 
-find_package(nlohmann_json CONFIG REQUIRED)
+# find_package(nlohmann_json CONFIG REQUIRED)
 
 target_link_libraries(unit_tests
     PRIVATE

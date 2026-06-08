@@ -291,9 +291,10 @@ class OnOk {
  */
 using OnError = std::function<void(MsgCode::Code code, std::string_view msg, vector<std::string_view> &args)>;
 
-class OnProgress {
-    virtual void progess(const string& path, std::string status);
-};
+// class OnProgress {
+//     virtual void progess(const string& path, std::string status);
+// };
+using OnProgress = std::function<void(const std::string& msg, const string& args)>;
 
 class AnQueryReq : public AnsonBody {
 

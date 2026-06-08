@@ -9,6 +9,7 @@
 #include <entt/meta/container.hpp>
 #include <string>
 #include <fstream>
+#include <io/odysz/semantic/x.h>
 #include "anson.h"
 #include "jprotocol.h"
 #include "anserializer.h"
@@ -728,9 +729,12 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
     std::ifstream ifstream(ast_pth);
     if (!ifstream.is_open()) {
         anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
+        throw SemanticException(std::format("Could not open the file {}! ", ast_pth));
     }
-    else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields))
+    else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields)) {
         anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
+        throw SemanticException(std::format("Could not AST from {}! ", ast_pth));
+    }
 }
 
 }
