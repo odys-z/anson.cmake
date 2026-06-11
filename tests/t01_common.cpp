@@ -168,18 +168,26 @@ TEST(RegexTest, TestPareseTypes) {
               Regex::parseMapValtype(R"(map.string, shared_ptr<T_List)")) << "::-1";
 }
 
-class AESHelperTest : public ::testing::Test {
-public:
-    inline static const std::string jarPath = "../../../tests/res/semantics.transact-1.5.77-SNAPSHOT.jar";
-    inline static const std::string tempFile = "test_output.txt";
+// class AESHelperTest : public ::testing::Test {
+// public:
+//     inline static const std::string jarPath = "../../../tests/res/semantics.transact-1.5.77-SNAPSHOT.jar";
+//     inline static const std::string tempFile = "test_output.txt";
 
-    // Helper to read the file content
-    inline static std::string readOutputFile() {
-        std::ifstream file(tempFile);
-        std::string content, line;
-        while (std::getline(file, line)) {
-            content += line + "\n";
-        }
-        return content;
-    }
-};
+//     // Helper to read the file content
+//     inline static std::string readOutputFile() {
+//         std::ifstream file(tempFile);
+//         std::string content, line;
+//         while (std::getline(file, line)) {
+//             content += line + "\n";
+//         }
+//         return content;
+//     }
+// };
+
+TEST(LANGEXT, ISENVELOPE) {
+    ASSERT_FALSE(LangExt::isenvelope("")) << "false: ''";
+    ASSERT_FALSE(LangExt::isenvelope("session openned")) << "false: 'session ....'";
+    ASSERT_FALSE(LangExt::isenvelope("{\"x\": 1}")) << "false: ''";
+    ASSERT_TRUE(LangExt::isenvelope("{\"type\": \"io.odysz.anson.Anson\"}")) << "false: type: io.odysz.anson.Anson";
+    ASSERT_TRUE(LangExt::isenvelope("{\"type\": ")) << "false: type: ''";
+}

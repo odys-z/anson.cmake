@@ -52,6 +52,7 @@ TEST(AESHelper, Decrypt) {
 
     char buff[FILENAME_MAX];
     _getcwd(buff, FILENAME_MAX);
+    anwarn("This test can work on Windows only with system setting of Beta Utf-8.");
     anlog("Current working dir: "s + buff);
 
     std::string input = std::format("encrypt \"{}\" \"{}\"", key, slava_ukraini);

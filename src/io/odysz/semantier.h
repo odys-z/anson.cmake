@@ -31,7 +31,7 @@ public:
      * @brief EchoReq
      * @param m
      */
-    EchoReq(const string &m) : AnsonBody("na"), echo(m){ Type(_type_); }
+    EchoReq(const string &m) : AnsonBody(A::echo), echo(m){ Type(_type_); }
 
     EchoReq() : EchoReq("na") {}
 };

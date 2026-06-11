@@ -182,6 +182,12 @@ public:
         return false;
     }
 
+    #include <regex>
+    inline static std::regex enveloprefix{R"(^\{\"type\":)"};
+    inline static bool isenvelope(const string &s) {
+        return std::regex_search(s, LangExt::enveloprefix);
+    }
+
     inline static string upper_case(const string s) {
         std::string result = s; // Make a copy
         for (auto &c : result) {

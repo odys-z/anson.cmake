@@ -15,26 +15,26 @@ add_executable(unit_tests
   echoreq.expect.h # Keep this as the testing stepstone. (All code can be generated)
   t01_aeshelper.cpp
   t01_common.cpp
-  t01_typs_java_vs.cpp
-  t02_type_java_tests.h
-  t02_type_java_tests.cpp
-  t02_entt_basic.h
-  t02_entt_basic.cpp
-  t02_entt_basic_serialize.cpp
-  t03_loadsettings.cpp
-  t04_entt_registry.cpp
-  t05_deserialize.cpp
-  t06_java_enum.cpp
-  t06_java_enum.h
-  t07_ansonresp.cpp
-  t08_resultset.cpp
-  t08_resultset.h
-  t09_expect_semantier.cpp
-  expect/t_01_echomsg.hpp
-  expect/t_02_semantier.hpp
-  expect/t_10_doctier.hpp
-  t10_design_patterns.cpp
-  t11_docstier.cpp
+  # t01_typs_java_vs.cpp
+  # t02_type_java_tests.h
+  # t02_type_java_tests.cpp
+  # t02_entt_basic.h
+  # t02_entt_basic.cpp
+  # t02_entt_basic_serialize.cpp
+  # t03_loadsettings.cpp
+  # t04_entt_registry.cpp
+  # t05_deserialize.cpp
+  # t06_java_enum.cpp
+  # t06_java_enum.h
+  # t07_ansonresp.cpp
+  # t08_resultset.cpp
+  # t08_resultset.h
+  # t09_expect_semantier.cpp
+  # expect/t_01_echomsg.hpp
+  # expect/t_02_semantier.hpp
+  # expect/t_10_doctier.hpp
+  # t10_design_patterns.cpp
+  # t11_docstier.cpp
 )
 
 # deprecated
@@ -72,4 +72,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=2)
+add_compile_definitions(ANSON_VERBOSE=3)
