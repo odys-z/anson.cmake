@@ -119,7 +119,7 @@ public:
 
     string enm;
 
-    JavaEnum(string dataAnclass, string e);
+    JavaEnum(const string& dataAnclass, const string& e_v);
     JavaEnum(const JavaEnum&) = default;
     JavaEnum(JavaEnum&&) = default;
 

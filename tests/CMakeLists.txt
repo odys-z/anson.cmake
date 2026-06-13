@@ -29,7 +29,8 @@ add_executable(unit_tests
   # t07_ansonresp.cpp
   # t08_resultset.cpp
   # t08_resultset.h
-  # t09_expect_semantier.cpp
+  t09_expect_semantier.cpp
+  test.common.h
   # expect/t_01_echomsg.hpp
   # expect/t_02_semantier.hpp
   # expect/t_10_doctier.hpp

@@ -21,12 +21,7 @@ public:
     string uri;
 
     AnsonBody() : Anson(_type_) {}
-
-    // AnsonBody(string type) : Anson(type) , a("") {}
-
     AnsonBody(string a) : Anson(_type_), a(a) {}
-
-    // AnsonBody(string a, string type, string ignored) : Anson(type), a(a) {}
 };
 
 class AnsonHeader : public anson::Anson {
@@ -94,11 +89,11 @@ public:
     inline static const std::string docstier = "docs.tier";
 
     Port(): JavaEnum(_type_, "na") {
-        andebug(string_view("Port Default Cosntructor"));
+        andebug("Port Default Cosntructor");
     }
 
     Port(string enum_val) : JavaEnum(_type_, enum_val) {
-        andebug(string_view("Port Cosntructor<string>("s + enum_val + ").enm = " + enm));
+        andebug("Port Cosntructor<string>("s + enum_val + ").enm = " + enm);
     }
 };
 
@@ -111,9 +106,9 @@ public:
      *
      * @brief setup
      * @param urlpath
-     * @param p one of the port value to be understood (Only for java semantics?)
+     * @param p one of the port value to be understood, and is ignored (only for java semantics)
      */
-    void setup(const string& urlpath, const Port& p) {
+    void setup(const string& urlpath, const Port& p = {}) {
         protocolpath = urlpath;
     }
 };
@@ -271,7 +266,9 @@ public:
 
     string jserv() const {
         return format("{}://{}:{}/{}",
-                      LangExt::isblank(this->scheme) ? "http" : this->scheme,
+                      LangExt::isblank(this->scheme)
+                          ? this->https ? "https" : "http"
+                          : this->scheme,
                       this->host,
                       this->port <= 0 ? 80 : this->port,
                       this->jprotocol->protocolpath);
@@ -289,7 +286,7 @@ class OnOk {
  *     virtual void err(MsgCode code, std::string_view msg,std::initializer_list<std::string_view> args);
  * };
  */
-using OnError = std::function<void(MsgCode::Code code, std::string_view msg, vector<std::string_view> &args)>;
+using OnError = std::function<void(MsgCode::Code code, const std::string msg, const vector<std::string>& args)>;
 
 // class OnProgress {
 //     virtual void progess(const string& path, std::string status);

@@ -8,6 +8,8 @@
 #include "expect/t_01_echomsg.hpp"
 #include "expect/t_02_semantier.hpp"
 
+#include "io/odysz/common.h"
+#include "test.common.h"
 
 using namespace anson;
 using namespace std;
@@ -158,6 +160,45 @@ TEST(AUTOGEN, SessionResp) {
     AnSessionResp *bd2 = msg2.body.at(1).get();
     ASSERT_EQ("Since 2.0.0, client uri cannot be empty for session checking, logging in, etc.", bd2->m)
         << "session error msg";
+}
+
+TEST(RegexTest, TestValidJserv) {
+    // Test isIPv6
+    for (const auto& entry : urls) {
+        EXPECT_EQ(entry.ipv6, Regex::isIPv6(entry.url)) << "Failed IPv6 test for: " << entry.url;
+    }
+
+    UrlValidator urlValidator;
+
+    // Validation Loop
+    for (const JservTestCase& test : urls) {
+        HttpParts parts;
+        string jserv_test = Regex::asJserv(test.url);
+        Regex::getHttpParts(jserv_test, parts);
+
+        bool isValid = urlValidator.isValid(jserv_test) &&
+                       Regex::isHttps(test.url) == test.https &&
+                       validUrlPort(parts.port, test.portRange) &&
+                       validPaths(test.paths, parts.paths);
+
+        EXPECT_EQ(test.ok, isValid) << "Failed Jserv validation for: " << test.url;
+    }
+}
+
+TEST(JSERV, Parse) {
+    JProtocol jprotocol;
+    jprotocol.setup("jserv-album");
+    JServUrl jserv{"http://127.0.0.1", jprotocol};
+    ASSERT_EQ("http://127.0.0.1:80/jserv-album", jserv.jserv());
+    JServUrl jserw{"127.0.0.1", jprotocol};
+    ASSERT_EQ("http://127.0.0.1:80/jserv-album", jserw.jserv());
+
+    for (const JservTestCase& test : urls) {
+        if (!LangExt::isblank(test.expect)) {
+            JServUrl jserv{test.url, jprotocol};
+            ASSERT_EQ(test.expect, jserv.jserv()) << test.url;
+        }
+    }
 }
 
 // TODO

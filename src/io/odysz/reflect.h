@@ -206,7 +206,7 @@ public:
     AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
-inline JavaEnum:: JavaEnum(string anclass, string e) :  IJsonable(), enm(std::move(e)) {
+inline JavaEnum:: JavaEnum(const string &anclass, const string &e_v) :  IJsonable(), enm(std::move(e_v)) {
     Anclass(anclass);
 
     this->anclass = anclass;
