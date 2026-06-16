@@ -273,6 +273,16 @@ public:
                       this->port <= 0 ? 80 : this->port,
                       this->jprotocol->protocolpath);
     }
+
+    string wservUri() const {
+        return format("{}://{}:{}/{}",
+              LangExt::isblank(this->scheme)
+                  ? this->https ? "wss" : "ws"
+                  : this->scheme,
+              this->host,
+              this->port <= 0 ? 80 : this->port,
+              this->jprotocol->protocolpath);
+    }
 };
 
 class OnOk {

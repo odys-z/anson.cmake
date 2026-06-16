@@ -91,7 +91,7 @@ public:
     virtual const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const = 0;
 
     /** @see #toBlock(OutputStream, JsonOpt...) */
-    virtual string toBlock(JsonOpt& opt) {
+    virtual string toBlock(JsonOpt& opt) const {
         // ByteArrayOutputStream bos = new ByteArrayOutputStream();
         // toBlock(bos, opt);
         // return bos.toString(StandardCharsets.UTF_8.name());
@@ -204,7 +204,7 @@ public:
         return nlohmann::json::sax_parse(ifstream, &h);
     }
 
-    string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) {
+    string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) const {
         std::stringstream ss;
         toBlock(ss, jsopt);
         return std::move(ss).str();

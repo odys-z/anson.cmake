@@ -18,6 +18,7 @@ add_library(anson INTERFACE
     io/odysz/module/rs.h
     io/odysz/json.h
     io/odysz/entt_jserv.h
+    io/odysz/gen/semantier.hpp
 )
 
 add_library(anson::anson ALIAS anson)

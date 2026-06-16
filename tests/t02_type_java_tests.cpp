@@ -106,7 +106,7 @@ TEST(JUNIT, NestedList) {
 
 TEST(JUNIT, NoSql) {
     register_jserv(asts, opts);
-    register_ast(asts, "ast/photo_css.json");
+    register_cssast(asts, "ast/photo_css.json");
     anlog(to_aststring(asts, T_PhotoCSS::_type_), PrintFormat{.head="------", .sep="\n"});
 
     string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.U.AnInsertReq\","s
