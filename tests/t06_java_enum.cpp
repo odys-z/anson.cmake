@@ -15,15 +15,15 @@ using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-AstMap enums;
+AstMap asts;
 map<string, meta_type> enttypes;
 
 TEST(JAVAENUM, PORT) {
-    JsonOpt contxt{&enums};
-    register_jserv(enums, contxt);
-    load_usereqAst_test(enums, "ast/usereq.ast.json");
+    JsonOpt contxt{&asts};
+    register_jserv(asts, contxt);
+    load_usereqAst_test(asts, "ast/usereq.ast.json");
 
-    anlog(to_aststring(enums));
+    anlog(to_aststring(asts));
 
     auto p_type = entt::resolve(hashed_string{Port::_type_.c_str()});
     meta_any ptr = p_type.construct();

@@ -608,21 +608,9 @@ inline static void register_enums(AstMap& asts) {
     asts[anclass] = unique_ptr<AnsonJavaEnumAst>(ast);
 }
 
-inline static void register_port(AstMap &asts) {
-    // std::ifstream ifstream(port_ast_pth);
-    // if (!ifstream.is_open()) {
-    //     anerror(string_view(std::format("Could not open the file {}! ", port_ast_pth)));
-    // }
-    std::istringstream ifstream(
-    R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum", "dataAnclass": "io.odysz.semantic.jprotocol.Port",
-    "encode" : { "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
-      "file": "file.serv", "userstier": "users.tier", "stree": "s-tree.serv", "dataset": "ds.serv", "datasetier": "ds.tier", "docstier": "docs.tier", "syntier": "sync.tier" },
-    "decode" : { "ping.serv": "heartbeat", "login.serv": "session", "r.serv": "query", "u.serv": "update", "c.serv": "insert", "d.serv": "del", "echo.less": "echo",
-      "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
-    );
-
+inline static void register_port(AstMap &asts, istream& ifstream) {
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
-    portAst->dataAnclass = Port::_type_;
+    // portAst->dataAnclass = Port::_type_;
     portAst->isPortEnum = true;
 
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
@@ -644,6 +632,32 @@ inline static void register_port(AstMap &asts) {
     }
     else
         anerror("Could not setup Port AST!");
+}
+
+inline static void register_port(AstMap &asts, const string& path) {
+    std::ifstream ifstream(path);
+    if (!ifstream.is_open()) {
+        throw SemanticException(std::format("Could not open the file {}! ", path));
+    }
+    register_port(asts, ifstream);
+}
+/**
+ * @brief register_port
+ * Register "io.odysz.semantic.jprotocol.Port"
+ *
+ * @param asts
+ */
+inline static void register_port(AstMap &asts) {
+    std::istringstream ifstream(
+    R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum",
+    "dataAnclass": "io.odysz.semantic.jprotocol.Port",
+    "encode" : { "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
+      "file": "file.serv", "userstier": "users.tier", "stree": "s-tree.serv", "dataset": "ds.serv", "datasetier": "ds.tier", "docstier": "docs.tier", "syntier": "sync.tier" },
+    "decode" : { "ping.serv": "heartbeat", "login.serv": "session", "r.serv": "query", "u.serv": "update", "c.serv": "insert", "d.serv": "del", "echo.less": "echo",
+      "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
+    );
+
+    register_port(asts, ifstream);
 }
 
 inline static void register_varctors() {
