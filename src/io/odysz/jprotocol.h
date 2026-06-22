@@ -186,7 +186,12 @@ public:
 
     MsgCode::Code code;
 
-
+    /**
+     * @brief AnsonMsg
+     * FIXME this is an error.
+     * The argument port must be type of IPort, so WSPort can be used as a parameter.
+     * @param port
+     */
     AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
         // cout << port.enm;
     }

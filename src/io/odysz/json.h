@@ -608,7 +608,8 @@ inline static void register_enums(AstMap& asts) {
     asts[anclass] = unique_ptr<AnsonJavaEnumAst>(ast);
 }
 
-inline static void register_port(AstMap &asts, istream& ifstream) {
+template<typename P>
+inline static void register_iport(AstMap &asts, istream& ifstream) {
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     // portAst->dataAnclass = Port::_type_;
     portAst->isPortEnum = true;
@@ -619,11 +620,16 @@ inline static void register_port(AstMap &asts, istream& ifstream) {
         string anclass = portAst->dataAnclass;
         hashed_string enttype = hashed_string{anclass.c_str()};
 
-        entt::meta_factory<anson::Port>()
+        // entt::meta_factory<anson::Port>()
+        //     .type(enttype)
+        //     .base<JavaEnum>()
+        //     .ctor<>()
+        //     .ctor<std::string>()
+        entt::meta_factory<P>()
             .type(enttype)
-            .base<JavaEnum>()
-            .ctor<>()
-            .ctor<std::string>()
+            .template base<JavaEnum>()
+            .template ctor<>()
+            .template ctor<std::string>()
             ;
 
         portAst->enttypeid = enttype;
@@ -634,12 +640,13 @@ inline static void register_port(AstMap &asts, istream& ifstream) {
         anerror("Could not setup Port AST!");
 }
 
-inline static void register_port(AstMap &asts, const string& path) {
+template<typename P>
+inline static void register_iport(AstMap &asts, const string& path) {
     std::ifstream ifstream(path);
     if (!ifstream.is_open()) {
         throw SemanticException(std::format("Could not open the file {}! ", path));
     }
-    register_port(asts, ifstream);
+    register_iport<P>(asts, ifstream);
 }
 /**
  * @brief register_port
@@ -657,7 +664,7 @@ inline static void register_port(AstMap &asts) {
       "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
     );
 
-    register_port(asts, ifstream);
+    register_iport<Port>(asts, ifstream);
 }
 
 inline static void register_varctors() {

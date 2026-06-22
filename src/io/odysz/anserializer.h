@@ -456,7 +456,7 @@ private:
             return;
         }
         else if (active_key != 0) {
-            auto& top = stack.back();
+            // auto& top = stack.back();
 
             if (contxt->primtypes.contains(top.val_astid)) {
                 if (!top.is_map)

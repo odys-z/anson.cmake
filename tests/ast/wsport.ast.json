@@ -1,0 +1,6 @@
+{ "type": "io.odysz.anson.AnsonJavaEnumAst",
+  "baseAnclass": "io.odysz.anson.JavaEnum",
+  "dataAnclass": "io.oz.anclient.ipcagent.WSPort",
+  "encode": { "doclient": "doclient.ws", "configIPC": "config.ws", "echo": "echo.ws", "ping": "ping.ws", "docstier": "docs.ws"},
+  "decode": { "doclient.ws": "doclient", "config.ws": "configIPC", "echo.ws": "echo", "ping.ws": "ping", "docs.ws": "docstier"}
+}

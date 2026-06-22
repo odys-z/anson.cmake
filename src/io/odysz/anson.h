@@ -85,16 +85,12 @@ public:
      */
     string anclass;
 
-    // IJsonable(string anclass) : anclass(anclass) {}
     IJsonable() {}
 
     virtual const IJsonable* toBlock(ostream& os, const JsonOpt& opts) const = 0;
 
     /** @see #toBlock(OutputStream, JsonOpt...) */
     virtual string toBlock(JsonOpt& opt) const {
-        // ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        // toBlock(bos, opt);
-        // return bos.toString(StandardCharsets.UTF_8.name());
         std::ostringstream bos;
         toBlock(bos, opt);
         return bos.str();
@@ -237,14 +233,6 @@ struct AnsonField {
      * if dataAnclass == map<string, list<string, valuType == list<string.
      */
     string valType;
-
-    /**
-     * When parsing a map or list's complex value, the element need to be created with
-     * a constructor at compile time. See EnttSAXParser.start_array() & start_object().
-     *
-     * @brief nest_val_ctor
-     */
-    // std::function<meta_any()> nest_val_ctor = nullptr;
 
     bool operator==(const AnsonField& other) const {
         return fieldname == other.fieldname

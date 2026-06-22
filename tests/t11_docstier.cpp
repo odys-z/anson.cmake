@@ -6,19 +6,11 @@
 
 #include <io/odysz/module/rs.h>
 #include "io/odysz/anson.h"
-#include "io/odysz/semantier.h"
 #include "expect/t_10_doctier.hpp"
 
 using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
-
-void DocsReq::format(const IFileDescriptor& p) {}
-
-void DocsReq::format(const IFileDescriptor & p, const string uri) {}
-
-void ExpSyncDoc::format(const AnResultset& rs) {}
-
 
 TEST(DOCSTIER, SerializeDocsReq) {
     AstMap asts;
