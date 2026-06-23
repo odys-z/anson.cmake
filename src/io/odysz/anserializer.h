@@ -501,6 +501,7 @@ private:
                         auto v = data.type().construct(string_val);
                         JavaEnum *je = v.template try_cast<JavaEnum>();
                         bool res = data.set(top.instance, v);
+                        // 43a0e701be07796e8bffbd40d00ab82cde98aae6
                         return;
                     }
                     if (fd_ast->isEnum) {

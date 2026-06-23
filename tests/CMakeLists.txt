@@ -35,7 +35,7 @@ add_executable(unit_tests
   # expect/t_01_echomsg.hpp
   # expect/t_02_semantier.hpp
   # expect/t_10_doctier.hpp
-  # expect/wsport_tobe_generated.hpp
+  expect/wsport_tobe_generated.hpp
   # t10_design_patterns.cpp
   # t11_docstier.cpp
 )
