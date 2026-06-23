@@ -63,7 +63,7 @@ TEST(AnsonResponse, Serialize) {
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<AnsonResp>;
-    auto msg = std::make_shared<Req>(Port::query);
+    auto msg = std::make_shared<Req>(Port{Port::query});
     AnsonResp bd;
     msg->code = MsgCode::Code::ok;
     bd.m = "TEST AnsonRespse Serialize";

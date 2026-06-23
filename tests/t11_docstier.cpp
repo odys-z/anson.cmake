@@ -36,7 +36,7 @@ TEST(DOCSTIER, SerializeDocsReq) {
 
     req.data.insert({"x", "xxx.xxx.yyy.yyy"});
 
-    AnsonMsg<DocsReq> q{Port::docstier};
+    AnsonMsg<DocsReq> q{Port{Port::docstier}};
     q.Body(req);
     q.Header(header);
 

@@ -151,7 +151,7 @@ TEST(Anson, Servialize_Msg) {
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<EchoReq>;
-    auto msg = std::make_shared<Req>(Port::query);
+    auto msg = std::make_shared<Req>(Port{Port::query});
     msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
     msg->seq = 8964;
     msg->code = MsgCode::Code::ok;

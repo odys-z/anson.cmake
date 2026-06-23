@@ -19,6 +19,19 @@ struct AnsonField;
 using AstMap = map<string, unique_ptr<AnsonAst>>;
 
 class JsonOpt {
+protected:
+    map <string, string> polymorphs;
+
+    /**
+     * ISSUE Not multiple level of polymorph?
+     * @brief polymorph
+     * @param astid
+     * @return the target (subclass) type to be morphed.
+     */
+    string polymorph(const string& astid) const {
+        return polymorphs.contains(astid) ? polymorphs.at(astid) : astid;
+    }
+
 public:
     bool serialize_type;
     bool escape4DB;
@@ -41,7 +54,9 @@ public:
     };
 
     template<typename AST>
-    AST* ast(const string &astid) const {
+    AST* ast(const string &astId) const {
+        string astid = polymorph(astId);
+
         auto it = asts->find(astid);
         if (it != asts->end()) {
             return dynamic_cast<AST*>(it->second.get());
@@ -58,6 +73,12 @@ public:
 
     bool is_ast(const string &astid) const {
         return astyps.contains(astid);
+    }
+
+    bool register_polymorph(const string& super_name, const string& subclass_name) {
+        bool has = polymorphs.contains(super_name);
+        polymorphs[super_name] = subclass_name;
+        return has;
     }
 };
 
@@ -116,10 +137,11 @@ public:
     string enm;
 
     JavaEnum(const string& dataAnclass, const string& e_v);
-    JavaEnum(const JavaEnum&) = default;
+    JavaEnum(const JavaEnum& e) { enm = e.enm; anclass = e.anclass; }
     JavaEnum(JavaEnum&&) = default;
 
-    JavaEnum& operator=(const JavaEnum&) = default;
+    JavaEnum& operator=(const JavaEnum&);
+    // JavaEnum& operator=(const JavaEnum&) = default;
     JavaEnum& operator=(JavaEnum&&) noexcept = default;
 
     string url() {
@@ -138,6 +160,11 @@ public:
         return this;
     }
 };
+
+inline JavaEnum& JavaEnum::operator=(const JavaEnum& other) {
+    enm = other.enm;
+    return *this;
+}
 
 inline static std::ostream& operator<<(std::ostream& os, const JavaEnum& enm) {
     return os << '\"' << enm.valof() << '\"';

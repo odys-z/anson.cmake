@@ -98,7 +98,8 @@ public:
     hashed_string enttypeid = hashed_string{_type_.c_str()};
 
     AnsonAst(string anclass, bool isEnum = false) : Anson(anclass),
-        isInt(false), isDouble(false), isEnum(isEnum), isList(false), isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
+        isInt(false), isDouble(false), isEnum(isEnum), isList(false),
+        isMap(false), istring(false), isJsonable(true), isPortEnum(false) { }
 
     AnsonAst() : AnsonAst(_type_) {}
 
@@ -206,7 +207,9 @@ public:
     AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
-inline JavaEnum:: JavaEnum(const string &anclass, const string &e_v) :  IJsonable(), enm(std::move(e_v)) {
+inline JavaEnum:: JavaEnum(const string &anclass, const string &e_v)
+        : IJsonable(), enm(std::move(e_v)) {
+
     Anclass(anclass);
 
     this->anclass = anclass;

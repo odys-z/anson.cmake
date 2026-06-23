@@ -222,6 +222,8 @@ inline static void register_asts(AstMap &asts) {
 
     // Debug: AnsonAst* a = asts.at(AnsonAst::_type_).get(); // TODO DELETE
     //
+
+    // ISSUE 2026.6.23 shouldn't type AST = AnsonAst?
     AnsonJavaEnumAst *jeast = createAST<AnsonJavaEnumAst, AnsonJavaEnumAst>(
         asts, AnsonAst::_type_, map<string, AnsonField>{
             {"encode", {.fieldname="encode", .dataAnclass = "map<string, string"}},
@@ -294,7 +296,8 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
     ast->dataAnclass = anclass;
 
     ast->fields = map<string, AnsonField>{
-        {"port", {.fieldname = "port", .dataAnclass=Port::_type_}},
+        // {"port", {.fieldname = "port", .dataAnclass=Port::_type_}}, 2026.6.23
+        {"port", {.fieldname = "port", .dataAnclass=JavaEnum::_type_}},
         {"code", {.fieldname = "code", .dataAnclass=MsgCode::_type_}},
         {"version", {.fieldname = "version", .dataAnclass="string"}},
         {"seq", {.fieldname = "seq", .dataAnclass="int"}},
@@ -635,6 +638,7 @@ inline static void register_iport(AstMap &asts, istream& ifstream) {
         portAst->enttypeid = enttype;
 
         asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
+        IJsonable::contxt_ptr->register_polymorph(portAst->baseAnclass, portAst->dataAnclass);
     }
     else
         anerror("Could not setup Port AST!");

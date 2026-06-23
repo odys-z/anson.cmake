@@ -182,7 +182,7 @@ public:
 
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
-    Port port;
+    JavaEnum port;
 
     MsgCode::Code code;
 
@@ -192,13 +192,13 @@ public:
      * The argument port must be type of IPort, so WSPort can be used as a parameter.
      * @param port
      */
-    AnsonMsg(Port port) : Anson(_type_, _type_ + '<' + T::_type_), port(port.enm) {
+    AnsonMsg(JavaEnum port) : Anson(_type_, _type_ + '<' + T::_type_), port(port) {
         // cout << port.enm;
     }
 
     AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
 
-    AnsonMsg(Port port, const T& body) : AnsonMsg(port) {
+    AnsonMsg(JavaEnum port, const T& body) : AnsonMsg(port) {
         this->Body(body);
     }
 
@@ -303,9 +303,6 @@ class OnOk {
  */
 using OnError = std::function<void(MsgCode::Code code, const std::string msg, const vector<std::string>& args)>;
 
-// class OnProgress {
-//     virtual void progess(const string& path, std::string status);
-// };
 using OnProgress = std::function<void(const std::string& msg, const string& args)>;
 
 class AnQueryReq : public AnsonBody {

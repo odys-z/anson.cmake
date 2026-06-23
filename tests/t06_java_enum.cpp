@@ -80,7 +80,7 @@ TEST(JAVAENUM, WSPORT) {
     string port_anclass = dreq.port.anclass;
     ASSERT_EQ(WSPort{WSPort::ping}.valof(), dreq.port.valof());
 
-    dreq.port = WSPort::ping;
+    dreq.port = WSPort{WSPort::ping};
 
     std::regex json_port{R"("port": "ping")"};
     std::regex json_port_val{R"("port": "ping.ws")"};

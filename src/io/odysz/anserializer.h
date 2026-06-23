@@ -498,10 +498,20 @@ private:
 
                 if (fd_ast != nullptr) {
                     if (fd_ast->isPortEnum) {
-                        auto v = data.type().construct(string_val);
-                        JavaEnum *je = v.template try_cast<JavaEnum>();
+                        // AnsonMsg.port is a type of IPort, can be types otherthan registered.
+                        // data.type() is not enough.
+                        // And a strong augment of deprecating Entt?
+                        //
+                        // 39fc96b72ae778d024c9ea21bc17bd16c9a60707
+                        // auto v = data.type().construct(string_val);
+                        // JavaEnum *je = v.template try_cast<JavaEnum>();
+                        // bool res = data.set(top.instance, v);
+
+                        entt::meta_type enumtype = entt::resolve(fd_ast->enttypeid);
+                        AnsonJavaEnumAst* enumast = static_cast<AnsonJavaEnumAst*>(fd_ast);
+                        std::string enm = enumast->encode[string_val];
+                        auto v = enumtype.construct(enm);
                         bool res = data.set(top.instance, v);
-                        // 43a0e701be07796e8bffbd40d00ab82cde98aae6
                         return;
                     }
                     if (fd_ast->isEnum) {

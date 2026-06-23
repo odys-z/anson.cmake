@@ -22,7 +22,7 @@ TEST(ENTT_META, JSON_REGISTRY) {
     JsonOpt jsonopts{&asts};
     IJsonable::contxt_ptr = &jsonopts;
 
-    AnsonMsg<EchoReq> msg{Port::echo};
+    AnsonMsg<EchoReq> msg{Port{Port::echo}};
 
     cout << "Port: " << msg.port << endl;
     EchoReq echobd{"echo msg ..."};
