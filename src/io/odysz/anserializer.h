@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "reflect.h"
+#include "utils.h"
 
 namespace anson {
 
@@ -348,7 +349,6 @@ struct ParseNode {
 template<typename T>
 class EnTTSaxParser : public nlohmann::json_sax<nlohmann::json> {
 private:
-    const JsonOpt *contxt;
 
     id_type active_key{0};
 
@@ -538,6 +538,8 @@ private:
     }
 
 public:
+    const JsonOpt *contxt;
+
     std::deque<ParseNode> stack;
 
     /**
@@ -549,9 +551,10 @@ public:
      * @param ast_id
      * @param opts
      */
-    EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts = nullptr) : contxt(opts) {
+    EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts = nullptr)
+            : contxt(opts == nullptr ? IJsonable::contxt_ptr : opts) {
         push(obj, ast_id);
-        contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
+        // contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
         active_key = 0;
     }
 
@@ -952,6 +955,8 @@ public:
 template<typename T>
 inline static bool parse(const string& json, T &an, const JsonOpt *opts) {
     EnTTSaxParser handler{an, opts};
+    if (!handler.contxt || !handler.contxt->asts || handler.contxt->asts->size() == 0)
+        throw new AnsonException("Cannot deserialize json without contxt asts registered.");
     return nlohmann::json::sax_parse(json, &handler);
 }
 
@@ -977,4 +982,17 @@ inline static vector<string> to_aststring(const AstMap &asts) {
     }
     return sv;
 }
+
+inline static string map2str(const map<string, vector<LangExt::VarType>>& m) {
+    std::stringstream os;
+    if (!LangExt::has_ctor("list<VarType")) {
+        anwarn("Cannot deserialize map without Ctor of List<VarType been registered.");
+        os << "Cannot deserialize List<VarType.";
+    }
+    else
+        serialize_map(os, entt::meta_any(m), {"list<VarType", "false"}, *IJsonable::contxt_ptr);
+    return std::move(os).str();
 }
+
+}
+

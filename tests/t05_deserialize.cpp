@@ -144,7 +144,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
 
-TEST(Anson, Servialize_Msg) {
+TEST(Anson, Serialize_Msg) {
     JsonOpt opts{&enums};
     register_jserv(enums, opts);
     load_echoAst_ext(enums);
@@ -169,5 +169,15 @@ TEST(Anson, Servialize_Msg) {
               R"("header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)"
               R"("port": "query","seq": 8964,"version": ""})"
               , json_result);
+}
+
+
+
+TEST(Anson, Serialize_map) {
+    JsonOpt opts{&enums};
+    register_jserv(enums, opts);
+    map<string, vector<LangExt::VarType>> m {{"x", {1, "one"}}};
+    string s = map2str(m);
+    ASSERT_EQ(R"({"x": [1,"one"]})", s);
 }
 }

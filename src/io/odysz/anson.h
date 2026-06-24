@@ -216,16 +216,7 @@ public:
     }
 
     template <typename An>
-    static bool from_file(const string t03_json, An & an) {
-        std::ifstream ifstream(t03_json);
-        if (!ifstream.is_open()) {
-            throw runtime_error("Could not open the file! "s + t03_json);
-        }
-
-        EnTTSaxParser h(an, IJsonable::contxt_ptr);
-        an.type = "";
-        return nlohmann::json::sax_parse(ifstream, &h);
-    }
+    static bool from_file(const string& pth, An & an);
 
     string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) const {
         std::stringstream ss;
@@ -311,7 +302,31 @@ public:
     SessionInf() : Anson(_type_) { }
 };
 
-class AnsonException : public IJsonable, public std::runtime_error {
+class AnsonException : public Anson, public std::runtime_error {
+    inline static const string _type_ = "io.odysz.anson.AnsonException";
+protected:
+    AnsonException(const string& typ, const string & err) : Anson(typ), runtime_error(err) {}
+
+public:
+    AnsonException() : AnsonException(_type_, _type_) {}
+
+    AnsonException(const string & err) : AnsonException(_type_, err) {}
 };
+
+template <typename An>
+bool Anson::from_file(const string& pth, An & an) {
+    EnTTSaxParser h(an, IJsonable::contxt_ptr);
+    an.type = "";
+
+    if (!h.contxt || !h.contxt->asts || !h.contxt->has_ast(Anson::_type_))
+        throw new AnsonException("Cannot deserialize json without contxt asts registered.");
+
+    std::ifstream ifstream(pth);
+    if (!ifstream.is_open()) {
+        throw runtime_error("Could not open the file! "s + pth);
+    }
+
+    return nlohmann::json::sax_parse(ifstream, &h);
+}
 
 }
