@@ -409,6 +409,11 @@ public:
         return regex_search(envl, isenvl);
     }
 
+    inline static bool start_with(const string& s, const string& prefix) {
+        std::regex re{prefix};
+        return regex_search(s, re);
+    }
+
     inline static std::regex reg_isIPv6{R"(^(([^:/?#]+):)?(//)?\[(::[0-9A-Fa-f]{1,4})|([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){7})\](:\d{1,8})?([/?#])?)"};
 
     inline static std::regex reg_hostportv6{R"(\[((::[0-9A-Fa-f]{1,4})|([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){7}))\](:(\d+))?)"};

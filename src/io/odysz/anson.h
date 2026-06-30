@@ -319,7 +319,7 @@ bool Anson::from_file(const string& pth, An & an) {
     an.type = "";
 
     if (!h.contxt || !h.contxt->asts || !h.contxt->has_ast(Anson::_type_))
-        throw new AnsonException("Cannot deserialize json without contxt asts registered.");
+        throw AnsonException("Cannot deserialize json without contxt asts registered.");
 
     std::ifstream ifstream(pth);
     if (!ifstream.is_open()) {

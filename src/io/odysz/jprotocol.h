@@ -222,7 +222,7 @@ public:
      * }</pre>
      */
     AnsonMsg<T>& Body(T&& body) {
-        this->body.push_back(std::make_shared<T>(std::move(body)));
+        this->body.push_back(std::make_shared<T>(std::move(body))); // ISSUE move to shared ptr?
         return *this;
     }
 
@@ -268,6 +268,9 @@ public:
         // this->fragment = std::move(parts.fragment);
         this->jprotocol = &jprotocol;
     }
+
+    JServUrl(const string &host, const int port, const JProtocol &jprotocol)
+        : JServUrl(std::format("{}:{}", host, port), jprotocol) {}
 
     string jserv() const {
         return format("{}://{}:{}/{}",

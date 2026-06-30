@@ -994,5 +994,10 @@ inline static string map2str(const map<string, vector<LangExt::VarType>>& m) {
     return std::move(os).str();
 }
 
+inline static string map2str(const map<string, vector<string>>& m) {
+    std::stringstream os;
+    serialize_map(os, entt::meta_any(m), {"list<string", "false"}, *IJsonable::contxt_ptr);
+    return std::move(os).str();
+}
 }
 
