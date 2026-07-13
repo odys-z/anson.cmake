@@ -353,6 +353,12 @@ inline std::chrono::system_clock::time_point operator ""_t(const char* str, std:
     return tp;
 }
 
+template <typename T, typename U>
+inline std::vector<T>& operator<<(std::vector<T>& vec, U&& element) {
+    vec.emplace_back(std::forward<U>(element));
+    return vec;
+}
+
 // inline LangExt::VarType operator ""_d(long double v) {
 //     return static_cast<double>(v);
 // }

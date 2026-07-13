@@ -293,9 +293,10 @@ public:
     }
 };
 
-class OnOk {
+class OnOk_ {
     virtual void ok(const AnsonResp &resp);
 };
+using OnOk = std::function<void(AnsonResp& resp)>;
 
 /**
  * @brief The OnError class

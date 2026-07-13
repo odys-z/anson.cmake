@@ -171,8 +171,6 @@ TEST(Anson, Serialize_Msg) {
               , json_result);
 }
 
-
-
 TEST(Anson, Serialize_map) {
     JsonOpt opts{&enums};
     register_jserv(enums, opts);
