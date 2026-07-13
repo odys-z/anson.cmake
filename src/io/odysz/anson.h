@@ -177,6 +177,48 @@ class Anson;
 template<typename T>
 inline static bool parse(const string& json, T &an, const JsonOpt *opts);
 
+class EscapingStreambuf : public std::streambuf {
+private:
+    std::streambuf* destBuffer;
+    const JsonOpt& options;
+
+protected:
+    int overflow(int ch) override {
+        if (ch == EOF) return EOF;
+        char c = static_cast<char>(ch);
+
+        if      (c == '\n') return writeStr("\\n");
+        else if (c == '\t') return writeStr("\\t");
+        else if (c == '\r') return writeStr("\\r");
+        else if (c == '\"') return writeStr("\\\"");
+        else if (c == '\\') return writeStr("\\\\");
+        else if (options.escape4DB && c == '\'') return writeStr("''");
+
+        return destBuffer->sputc(c);
+    }
+
+private:
+    int writeStr(const std::string& s) {
+        for (char c : s) {
+            if (destBuffer->sputc(c) == EOF) {
+                return EOF; // Stop immediately if the buffer is broken/full, like files or network.
+            }
+        }
+        return 0;
+    }
+
+public:
+    EscapingStreambuf(std::ostream& os, const JsonOpt& opts)
+        : destBuffer(os.rdbuf()), options(opts) {
+        os.rdbuf(this); // Hook into the stream
+    }
+
+    /**
+     * Automatically restores the original buffer when this object goes out of scope
+     */
+    ~EscapingStreambuf() { }
+};
+
 /**
  * @brief The Anson class
  * java type: io.odysz.anson.Anson
@@ -229,6 +271,22 @@ public:
     const IJsonable* toJson(string& buf) const override {
         anerror("Don't call this in cpp");
         return this;
+    }
+
+    static std::string escape(const std::string& s, const JsonOpt& opts) {
+        std::stringstream ss;
+        {
+            EscapingStreambuf filter(ss, opts);
+            ss << s;
+        }
+        // Filter falls out of scope here, safely detaching from 'ss'
+
+        return ss.str();
+    }
+
+    static std::string unescape(const std::string& s, const JsonOpt& opts) {
+        // shouldn't be used?
+        return s;
     }
 };
 

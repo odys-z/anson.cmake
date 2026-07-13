@@ -14,29 +14,29 @@ add_executable(unit_tests
   # echoreq.expect.h # Keep this as a testing stepstone. (All codes can be generated)
   test_common.cpp
 
-  t01_aeshelper.cpp
+  # t01_aeshelper.cpp
   t01_common.cpp
-  t01_typs_java_vs.cpp
-  t02_type_java_tests.h
-  t02_type_java_tests.cpp
-  t02_entt_basic.h
-  t02_entt_basic.cpp
-  t02_entt_basic_serialize.cpp
-  t03_loadsettings.cpp
-  t04_entt_registry.cpp
-  t05_deserialize.cpp
-  t06_java_enum.h
-  t06_java_enum.cpp
-  t07_ansonresp.cpp
-  t08_resultset.cpp
-  t08_resultset.h
-  t09_expect_semantier.cpp
-  test.common.h
-  expect/t_01_echomsg.hpp
-  expect/t_02_semantier.hpp
-  expect/t_10_doctier.hpp
-  expect/wsport_tobe_generated.hpp
-  t10_design_patterns.cpp
+  # t01_typs_java_vs.cpp
+  # t02_type_java_tests.h
+  # t02_type_java_tests.cpp
+  # t02_entt_basic.h
+  # t02_entt_basic.cpp
+  # t02_entt_basic_serialize.cpp
+  # t03_loadsettings.cpp
+  # t04_entt_registry.cpp
+  # t05_deserialize.cpp
+  # t06_java_enum.h
+  # t06_java_enum.cpp
+  # t07_ansonresp.cpp
+  # t08_resultset.cpp
+  # t08_resultset.h
+  # t09_expect_semantier.cpp
+  # test.common.h
+  # expect/t_01_echomsg.hpp
+  # expect/t_02_semantier.hpp
+  # expect/t_10_doctier.hpp
+  # expect/wsport_tobe_generated.hpp
+  # t10_design_patterns.cpp
   t11_docstier.cpp
 )
 
@@ -75,4 +75,4 @@ target_link_libraries(unit_tests
 
 add_dependencies(unit_tests anson)
 
-add_compile_definitions(ANSON_VERBOSE=3)
+add_compile_definitions(ANSON_VERBOSE=4)

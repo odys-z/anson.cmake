@@ -286,9 +286,6 @@ public:
         }
 
         auto type = v.type();
-        // if (auto* i = v.try_cast<int>())    return os << *i;
-        // if (auto* d = v.try_cast<double>()) return os << *d;
-        // if (auto* f = v.try_cast<float>()) return os << *f;
 
         if (type == entt::resolve<int>()) return os << v.cast<int>();
         if (type == entt::resolve<double>() || type == entt::resolve<float>()) {
@@ -298,8 +295,6 @@ public:
             if (s.back() == '.') s += '0';
             return os << s;
         }
-
-        // if (type == entt::resolve<float>()) return os << v.cast<float>();
 
         if (auto* s = v.try_cast<std::string>()) return os << '"' << *s << '"';
         if (auto* s = v.try_cast<const std::string>()) return os << '"' << *s << '"';
