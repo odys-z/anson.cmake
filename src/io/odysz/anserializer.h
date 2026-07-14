@@ -32,7 +32,6 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
                        const vector<string> &valtype, const JsonOpt &opts) {
 
     if (!opts.primtypes.contains(valtype[0])) {
-        // return os << "\"Cannot serialize [" << valtype[0] << "]\"";
         anerror(std::format("Cannot serialize [{}]", valtype[0]));
         return os << "null";
     }
@@ -40,8 +39,10 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
     if ("string" == opts.primtypes.at(valtype[0])) {
         if (inst) {
             auto *s = inst.try_cast<const std::string>();
-            if (s) return os << '"' << *s << '"';
-            // else ;
+            if (s) {
+                anostream(os, opts);
+                return os << '"' << *s << '"';
+            }
         }
         else return os << "null";
     }
@@ -69,7 +70,7 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
     }
 
     if ("VarType" == opts.primtypes.at(valtype[0])) {
-        return LangExt::serialize_var(os, inst);
+        return LangExt::serialize_var(os, inst, opts);
     }
 
     return os << "\"serialize error: " << valtype[0] << '"';
@@ -220,7 +221,8 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
         bool first = true;
         for (auto [k, v] : view) {
             if (first) first = false; else os << ',';
-            os << '"' << k.cast<const string&>() << "\": ";
+            // os << '"' << k.cast<const string&>() << "\": ";
+            os << '"' << Anson::escape(k.cast<const string&>(), opts) << "\": ";
             serialize_val(os, v, val_type, opts);
         }
     }
@@ -277,7 +279,8 @@ inline static ostream& serialize_fields(ostream &os,
 
             if (first) first = false; else os << ",";
 
-            os << '\"' << fn << R"(": )";
+            // os << '\"' << fn << R"(": )";
+            os << '\"' << Anson::escape(string{fn}, opts) << R"(": )";
             serialize_val(os, meta_val, vector<string>{LangExt::trim(f.dataAnclass), f.isptr}, opts);
         }
     }
@@ -908,7 +911,7 @@ public:
     /////////////////////////////////////////////////////////////////
     bool parse_error(std::size_t s, const std::string& e, const nlohmann::detail::exception& x) override {
 
-        anerror(std::format("Parse error [TODO call onError()]:\nsize: {}, e: {}, x: {}]",
+        anerror(std::format("Parse error [TODO call onError()]:\nsize: {}, e: {}, what: {}]",
                             s, e, x.what()));
         if (stack.size() > 0) {
             ParseNode top = stack.back();

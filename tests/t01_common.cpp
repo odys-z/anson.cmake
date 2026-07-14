@@ -105,7 +105,7 @@ TEST(LANGEXT, ISENVELOPE) {
 /**
  * See anson.java/test/io.odysz.anson.AnsonTest.testEscape()
  */
-TEST(LANGEXT, Escape) {
+TEST(ANOSTREAM, Escape) {
     JsonOpt opts{nullptr};
     string value = "1\t 2\n 3\" 4\\";
     // 1\\t 2\\n 3\" 4\\
@@ -136,4 +136,8 @@ TEST(LANGEXT, Escape) {
     // // 1	 2
     // //  3" 4\ //
     // ASSERT_EQ("1\t 2\n 3\" 4\\", Anson::unescape(value));
+}
+
+TEST(ANOSTREAM, Hybride) {
+
 }

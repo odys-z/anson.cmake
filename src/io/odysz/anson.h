@@ -82,7 +82,7 @@ public:
     }
 };
 
-class EscapingStreambuf : public std::streambuf {
+class anostream : public std::streambuf {
 private:
     std::streambuf* destBuffer;
     const JsonOpt& options;
@@ -106,7 +106,7 @@ private:
     int writeStr(const std::string& s) {
         for (char c : s) {
             if (destBuffer->sputc(c) == EOF) {
-                return EOF; // Stop immediately if the buffer is broken/full, like files or network.
+                return EOF;
             }
         }
         return 0;
@@ -115,16 +115,64 @@ private:
 public:
     std::ostream& os;
 
-    EscapingStreambuf(std::ostream& os, const JsonOpt& opts)
+    anostream(std::ostream& os, const JsonOpt& opts)
         : os(os), destBuffer(os.rdbuf()), options(opts) {
-        os.rdbuf(this); // Hook into the stream
+        os.rdbuf(this);
     }
 
-    /**
-     * Automatically restores the original buffer when this object goes out of scope
-     */
-    ~EscapingStreambuf() { }
+    ~anostream() {
+        os.rdbuf(destBuffer);
+    }
 };
+
+inline ostream& LangExt::serialize_var(ostream& os, const entt::meta_any & v, const JsonOpt& opt) {
+    using namespace entt::literals;
+
+    if (!v) return os << "null";
+
+    if (auto* var = v.try_cast<LangExt::VarType>()) {
+        return std::visit([&](auto&& arg) -> ostream& {
+            return serialize_var(os, entt::meta_any{arg}, opt);
+        }, *var);
+    }
+
+    auto type = v.type();
+
+    if (type == entt::resolve<int>()) return os << v.cast<int>();
+    if (type == entt::resolve<double>() || type == entt::resolve<float>()) {
+        std::string s = std::to_string(v.cast<double>());
+        s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+        if (s.back() == '.') s += '0';
+        return os << s;
+    }
+
+    if (type == entt::resolve<std::string>() || type == entt::resolve<const std::string>() ||
+        type == entt::resolve<char*>() || type == entt::resolve<const char*>()) {
+
+        os << '"';
+        {
+            anostream filter(os, opt);
+            // if (auto* s = v.try_cast<std::string>())       os << *s;
+            // else if (auto* s = v.try_cast<char*>())        os << *s;
+            // else if (auto* s = v.try_cast<const char*>())  os << *s;
+
+            if (auto* s = v.try_cast<std::string>())
+                os << *s;
+            else if (auto* s = v.try_cast<const std::string>())
+                os << *s;
+            else if (auto* s = v.try_cast<char*>())
+                os << *s;
+            else if (auto* s = v.try_cast<const char*>())
+                os << *s;
+        }
+        return os << '"';
+    }
+
+    if (auto* tp = v.try_cast<std::chrono::system_clock::time_point>())
+        return os << format("{:%Y-%m-%d %H:%M:%S}", floor<std::chrono::seconds>(*tp));
+
+    return os << "null";
+}
 
 class IJsonable {
 protected:
@@ -278,11 +326,9 @@ public:
     static std::string escape(const std::string& s, const JsonOpt& opts) {
         std::stringstream ss;
         {
-            EscapingStreambuf filter(ss, opts);
+            anostream filter(ss, opts);
             filter.os << s;
         }
-        // Filter falls out of scope here, safely detaching from 'ss'
-
         return ss.str();
     }
 
