@@ -43,7 +43,6 @@ TEST(DOCSTIER, SerializeDocsReq) {
     string json = q.toBlock();
     anlog(json);
 
-    // DocsReq p{"", {}};
     AnsonMsg<DocsReq> p{};
     Anson::from_json(json, p);
 
@@ -116,11 +115,11 @@ TEST(DOCSTIER, Escape_paths) {
     syncingpage.start = 0;
     syncingpage.end = fileselection.size();
 
-    // reconnect_ipc();
+    // in slint: reconnect_ipc();
     // wsclient->place_tasks(syncingpage);
     DocsReq uploadreq{"h_photos", {}};
-    // uploadreq.syncingPage.end = pthpage.clientPaths.size();
-    // uploadreq.syncingPage.start = 0;
+    // in slint: uploadreq.syncingPage.end = pthpage.clientPaths.size();
+    // in slint: uploadreq.syncingPage.start = 0;
     uploadreq.syncingPage = syncingpage;
     uploadreq.a = DocsReq::A::requestSyn;
 
@@ -132,7 +131,7 @@ TEST(DOCSTIER, Escape_paths) {
 
     AnsonMsg<DocsReq> msg(Port{Port::docstier}, std::move(uploadreq));
     msg.seq = 0;
-    // asynSend(msg);
+    // in slint: asynSend(msg);
 
     string expjson = R"json({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)json"
     R"json("body": [{"type": "io.odysz.semantic.tier.docs.DocsReq",)json"
@@ -145,7 +144,6 @@ TEST(DOCSTIER, Escape_paths) {
     R"json("docTabl": "","limit": 0,"org": "",)json"
     R"json("pageInf": {"type": "io.odysz.transact.sql.PageInf","arrCondts": [],"mapCondts": {},"page": 0,"size": 2,"total": 2},"reset": true,"stamp": "","syncQueries": [],)json"
     R"json("syncingPage": {"type": "io.odysz.semantic.tier.docs.PathsPage",)json"
-      // R"json("clientPaths": {},)json"
       R"json("clientPaths": {"C:\\Users\\github\\anclient\\examples\\example.slint\\build\\app\\libboost_url-gcc16-mt-d-x64-1_91.dll": ["syncing"],)json"
       R"json("C:\\Users\\github\\anclient\\examples\\example.slint\\build\\app\\libcpr.dll": ["syncing"]},)json"
     R"json("device": "","end": 2,"start": 0},"synuri": ""}],)json"

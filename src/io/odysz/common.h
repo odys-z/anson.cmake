@@ -276,44 +276,6 @@ public:
     }
 
     inline static ostream& serialize_var(ostream& os, const entt::meta_any & v, const JsonOpt& opt);
-    // inline static ostream& serialize_var(ostream& os, const entt::meta_any & v, const JsonOpt& opt) {
-    //     using namespace entt::literals;
-
-    //     if (!v) return os << "null";
-
-    //     // Gemini: When wrap std::variant in a meta_any, EnTT sees the variant type, not the type currently held inside the variant.
-    //     if (auto* var = v.try_cast<LangExt::VarType>()) {
-    //         return std::visit([&](auto&& arg) -> ostream& {
-    //             return serialize_var(os, entt::meta_any{arg});
-    //         }, *var);
-    //     }
-
-    //     auto type = v.type();
-
-    //     if (type == entt::resolve<int>()) return os << v.cast<int>();
-    //     if (type == entt::resolve<double>() || type == entt::resolve<float>()) {
-    //         std::string s = std::to_string(v.cast<double>());
-    //         // Remove unnecessary trailing zeros, but keep the ".0"
-    //         s.erase(s.find_last_not_of('0') + 1, std::string::npos);
-    //         if (s.back() == '.') s += '0';
-    //         return os << s;
-    //     }
-
-
-    //     {
-    //         anostream(os, {});
-    //         if (auto* s = v.try_cast<std::string>()) return os << '"' << *s << '"';
-    //         if (auto* s = v.try_cast<const std::string>()) return os << '"' << *s << '"';
-    //         if (auto* s = v.try_cast<char*>()) return os << '"' << *s << '"';
-    //         if (auto* s = v.try_cast<const char*>()) return os << '"' << *s << '"';
-    //     }
-
-    //     if (auto* tp = v.try_cast<std::chrono::system_clock::time_point>())
-    //         return os << format("{:%Y-%m-%d %H:%M:%S}", floor<std::chrono::seconds>(*tp));
-
-    //     return os << "null";
-
-    // }
 
     inline static map<string, std::function<entt::meta_any()>*> var_ctors;
 
