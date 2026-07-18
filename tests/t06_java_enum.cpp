@@ -79,6 +79,7 @@ TEST(JAVAENUM, WSPORT) {
     // So WSPort is redundant or needing an other type of DocsReq?
     string port_anclass = dreq.port.anclass;
     ASSERT_EQ(WSPort{WSPort::ping}.valof(), dreq.port.valof());
+    ASSERT_EQ(WSPort{WSPort::ping}, dreq.port);
 
     dreq.port = WSPort{WSPort::ping};
 

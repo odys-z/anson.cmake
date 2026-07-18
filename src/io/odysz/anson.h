@@ -251,6 +251,9 @@ public:
         buf += '\"' + valof() + '\"';
         return this;
     }
+    // bool operator==(const JavaEnum& other) const {
+    //     return enm == other.enm && anclass == other.anclass;
+    // }
 };
 
 inline JavaEnum& JavaEnum::operator=(const JavaEnum& other) {
