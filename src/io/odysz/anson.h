@@ -82,7 +82,7 @@ public:
     }
 };
 
-class anostream : public std::streambuf {
+class jsoncharstream : public std::streambuf {
 private:
     std::streambuf* destBuffer;
     const JsonOpt& options;
@@ -115,12 +115,12 @@ private:
 public:
     std::ostream& os;
 
-    anostream(std::ostream& os, const JsonOpt& opts)
+    jsoncharstream(std::ostream& os, const JsonOpt& opts)
         : os(os), destBuffer(os.rdbuf()), options(opts) {
         os.rdbuf(this);
     }
 
-    ~anostream() {
+    ~jsoncharstream() {
         os.rdbuf(destBuffer);
     }
 };
@@ -151,10 +151,10 @@ inline ostream& LangExt::serialize_var(ostream& os, const entt::meta_any & v, co
 
         os << '"';
         {
-            anostream filter(os, opt);
-            // if (auto* s = v.try_cast<std::string>())       os << *s;
-            // else if (auto* s = v.try_cast<char*>())        os << *s;
-            // else if (auto* s = v.try_cast<const char*>())  os << *s;
+            // anostream filter(os, opt);
+            // // if (auto* s = v.try_cast<std::string>())       os << *s;
+            // // else if (auto* s = v.try_cast<char*>())        os << *s;
+            // // else if (auto* s = v.try_cast<const char*>())  os << *s;
 
             if (auto* s = v.try_cast<std::string>())
                 os << *s;
@@ -218,6 +218,20 @@ public:
     virtual const IJsonable* toJson(string& buf) const = 0;
 
     virtual ~IJsonable() {}
+
+    static std::string escape(const std::string& s, const JsonOpt& opts) {
+        std::stringstream ss;
+        {
+            jsoncharstream filter(ss, opts);
+            filter.os << s;
+        }
+        return ss.str();
+    }
+
+    // static std::string unescape(const std::string& s, const JsonOpt& opts) {
+    //     // shouldn't be used?
+    //     return s;
+    // }
 };
 
 /** This is invisible in java. */
@@ -323,18 +337,10 @@ public:
         return this;
     }
 
-    static std::string escape(const std::string& s, const JsonOpt& opts) {
-        std::stringstream ss;
-        {
-            anostream filter(ss, opts);
-            filter.os << s;
-        }
-        return ss.str();
-    }
-
-    static std::string unescape(const std::string& s, const JsonOpt& opts) {
-        // shouldn't be used?
-        return s;
+    static std::string posix_path(const std::string& s) {
+        std::string result = s; // Make a copy
+        std::replace(result.begin(), result.end(), '\\', '/');
+        return result;
     }
 };
 
