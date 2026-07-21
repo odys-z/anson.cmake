@@ -251,9 +251,6 @@ public:
         buf += '\"' + valof() + '\"';
         return this;
     }
-    // bool operator==(const JavaEnum& other) const {
-    //     return enm == other.enm && anclass == other.anclass;
-    // }
 };
 
 inline JavaEnum& JavaEnum::operator=(const JavaEnum& other) {
@@ -414,12 +411,16 @@ public:
 class AnsonException : public Anson, public std::runtime_error {
     inline static const string _type_ = "io.odysz.anson.AnsonException";
 protected:
-    AnsonException(const string& typ, const string & err) : Anson(typ), runtime_error(err) {}
+    AnsonException(const string& typ, const string & err) : Anson(typ), runtime_error(err), code(0) {}
 
 public:
+    int code;
+
     AnsonException() : AnsonException(_type_, _type_) {}
 
     AnsonException(const string & err) : AnsonException(_type_, err) {}
+
+    AnsonException(int code, const string& what) :  Anson(_type_), runtime_error(what), code(code) {}
 };
 
 template <typename An>

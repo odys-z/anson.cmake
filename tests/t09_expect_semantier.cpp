@@ -199,6 +199,11 @@ TEST(JSERV, Parse) {
             ASSERT_EQ(test.expect, jserv.jserv()) << test.url;
         }
     }
+
+    JServUrl jserv2{"https://127.0.0.1/jserv-center"};
+    ASSERT_EQ("https://127.0.0.1:443/jserv-center", jserv2.jserv());
+    ASSERT_EQ("jserv-center", jserv2.jprotocol->protocolpath);
+    ASSERT_TRUE(jserv2.https);
 }
 
 // TODO

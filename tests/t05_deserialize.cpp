@@ -96,6 +96,11 @@ TEST(Anson, PORT) {
     ASSERT_EQ(portAst->enttypeid, portype);
 }
 
+TEST(Anson, MsgCode) {
+    ASSERT_EQ("ok", MsgCode::to_string(MsgCode::Code{MsgCode::Code::ok}));
+    ASSERT_EQ("exDA", MsgCode::to_string(MsgCode::Code{MsgCode::Code::exDA}));
+}
+
 TEST(Anson, AnsonMsg_EchoReq) {
     register_jserv(enums, contxt);
     load_echoAst_test(enums, "ast/echo.ast.json");
