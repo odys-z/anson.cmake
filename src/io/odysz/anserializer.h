@@ -40,7 +40,7 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
         if (inst) {
             auto *s = inst.try_cast<const std::string>();
             if (s) {
-                anostream(os, opts);
+                // anostream(os, opts);
                 return os << '"' << *s << '"';
             }
         }
@@ -221,8 +221,8 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
         bool first = true;
         for (auto [k, v] : view) {
             if (first) first = false; else os << ',';
-            // os << '"' << k.cast<const string&>() << "\": ";
-            os << '"' << Anson::escape(k.cast<const string&>(), opts) << "\": ";
+            os << '"' << k.cast<const string&>() << "\": ";
+            // os << '"' << Anson::escape(k.cast<const string&>(), opts) << "\": ";
             serialize_val(os, v, val_type, opts);
         }
     }
@@ -279,7 +279,8 @@ inline static ostream& serialize_fields(ostream &os,
 
             if (first) first = false; else os << ",";
 
-            os << '\"' << Anson::escape(string{fn}, opts) << R"(": )";
+            os << '\"' << fn << R"(": )";
+            // os << '\"' << Anson::escape(string{fn}, opts) << R"(": )";
             serialize_val(os, meta_val, vector<string>{LangExt::trim(f.dataAnclass), f.isptr}, opts);
         }
     }
