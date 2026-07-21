@@ -50,6 +50,11 @@ public:
         usrAct = {funcId, cmd, cate, remarks};
         return *this;
     }
+
+    AnsonHeader & Act(const vector<string> &act) {
+        usrAct = act;
+        return *this;
+    }
 };
 
 struct CRUD {
@@ -111,6 +116,9 @@ public:
     void setup(const string& urlpath, const Port& p = {}) {
         protocolpath = urlpath;
     }
+
+    JProtocol(string protocolpath) : protocolpath(protocolpath) { }
+    JProtocol() : protocolpath("") { }
 };
 
 
@@ -125,6 +133,10 @@ struct EnEnregistrement {
 
     EnEnregistrement(E v) : valeur(v) {
         andebug("EnEnregistrement Constructeur: "s + _type_);
+    }
+
+    static std::string to_string(E v) {
+        return std::string(noms[static_cast<size_t>(v)]);
     }
 
     constexpr bool operator==(std::string_view s) const {
@@ -228,7 +240,8 @@ public:
 
     T& Body() {
         if (body.empty()) {
-            throw std::runtime_error("Body list is empty");
+            throw std::runtime_error(std::format(
+                "Body list is empty. port: {}, code: {}, seq: {}", port.valof(), MsgCode::to_string(code), seq));
         }
         return *body.at(0);
     }
@@ -263,23 +276,33 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        // this->paths = std::move(parts.paths);
-        // this->query = std::move(parts.query);
-        // this->fragment = std::move(parts.fragment);
         this->jprotocol = &jprotocol;
+    }
+
+    JServUrl(const string &url) : HttpParts() {
+        HttpParts parts;
+        Regex::getHttpParts(url, parts);
+
+        this->https = parts.https;
+        this->port = parts.port;
+        this->scheme = std::move(parts.scheme);
+        this->host = std::move(parts.host);
+        this->jprotocol = new JProtocol(parts.paths[0]);
     }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)
         : JServUrl(std::format("{}:{}", host, port), jprotocol) {}
 
     string jserv() const {
+        const char* scheme_str = LangExt::isblank(this->scheme)
+                ? (this->https ? "https" : "http")
+                : this->scheme.c_str(); // Both branches are now const char*
+
         return format("{}://{}:{}/{}",
-                      LangExt::isblank(this->scheme)
-                          ? this->https ? "https" : "http"
-                          : this->scheme,
-                      this->host,
-                      this->port <= 0 ? 80 : this->port,
-                      this->jprotocol->protocolpath);
+                scheme_str,
+                this->host,
+                this->port <= 0 ? 80 : this->port,
+                this->jprotocol->protocolpath);
     }
 
     string wservUri() const {

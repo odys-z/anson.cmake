@@ -50,7 +50,7 @@ TEST(VarAnyTest, VarType) {
     EXPECT_EQ(std::get<std::string>(res_s), "hello");
 
     std::ostringstream oss;
-    LangExt::serialize_var(oss, any_str);
+    LangExt::serialize_var(oss, any_str, opts);
     std::string json_result = std::move(oss).str();
     ASSERT_EQ(R"("hello")", json_result);
 
@@ -60,7 +60,7 @@ TEST(VarAnyTest, VarType) {
     ASSERT_TRUE(std::holds_alternative<std::string>(var_cs));
     EXPECT_EQ(std::get<std::string>(var_cs), "world");
 
-    LangExt::serialize_var(oss, any_cs);
+    LangExt::serialize_var(oss, any_cs, opts);
     json_result = oss.str();
     ASSERT_EQ(R"("world")", json_result);
 
@@ -70,7 +70,7 @@ TEST(VarAnyTest, VarType) {
     EXPECT_EQ(std::get<std::chrono::system_clock::time_point>(tp_var), tp);
 
     std::ostringstream os2;
-    LangExt::serialize_var(os2, meta_any{tp});
+    LangExt::serialize_var(os2, meta_any{tp}, opts);
     json_result = std::move(os2.str());
     ASSERT_EQ("2026-01-01 10:10:10", json_result);
 
@@ -149,9 +149,9 @@ TEST(JAVA_CPP, JsonVariant) {
         for (const auto &e : view) {
             if (first) first = false; else osz << ',';
             if (meta_any _e = *e; _e)
-                LangExt::serialize_var(osz, _e);
+                LangExt::serialize_var(osz, _e, opts);
             else
-                LangExt::serialize_var(osz, e);
+                LangExt::serialize_var(osz, e, opts);
         }
         string json_result = std::move(osz.str());
         cout << json_result << endl;
@@ -166,9 +166,9 @@ TEST(JAVA_CPP, JsonVariant) {
         for (const auto &e : view) {
             if (first) first = false; else osx << ',';
             if (meta_any _e = *e; _e)
-                LangExt::serialize_var(osx, _e);
+                LangExt::serialize_var(osx, _e, opts);
             else
-                LangExt::serialize_var(osx, e);
+                LangExt::serialize_var(osx, e, opts);
         }
         string json_result = std::move(osx.str());
         cout << json_result << endl;
@@ -183,9 +183,9 @@ TEST(JAVA_CPP, JsonVariant) {
         for (const auto &e : view) {
             if (first) first = false; else osy << ',';
             if (meta_any _e = *e; _e)
-                LangExt::serialize_var(osy, _e);
+                LangExt::serialize_var(osy, _e, opts);
             else
-                LangExt::serialize_var(osy, e);
+                LangExt::serialize_var(osy, e, opts);
         }
         string json_result = std::move(osy.str());
         cout << json_result << endl;

@@ -279,7 +279,6 @@ inline static ostream& serialize_fields(ostream &os,
 
             if (first) first = false; else os << ",";
 
-            // os << '\"' << fn << R"(": )";
             os << '\"' << Anson::escape(string{fn}, opts) << R"(": )";
             serialize_val(os, meta_val, vector<string>{LangExt::trim(f.dataAnclass), f.isptr}, opts);
         }

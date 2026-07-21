@@ -137,7 +137,3 @@ TEST(ANOSTREAM, Escape) {
     // //  3" 4\ //
     // ASSERT_EQ("1\t 2\n 3\" 4\\", Anson::unescape(value));
 }
-
-TEST(ANOSTREAM, Hybride) {
-
-}
