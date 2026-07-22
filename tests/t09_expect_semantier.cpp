@@ -6,10 +6,7 @@
 #include <io/odysz/module/rs.h>
 #include "io/odysz/entt_jserv.h"
 #include "expect/t_01_echomsg.hpp"
-#include "expect/t_02_semantier.hpp"
-
-#include "io/odysz/common.h"
-#include "test.common.h"
+#include "io/odysz/gen/semantier.hpp"
 
 using namespace anson;
 using namespace std;

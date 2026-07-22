@@ -164,9 +164,10 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
 }
 
 inline static void register_semantier(AstMap &asts, const string &ast_folder) {
-    load_heartbeatAst(asts, ast_folder + "heartbeat.ast.json");
-    load_ansessionreqAst(asts, ast_folder + "./session-req.ast.json");
-    load_ansessionrespAst(asts, ast_folder + "./session-resp.ast.json");
+    filesystem::path folder_path{ast_folder};
+    load_heartbeatAst(asts, (folder_path / "heartbeat.ast.json").string());
+    load_ansessionreqAst(asts, (folder_path / "session-req.ast.json").string());
+    load_ansessionrespAst(asts, (folder_path / "session-resp.ast.json").string());
 }
 
 }

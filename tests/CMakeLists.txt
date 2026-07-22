@@ -33,7 +33,8 @@ add_executable(unit_tests
   t09_expect_semantier.cpp
   test.common.h
   expect/t_01_echomsg.hpp
-  expect/t_02_semantier.hpp
+#   expect/t_02_semantier.hpp
+  ../src/io/odysz/gen/semantier.hpp
   expect/t_10_doctier.hpp
   expect/wsport_tobe_generated.hpp
   t10_design_patterns.cpp
