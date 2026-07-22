@@ -256,8 +256,18 @@ public:
     }
 
     AnsonHeader header;
+    /**
+     * This version shouldn't be there in c++ as the field is always created.
+     * If not for requests of session managed tiers, don't call this;
+     * if for session tiers, use Header(SessionInf).
+     */
     AnsonMsg<T>& Header(const AnsonHeader &header) {
         this->header = header;
+        return *this;
+    }
+
+    AnsonMsg<T>& Header(const SessionInf &ssInf) {
+        this->header = AnsonHeader{ssInf.ssid, ssInf.uid, ssInf.ssToken};
         return *this;
     }
 };

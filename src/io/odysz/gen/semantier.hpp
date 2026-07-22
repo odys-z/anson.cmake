@@ -12,6 +12,47 @@
 
 namespace anson {
 
+class HeartBeat : public anson::AnsonBody {
+public:
+    inline static const std::string _type_ = "io.odysz.semantic.jsession.HeartBeat";
+
+    struct A {
+    };
+    string ssid;
+    string uid;
+
+    HeartBeat(string uri, string ssid, string uid) : AnsonBody(uri), ssid(ssid), uid(uid) {
+        Type(_type_);
+    }
+};
+
+inline static void load_heartbeatAst(AstMap &asts, const string &ast_path) {
+    specialize_msg_astpth<HeartBeat, AnsonBody>(asts, ast_path,
+      [](meta_factory<HeartBeat> &entf, AnsonBodyAst *ast) {
+        entf.data<&HeartBeat::ssid>("ssid");
+        entf.data<&HeartBeat::uid>("uid");
+
+        //
+        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+            if (ast->fields.contains(fieldname)) {
+                auto& concrete = static_cast<const HeartBeat&>(ans);
+                if ("ssid" == fieldname)
+                    return entt::forward_as_meta(concrete.ssid);
+                if ("uid" == fieldname)
+                    return entt::forward_as_meta(concrete.uid);
+            }
+
+            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+                return bast->get_field_instance(ans, fieldname);
+            }
+
+            anerror("get_field_instance<HeartBeat>(): Failed to get entt instance (meta_any)");
+            return { };
+        };
+    });
+}
+
 class AnSessionReq : public anson::AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.AnSessionReq";
@@ -123,8 +164,9 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
 }
 
 inline static void register_semantier(AstMap &asts, const string &ast_folder) {
-    load_ansessionreqAst(asts, ast_folder + "ast/session-req.ast.json");
-    load_ansessionrespAst(asts, ast_folder + "ast/session-resp.ast.json");
+    load_heartbeatAst(asts, ast_folder + "heartbeat.ast.json");
+    load_ansessionreqAst(asts, ast_folder + "./session-req.ast.json");
+    load_ansessionrespAst(asts, ast_folder + "./session-resp.ast.json");
 }
 
 }

@@ -40,3 +40,7 @@ Install denpendencies
     ./vcpkg install boost-url:x64-mingw-dynamic openssl:x64-mingw-dynamic nlohmann-json:x64-mingw-dynamic
     ./vcpkg install entt:x64-mingw-dynamic 
 ```
+
+# Myth / TODO
+
+Refactor source file tree, to share (copy automatically) ASTs with Anclient.cmake and use generated CRUD / Sesseion (semantier) for test. 

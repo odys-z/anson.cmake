@@ -342,6 +342,13 @@ public:
         std::replace(result.begin(), result.end(), '\\', '/');
         return result;
     }
+
+    static std::string win_path(const std::string& p) {
+        std::string result = p; // Make a copy
+        std::replace(result.begin(), result.end(), '/', '\\');
+        return result;
+    }
+
 };
 
 inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
