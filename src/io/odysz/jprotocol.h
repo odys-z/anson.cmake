@@ -156,7 +156,7 @@ using MsgCode = EnEnregistrement<MsgCodeEnum, static_cast<size_t>(MsgCodeEnum::_
 template<> const string MsgCode::_type_ = "io.odysz.semantic.jprotocol.MsgCode";
 
 template<> constexpr std::array<std::string_view, 9> MsgCode::noms = {
-    "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinal_"
+    "ok", "exSession", "exSemantic", "exIo", "exTransct", "exDA", "exGeneral", "ext", "_sentinel_"
 };
 
 class AnsonResp : public AnsonBody {
@@ -204,9 +204,8 @@ public:
      * The argument port must be type of IPort, so WSPort can be used as a parameter.
      * @param port
      */
-    AnsonMsg(JavaEnum port) : Anson(_type_, _type_ + '<' + T::_type_), port(port) {
-        // cout << port.enm;
-    }
+    AnsonMsg(JavaEnum port) : Anson(_type_, _type_ + '<' + T::_type_), port(port),
+        code(MsgCodeEnum::_sentinel_) { }
 
     AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
 

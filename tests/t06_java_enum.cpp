@@ -63,7 +63,7 @@ TEST(JAVAENUM, WSPORT) {
     JsonOpt contxt{&asts};
     register_jserv(asts, contxt);
     // load_usereqAst_test(asts, "ast/usereq.ast.json");
-    register_doctier(asts, "");
+    register_doctier(asts, "ast");
     register_iport<WSPort>(asts, "ast/wsport.ast.json");
 
     std::string json_input = format(R"({{"type": "{}", "port": "{}"}})",

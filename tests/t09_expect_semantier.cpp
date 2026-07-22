@@ -7,6 +7,7 @@
 #include "io/odysz/entt_jserv.h"
 #include "expect/t_01_echomsg.hpp"
 #include "io/odysz/gen/semantier.hpp"
+#include "test.common.h"
 
 using namespace anson;
 using namespace std;
@@ -64,7 +65,7 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
 
 TEST(AUTOGEN, SessionReq) {
     register_jserv(asts, contxt);
-    register_semantier(asts, "./");
+    register_semantier(asts, "ast/");
 
     using Req = AnsonMsg<AnSessionReq>;
 
@@ -113,7 +114,7 @@ TEST(AUTOGEN, SessionReq) {
 TEST(AUTOGEN, SessionResp) {
 
     register_jserv(asts, contxt);
-    register_semantier(asts, "./");
+    register_semantier(asts, "ast/");
 
     using Resp = AnsonMsg<AnSessionResp>;
     Resp msg2{};

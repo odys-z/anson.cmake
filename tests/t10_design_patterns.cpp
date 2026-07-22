@@ -116,7 +116,7 @@ TEST(Generator, Validate_Doctier) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(asts, opts);
-    register_doctier(asts, "./");
+    register_doctier(asts, "ast");
 
     PageInf pi{};
     bool res = Anson::from_json(
