@@ -6,13 +6,12 @@
     "uid" : {"dataAnclass": "java.lang.String"}
   },
   "ctorsemantics": [
-    { "base": {"stype": "()", "args": ["AnsonBody", "uri"]},
-      "args": [{"stype": "",
-                "args": ["string", "uri"],
-                "expect_result": "c++ code: (..., string m, ...) : uri(uri)"},
+    { "base": {"stype": "()", "args": ["AnsonBody", "Port::heartbeat"]},
+      "args": [{"stype": "", "args": ["string", "clienturi"]},
                {"stype": "ini",
                 "args": ["string", "ssid", "ssid"]},
                {"stype": "ini",
-                "args": ["string", "uid", "uid"]}]
+                "args": ["string", "uid", "uid"]}],
+      "body": [{"stype": "=", "args": ["uri", "clienturi"]}]
     }]
 }
