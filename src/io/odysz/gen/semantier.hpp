@@ -21,8 +21,9 @@ public:
     string ssid;
     string uid;
 
-    HeartBeat(string uri, string ssid, string uid) : AnsonBody(uri), ssid(ssid), uid(uid) {
+    HeartBeat(string clienturi, string ssid, string uid) : AnsonBody(Port::heartbeat), ssid(ssid), uid(uid) {
         Type(_type_);
+        uri = clienturi;
     }
 };
 

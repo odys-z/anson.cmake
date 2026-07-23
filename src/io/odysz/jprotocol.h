@@ -266,7 +266,7 @@ public:
     }
 
     AnsonMsg<T>& Header(const SessionInf &ssInf) {
-        this->header = AnsonHeader{ssInf.ssid, ssInf.uid, ssInf.ssToken};
+        this->header = AnsonHeader{ssInf.uid, ssInf.ssid, ssInf.ssToken};
         return *this;
     }
 };
@@ -275,7 +275,7 @@ class JServUrl : public HttpParts {
 public:
     // static UrlValidator urlValidator;
     // string protocolroot;
-    const JProtocol *jprotocol;
+    JProtocol jprotocol;
 
     JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts() {
         HttpParts parts;
@@ -285,7 +285,7 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = &jprotocol;
+        this->jprotocol = JProtocol{jprotocol.protocolpath};
     }
 
     JServUrl(const string &url) : HttpParts() {
@@ -296,7 +296,7 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = new JProtocol(parts.paths[0]);
+        this->jprotocol = JProtocol{parts.paths[0]};
     }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)
@@ -311,7 +311,7 @@ public:
                 scheme_str,
                 this->host,
                 this->port <= 0 ? 80 : this->port,
-                this->jprotocol->protocolpath);
+                this->jprotocol.protocolpath);
     }
 
     string wservUri() const {
@@ -321,7 +321,7 @@ public:
                   : this->scheme,
               this->host,
               this->port <= 0 ? 80 : this->port,
-              this->jprotocol->protocolpath);
+              this->jprotocol.protocolpath);
     }
 };
 
