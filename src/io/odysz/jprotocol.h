@@ -205,7 +205,7 @@ public:
      * @param port
      */
     AnsonMsg(JavaEnum port) : Anson(_type_, _type_ + '<' + T::_type_), port(port),
-        code(MsgCodeEnum::_sentinel_) { }
+        code(MsgCode::Code::ok) { } // ISSUE 0.1.1 shouldn't be MsgCodeEnum::_sentinel_ ?
 
     AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
 

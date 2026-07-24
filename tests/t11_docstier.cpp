@@ -96,3 +96,36 @@ TEST(DOCSTIER, DeserializeDocsResp) {
     ASSERT_EQ("cpp-test", rep.body[0]->device.id);
     ASSERT_EQ("xyz", rep.body[0]->device.devname);
 }
+
+TEST(DOCSTIER, DE_ReserializeDocsResp) {
+
+    AstMap asts;
+    JsonOpt opts{&asts};
+    register_jserv(asts, opts);
+    register_doctier(asts, "ast");
+
+    string r =
+R"json({"type": "io.odysz.semantic.jprotocol.AnsonMsg", "code": "ok", "opts": null,
+"port": "docstier", "header": null,
+"body": [{"type": "io.odysz.semantic.tier.docs.DocsResp", "syndomain": "infor-17-1", "rs": null, "parent": "io.odysz.semantic.jprotocol.AnsonMsg", "a": null, "org": null, "collectId": null, "stamp": null, "m": null, "uri": null,
+"syncingPage": {"type": "io.odysz.semantic.tier.docs.PathsPage", "start": 0, "end": 9,
+"clientPaths": {"C:/Users/github/anclient/examples/example.slint/build/app/ast/desktop-settings.ast.json": ["slint.test", "prv", "admin", "2026-07-22", 0]}, "device": "slint.test"}
+, "xdoc": null, "blockSeqReply": 0, "docTabl": null, "device": {"type": "io.odysz.semantic.tier.docs.Device", "tofolder": null, "synode0": null, "devname": null, "id": "slint.test"}
+, "map": null}
+], "addr": null, "version": "1.1", "seq": 0})json";
+
+    AnsonMsg<DocsResp> msg;
+    Anson::from_json(r, msg);
+
+    ASSERT_EQ(MsgCode::Code::ok, msg.code);
+    ASSERT_EQ(Port{Port::docstier}, msg.port);
+
+    string s = msg.toBlock();
+    // anlog(s);
+    std::regex kv_pathpage(R"("type": "io.odysz.semantic.tier.docs.PathsPage")");
+    ASSERT_TRUE(std::regex_search(s, kv_pathpage));
+
+    std::regex kv_clientpaths(R"("clientPaths": {"C:/Users/github/anclient/examples/example.slint/build/app/ast/desktop-settings.ast.json": ["slint.test", "prv", "admin", "2026-07-22", 0]})");
+    ASSERT_TRUE(std::regex_search(s, kv_clientpaths));
+
+}

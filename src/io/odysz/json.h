@@ -601,6 +601,7 @@ inline static void register_enums(AstMap& asts) {
     ast->name_of = [ast](const meta_any val_inst) -> string {
         if (auto* val = val_inst.try_cast<EType>()) {
             size_t idx = static_cast<size_t>(*val);
+            // TODO 0.1.1 Should return null if idx is a sentinel?
             if (idx < C::compter) {
                 return string(C::noms[idx]);
             }

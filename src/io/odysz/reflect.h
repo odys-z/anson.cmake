@@ -150,9 +150,10 @@ public:
 
     std::function<string(const meta_any& val)> name_of =
         [this] (const meta_any& val) -> string{
+            // TODO 0.1.1 Can sentinels be serialized as null?
             anerror("The <funcion>name_of must be overriden by auto-generated code.");
-        return "null";
-    };
+            return "null";
+        };
 
     template <typename C>
     static inline string name(C e) {
@@ -234,6 +235,7 @@ inline string JavaEnum::valof() const {
         if (decode.contains(enm)) {
             return decode[enm];
         }
+        // TODO 0.1.1 return null if not decodable?
     }
     return enm;
 }
