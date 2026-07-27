@@ -11,7 +11,7 @@ set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "")
 set(VCPKG_HOST_TRIPLET "x64-mingw-dynamic" CACHE STRING "")
 
 project(anson.cmake
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "The cpp peer of Anson"
     HOMEPAGE_URL "https://github.com/odys-z/anson.cmake"
     LANGUAGES CXX)

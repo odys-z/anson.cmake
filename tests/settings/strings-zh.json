@@ -1,0 +1,9 @@
+{ "type": "io.odysz.anson.StringValues",
+  "lang": "zh-cn",
+  "en": { "eng": "English",
+          "chn": "Chinese" },
+  "local": {
+    "eng": "英语",
+    "chn": "中文" }
+        
+}

@@ -1,0 +1,10 @@
+{ "type": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.odysz.anson.StringValues",
+  "baseAnclass": "io.odysz.anson.Anson",
+  "fields" : {
+    "lang" : {"dataAnclass": "string"},
+    "en"   : {"dataAnclass": "map<string, string"},
+    "local": {"dataAnclass": "map<string, string"}
+  },
+  "ctorsemantics": []
+}
