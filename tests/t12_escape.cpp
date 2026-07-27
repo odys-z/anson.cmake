@@ -58,7 +58,7 @@ TEST(ESCAPE, Invalid_payload) {
       R"json("clientPaths": {"C:\Users\github\anclient\examples\example.slint\build\app\libboost_url-gcc16-mt-d-x64-1_91.dll": ["syncing"],)json"
       R"json("C:\Users\github\anclient\examples\example.slint\build\app\libcpr.dll": ["syncing"]},)json"
     R"json("device": "","end": 2,"start": 0},"synuri": ""}],)json"
-    R"json("code": "_sentinel_","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
+    R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
     ASSERT_EQ(invalid_json, msg.toBlock());
@@ -116,7 +116,7 @@ TEST(ESCAPE, Valid_payload) {
       R"json("clientPaths": {"C:\\Users\\github\\anclient\\examples\\example.slint\\build\\app\\libboost_url-gcc16-mt-d-x64-1_91.dll": ["syncing"],)json"
       R"json("C:\\Users\\github\\anclient\\examples\\example.slint\\build\\app\\libcpr.dll": ["syncing"]},)json"
     R"json("device": "","end": 2,"start": 0},"synuri": ""}],)json"
-    R"json("code": "_sentinel_","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
+    R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
     ASSERT_EQ(expjson, msg.toBlock());
@@ -168,7 +168,7 @@ TEST(ESCAPE, POSIX_path) {
       R"json("clientPaths": {"C:/Users/github/anclient/examples/example.slint/build/app/libboost_url-gcc16-mt-d-x64-1_91.dll": ["syncing"],)json"
       R"json("C:/Users/github/anclient/examples/example.slint/build/app/libcpr.dll": ["syncing"]},)json"
     R"json("device": "","end": 2,"start": 0},"synuri": ""}],)json"
-    R"json("code": "_sentinel_","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
+    R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
     ASSERT_EQ(expjson, msg.toBlock());

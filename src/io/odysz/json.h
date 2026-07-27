@@ -758,7 +758,11 @@ inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
         throw SemanticException(std::format("Can not open the file {}! ", ast_pth));
     }
     else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields)) {
-        anerror(string_view(std::format("Could not load AST from {}!", ast_pth)));
+        anerror(string_view(std::format("Could not load AST from {}!\nAbsolute Path: {}, exists: {}",
+                                        ast_pth,
+                                        Utils::safeAbsolute({ast_pth}).string(),
+                                        filesystem::exists(ast_pth))));
+
         throw SemanticException(std::format("Can not load AST from {}! ", ast_pth));
     }
 }

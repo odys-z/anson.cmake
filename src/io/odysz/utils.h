@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -101,6 +102,8 @@ public:
     inline static void print(const char* s, const PrintFormat& f = {.breakline=true}) {
         print(std::string_view(s), f);
     }
+
+    inline static std::filesystem::path safeAbsolute(const std::filesystem::path& p);
 };
 
 #define LOG_ERROR   1
@@ -156,5 +159,24 @@ do{ \
 * Log at level 4 (enabled if ANSON_VERBOSE >= 5)
 */
 #define andebug(...)   anprint(LOG_DEBUG,  __VA_ARGS__)
+
+inline std::filesystem::path Utils::safeAbsolute(const std::filesystem::path& p) {
+    try {
+        return std::filesystem::absolute(p);
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        anerror("Filesystem error: "s + e.what());
+    }
+    catch (const std::system_error& e) {
+        anerror("System error: "s + e.what());
+    }
+    catch (const std::exception& e) {
+        anerror("Standard exception: "s + e.what());
+    }
+    catch (...) {
+        anerror("Unknown exception while converting to absolute path\n");
+    }
+    return {}; // fallback: empty path
+}
 
 }

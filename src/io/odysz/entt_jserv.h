@@ -10,6 +10,7 @@
 #include <string>
 #include "json.h"
 #include "semantier.h"
+#include "module/langstring.h"
 
 namespace anson {
 using namespace entt;

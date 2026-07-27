@@ -33,7 +33,7 @@ TEST(Load, PeerSettings) {
     ASSERT_TRUE(result);
     ASSERT_EQ(PeerSettings::_type_, settings.anclass) << "Errors on parssing {type: input}.";
 
-    string t03_json = "t03-settings.json";
+    string t03_json = "settings/t03-settings.json";
     /*
     std::ifstream ifstream(t03_json);
     if (!ifstream.is_open()) {
@@ -150,7 +150,7 @@ TEST(Load, EchoReq) {
     register_jserv(asts, contxt);
     load_echoAst_test(asts, "ast/echo.ast.json");
 
-    string t03_echo_json = "t03_echo.body.json";
+    string t03_echo_json = "settings/t03_echo.body.json";
     std::ifstream ifstream(t03_echo_json);
     if (!ifstream.is_open()) {
         FAIL() << "Could not open the file! " << t03_echo_json << endl;

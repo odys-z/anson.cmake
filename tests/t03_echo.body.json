@@ -1,4 +1,0 @@
-{ "type" : "io.odysz.semantic.jserv.echo.EchoReq",
-  "a"    : "echo",
-  "echo" : "echo ..."
-}

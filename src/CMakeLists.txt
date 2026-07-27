@@ -16,6 +16,7 @@ add_library(anson INTERFACE
     io/odysz/semantier.h
     io/odysz/anserializer.h
     io/odysz/module/rs.h
+    io/odysz/module/langstring.h
     io/odysz/json.h
     io/odysz/entt_jserv.h
     io/odysz/gen/semantier.hpp
