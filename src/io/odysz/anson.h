@@ -337,6 +337,11 @@ public:
         return this;
     }
 
+    void to_file(const string& pth, const JsonOpt &jsopt = *IJsonable::contxt_ptr) {
+        std::ofstream ofstream(pth);
+        toBlock(ofstream, jsopt);
+    }
+
     static std::string posix_path(const std::string& s) {
         std::string result = s; // Make a copy
         std::replace(result.begin(), result.end(), '\\', '/');

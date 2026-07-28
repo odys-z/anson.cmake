@@ -259,6 +259,34 @@ inline static void register_peersettings(AstMap &asts) {
         {"cpp_gen",   {.dataAnclass = "string"}}
     });
 
+    ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        if (ast->fields.contains(fieldname)) {
+            auto& concrete = static_cast<const PeerSettings&>(ans);
+            if ("ansonMsg" == fieldname)
+                return entt::forward_as_meta(concrete.ansonMsg);
+            if ("ansons" == fieldname)
+                return entt::forward_as_meta(concrete.ansons);
+            if ("scopeEnums" == fieldname)
+                return entt::forward_as_meta(concrete.scopeEnums);
+            if ("javaEnums" == fieldname)
+                return entt::forward_as_meta(concrete.javaEnums);
+            if ("ansonBody" == fieldname)
+                return entt::forward_as_meta(concrete.ansonBody);
+            if ("anRequests" == fieldname)
+                return entt::forward_as_meta(concrete.anRequests);
+            if ("cpp_gen" == fieldname)
+                return entt::forward_as_meta(concrete.cpp_gen);
+        }
+
+        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            return bast->get_field_instance(ans, fieldname);
+        }
+
+        anerror("get_field_instance<PeerSettings>(): Failed to get entt instance (meta_any)");
+        return { };
+    };
+
     entt::meta_factory<anson::PeerSettings>()
         .type(ast->enttypeid)
         .base<Anson>()
