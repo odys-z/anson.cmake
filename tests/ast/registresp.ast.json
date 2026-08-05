@@ -1,0 +1,20 @@
+{ "type": "io.odysz.reflect.AnsonBodyAst",
+  "R": {
+  	"ok": "ok",
+		"domexists": "domexists",
+		"invalid": "invalid",
+		"error": "error"
+  },
+  "dataAnclass": "io.oz.syn.registry.RegistResp",
+  "baseAnclass": "io.odysz.semantic.jprotocol.AnsonResp",
+  "fields" : {
+    "r": {"dataAnclass": "string"},
+    "diction": {"dataAnclass": "io.oz.syn.registry.SynodeConfig"},
+    "orgDomains": {"dataAnclass": "list<string"}
+  },
+  "ctorsemantics": [{"base": {"stype": "()"}},
+    { "base": {"stype": "()"},
+      "args": [{"stype": "ini", "args": ["const SynodeConfig&", "diction", "diction"]}]
+    }
+  ]
+}

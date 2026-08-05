@@ -1,0 +1,24 @@
+{ "type": "io.odysz.reflect.AnsonBodyAst",
+  "A": {
+    "queryDomx": "r/domx",
+		"queryDomConfig": "r/dom-config",
+		"registDom": "c/domx",
+		"updateDom": "u/domx",
+    "submitSettings": "u/settings"
+  },
+  "dataAnclass": "io.oz.syn.registry.RegistReq",
+  "baseAnclass": "io.odysz.semantic.jprotocol.UserReq",
+  "fields" : {
+    "market": {"dataAnclass": "string"},
+    "protocolPath": {"dataAnclass": "string"},
+    "diction": {"dataAnclass": "io.oz.syn.registry.SynodeConfig"},
+    "myjserv": {"dataAnclass": "io.odysz.semantic.jprotocol.JServUrl"},
+    "mystate": {"dataAnclass": "string"}
+  },
+  "ctorsemantics": [
+    { "base": {"stype": "()"},
+      "args": [{"stype": "ini", "args": ["const JServUrl&", "jserv", "myjserv"]},
+               {"stype": "ini", "args": ["const SynodeConfig&", "diction", "diction"]}]
+    }
+  ]
+}

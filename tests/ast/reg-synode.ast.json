@@ -1,0 +1,27 @@
+{ "type": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.oz.syn.Synode",
+  "baseAnclass": "io.odysz.anson.Anson",
+  "fields" : {
+    "org": {"dataAnclass": "string"},
+    "domain": {"dataAnclass": "string"},
+    "synid": {"dataAnclass": "string"},
+    "mac": {"dataAnclass": "string"},
+    "stat": {"dataAnclass": "string"},
+    "remarks": {"dataAnclass": "string"},
+    "jserv": {"dataAnclass": "string"},
+    "optime": {"dataAnclass": "string"},
+    "oper": {"dataAnclass": "string"},
+    "nyquence": {"dataAnclass": "long"},
+    "synuid": {"dataAnclass": "string"}
+  },
+  "ctorsemantics": [
+    { "base": {"stype":  "()"}},
+    { "base": {"stype": "()"},
+      "args": [{"stype": "ini", "args": ["const string&", "synid", "synid"]},
+               {"stype": "ini", "args": ["const string&", "synuid", "synuid"]},
+               {"stype": "ini", "args": ["const string&", "orgid", "org"]},
+               {"stype": "ini", "args": ["const string&", "domain", "domain"]},
+               {"stype": "ini", "args": ["const string&", "remark_hub", "remarks"]}]
+    }
+  ]
+}

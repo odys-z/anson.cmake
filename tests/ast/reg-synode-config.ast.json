@@ -1,0 +1,23 @@
+{ "type": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.oz.syn.registry.SynodeConfig",
+  "baseAnclass": "io.odysz.anson.Anson",
+  "fields" : {
+    "domain": {"dataAnclass": "string"},
+    "synid": {"dataAnclass": "string"},
+    "sysconn": {"dataAnclass": "string"},
+    "synconn": {"dataAnclass": "string"},
+    "org": {"dataAnclass": "io.oz.syn.registry.SynOrg"},
+    "peers": {"dataAnclass": "list<io.oz.syn.Synode"},
+    "mode": {"dataAnclass": "string"},
+    "https": {"dataAnclass": "bool"},
+    "admin": {"dataAnclass": "string"},
+    "syncIns": {"dataAnclass": "float"},
+    "chsize": {"dataAnclass": "int"}
+  },
+  "ctorsemantics": [{"base": {"stype": "()"}},
+    { "base": {"stype": "()"},
+      "args": [{"stype": "ini", "args": ["const string&", "synid", "synid"]},
+               {"stype": "ini", "args": ["const string&", "mode", "mode"]}]
+    }
+  ]
+}
