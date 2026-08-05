@@ -14,10 +14,10 @@ using json = nlohmann::json;
 using namespace anson;
 using namespace entt;
 
-AstMap enums;
-map<string, meta_type> types;
+static AstMap enums;
+static map<string, meta_type> types;
 
-JsonOpt contxt{&enums};
+static JsonOpt contxt{&enums};
 
 TEST(SAVE, Settings) {
     aninfo(filesystem::current_path().string());
