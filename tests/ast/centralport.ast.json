@@ -1,0 +1,12 @@
+{ "type": "io.odysz.reflect.AnsonJavaEnumAst",
+  "baseAnclass": "io.odysz.anson.JavaEnum",
+  "dataAnclass": "io.oz.syn.registry.Centralport",
+  "encode": { "heartbeat": "ping.serv", "session": "login.serv", "register_": "regist.serv", "menu": "menu.serv" },
+  "decode": { "ping.serv": "heartbeat", "login.serv": "session", "regist.serv": "register_", "menu.serv": "menu" },
+  "ctorsemantics": [
+    { "base": {"stype": "()", "args": ["JavaEnum", "_type_", "\"_sentinel_\""]}},
+    { "base": {"stype": "()", "args": ["JavaEnum", "_type_", "enumval"]},
+      "args": [{"stype": "",  "args": ["const string&", "enumval"]}]
+    }
+  ]
+}
