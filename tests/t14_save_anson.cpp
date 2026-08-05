@@ -38,7 +38,7 @@ TEST(SAVE, Settings) {
     settings.to_file("t14-settings.json");
 
     PeerSettings sets2;
-    // Anson::with_protocol(jp_register);
+    Anson::with_protocol(jp_register);
     Anson::from_file("t14-settings.json", sets2);
     ASSERT_EQ(vector<string>{"request-00"}, sets2.anRequests);
     ASSERT_EQ(timestamp, sets2.ansonBody);

@@ -117,10 +117,10 @@ public:
         protocolpath = urlpath;
     }
 
-    JProtocol(string protocolpath) : protocolpath(protocolpath) { }
-    JProtocol() : protocolpath("") { }
-    // JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath) { }
-    // JProtocol() : JProtocol("", nullptr) { }
+    // JProtocol(string protocolpath) : protocolpath(protocolpath) { }
+    // JProtocol() : protocolpath("") { }
+    JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath) { }
+    JProtocol() : JProtocol("", nullptr) { }
 };
 
 
