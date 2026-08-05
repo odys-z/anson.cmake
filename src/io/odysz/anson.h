@@ -322,7 +322,7 @@ public:
     }
 
     template <typename An>
-    static bool from_file(const string& pth, An & an);
+    static bool from_file(const string& pth, An & an, const JsonOpt* contx_ptr = IJsonable::contxt_ptr);
 
     string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) const {
         std::stringstream ss;
@@ -442,8 +442,8 @@ public:
 };
 
 template <typename An>
-bool Anson::from_file(const string& pth, An & an) {
-    EnTTSaxParser h(an, IJsonable::contxt_ptr);
+bool Anson::from_file(const string& pth, An & an, const JsonOpt* contx_ptr) {
+    EnTTSaxParser h(an, contxt_ptr);
     an.type = "";
 
     if (!h.contxt || !h.contxt->asts || !h.contxt->has_ast(Anson::_type_))

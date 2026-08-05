@@ -615,7 +615,6 @@ inline static void register_enums(AstMap& asts) {
 template<typename P>
 inline static void register_iport(AstMap &asts, istream& ifstream) {
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
-    // portAst->dataAnclass = Port::_type_;
     portAst->isPortEnum = true;
 
     EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
@@ -624,11 +623,6 @@ inline static void register_iport(AstMap &asts, istream& ifstream) {
         string anclass = portAst->dataAnclass;
         hashed_string enttype = hashed_string{anclass.c_str()};
 
-        // entt::meta_factory<anson::Port>()
-        //     .type(enttype)
-        //     .base<JavaEnum>()
-        //     .ctor<>()
-        //     .ctor<std::string>()
         entt::meta_factory<P>()
             .type(enttype)
             .template base<JavaEnum>()

@@ -15,6 +15,7 @@ add_executable(unit_tests
   test_common.cpp
 
   t01_aeshelper.cpp
+  expect/t_01_echomsg.hpp
   t01_common.cpp
   t01_typs_java_vs.cpp
   t02_type_java_tests.h
@@ -32,15 +33,16 @@ add_executable(unit_tests
   t08_resultset.h
   t09_expect_semantier.cpp
   test.common.h
-  expect/t_01_echomsg.hpp
   ../src/io/odysz/gen/semantier.hpp
   expect/t_10_doctier.hpp
   expect/wsport_tobe_generated.hpp
+  expect/registry.hpp
   t10_design_patterns.cpp
   t11_docstier.cpp
   t12_escape.cpp
   t13_langstring.cpp
   t14_save_anson.cpp
+  t15_multi_context.cpp
 )
 
 add_custom_command(TARGET unit_tests POST_BUILD

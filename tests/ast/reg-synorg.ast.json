@@ -1,0 +1,16 @@
+{ "type": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.oz.syn.registry.SynOrg",
+  "baseAnclass": "io.odysz.anson.Anson",
+  "fields" : {
+    "orgId": {"dataAnclass": "string"},
+    "orgName": {"dataAnclass": "string"},
+    "orgType": {"dataAnclass": "string"},
+    "parent": {"dataAnclass": "string"},
+    "sort": {"dataAnclass": "string"},
+    "fullpath": {"dataAnclass": "string"},
+    "webroot": {"dataAnclass": "string"},
+    "homepage": {"dataAnclass": "string"},
+    "album0": {"dataAnclass": "string"}
+  },
+  "ctorsemantics": []
+}

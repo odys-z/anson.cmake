@@ -102,8 +102,39 @@ public:
     }
 };
 
+/**
+ * @brief The JProtocol class
+ * Design Notes: Debunking the myth of understanding Port & protocol root.
+
+ * With the introducing multiple jprotocol sets concept, it's clear that Anson (de)serializing
+ * for AnsonMsg is based upon the registered Asts, and port / java enum factories. This should
+ * wrap up into a protocol set, as the semantics explain, i. e. deserialize AnsonMsg<?>. So, now
+ * a JProtocol instance, together with the registered ASTs, should now be the context of explain /
+ * deserialize AnsonMsg<?>.
+
+ * This also explains why the hard to find the correct type to place the IPort factory.
+
+ * Tasks
+ * =====
+
+ * A - keep synode jserv stable for publish the desktop application
+ * ----------------------------------------------------------------
+ * 1. Extend Anson.cmake, to have it using different context while (de)serializing
+ * 2. Extend Anclient.cmake, to have it manage JProtocol instances for communicate with different services.
+ * 3. Implement Doclientier and RegistClient in the same Slint App singleton.
+
+ * To be verified: this compitable to the semantic-jserv (syonde tier) as the server doesn't care multple protocol sets.
+
+ * B - upgrade synode to include a separated network layer
+ * -------------------------------------------------------
+
+ * 4. Upgrade Anson.java, to have it using different context while (de)serializing
+ * 5. Update semantic-jserv, to have it manage JProtocol instances for communicate with different services.
+ * 6. Refactor Anclient.android and the SynssionTier.
+ */
 class JProtocol {
 public:
+    const JsonOpt* ctx;
     string protocolpath;
 
     /**
@@ -117,12 +148,11 @@ public:
         protocolpath = urlpath;
     }
 
-    JProtocol(string protocolpath) : protocolpath(protocolpath) { }
-    JProtocol() : protocolpath("") { }
-    // JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath) { }
-    // JProtocol() : JProtocol("", nullptr) { }
+    // JProtocol(string protocolpath) : protocolpath(protocolpath) { }
+    // JProtocol() : protocolpath("") { }
+    JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath), ctx(ctx) { }
+    JProtocol() : JProtocol("", nullptr) { }
 };
-
 
 // MsgCode
 template <typename E, size_t N>
@@ -287,10 +317,12 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = JProtocol{jprotocol.protocolpath};
+        this->jprotocol = JProtocol{jprotocol.protocolpath, jprotocol.ctx};
     }
 
-    JServUrl(const string &url) : HttpParts() {
+    JServUrl() : JServUrl("", {}) { }
+
+    JServUrl(const string &url, const JsonOpt* ctx) : HttpParts() {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
 
@@ -298,8 +330,19 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = JProtocol{parts.paths[0]};
+        this->jprotocol = JProtocol{parts.paths[0], ctx};
     }
+
+    // JServUrl(const string &url) : HttpParts() {
+    //     HttpParts parts;
+    //     Regex::getHttpParts(url, parts);
+
+    //     this->https = parts.https;
+    //     this->port = parts.port;
+    //     this->scheme = std::move(parts.scheme);
+    //     this->host = std::move(parts.host);
+    //     this->jprotocol = JProtocol{parts.paths[0], IJsonable::contxt_ptr};
+    // }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)
         : JServUrl(std::format("{}:{}", host, port), jprotocol) {}

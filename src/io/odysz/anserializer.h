@@ -709,7 +709,8 @@ public:
                 else if (stack.back().is_list) {
                     meta_type obj_type = top.instance.type();
                     std::string typname{obj_type.info().name()};
-                    andebug(std::format("end_obj(): list-container.type-id() {}, info: {}", obj_type.id(), typname));
+                    andebug(std::format("end_obj(): list-container.type-id() {}, info: {}",
+                                        obj_type.id(), typname));
                         auto view = stack.back().instance.as_sequence_container();
                         if (view) {
 
@@ -718,12 +719,13 @@ public:
                                 auto func = obj_type.func("create_ptr"_hs);
 
                                 if (!func) {
-                                    anerror(std::format("end_obj(): function create_ptr({}) is not registered.", typname));
+                                    anerror(std::format("end_obj(): function create_ptr({}-{}) is not registered.",
+                                                        typname, stack.back().val_astid));
                                     return false;
                                 }
 
                                 andebug(std::format("end_obj(): Stack back instance's func<create_ptr> arity: {}",
-                                                                func.arity()));
+                                                    func.arity()));
 
                                 success = obj_type.func("create_ptr"_hs).invoke(top.instance);
                                 if (success)
@@ -736,7 +738,7 @@ public:
                                 anerror("end_obj(): Setting back the list is failed!");
                             else
                                 andebug(std::format("end_obj(): Ok! Size of the inserted list of obj: {}",
-                                                                view.size()));
+                                                    view.size()));
                         }
                 }
             }

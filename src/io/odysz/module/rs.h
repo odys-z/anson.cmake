@@ -39,8 +39,6 @@ class AnResultset : public Anson {
     long total;
 
 public:
-//    inline static const string _variantype_ = "json-value";
-
     inline static const string _type_ = "io.odysz.module.rs.AnResultset";
 
     vector<vector<LangExt::VarType>> rows;
