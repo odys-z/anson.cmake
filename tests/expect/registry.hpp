@@ -330,6 +330,9 @@ public:
     RegistReq(const JServUrl& jserv, const SynodeConfig& diction) : UserReq(), myjserv(jserv), diction(diction) {
         Type(_type_);
     }
+
+    // No default ctor is not found. Force a compile error here: io.oz.syn.registry.RegistReq RegistReq ()
+    RegistReq() : UserReq() { Type(_type_); }
 };
 
 inline static void load_registreqAst(AstMap &asts, const string &ast_path) {

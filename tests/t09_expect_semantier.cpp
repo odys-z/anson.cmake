@@ -198,7 +198,8 @@ TEST(JSERV, Parse) {
         }
     }
 
-    JServUrl jserv2{"https://127.0.0.1/jserv-center"};
+    JServUrl jserv2{"https://127.0.0.1/jserv-center", &contxt};
+
     ASSERT_EQ("https://127.0.0.1:443/jserv-center", jserv2.jserv());
     ASSERT_EQ("jserv-center", jserv2.jprotocol.protocolpath);
     ASSERT_TRUE(jserv2.https);

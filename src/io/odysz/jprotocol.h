@@ -320,6 +320,19 @@ public:
         this->jprotocol = JProtocol{jprotocol.protocolpath, jprotocol.ctx};
     }
 
+    JServUrl() : JServUrl("", {}) { }
+
+    JServUrl(const string &url, const JsonOpt* ctx) : HttpParts() {
+        HttpParts parts;
+        Regex::getHttpParts(url, parts);
+
+        this->https = parts.https;
+        this->port = parts.port;
+        this->scheme = std::move(parts.scheme);
+        this->host = std::move(parts.host);
+        this->jprotocol = JProtocol{parts.paths[0], ctx};
+    }
+
     // JServUrl(const string &url) : HttpParts() {
     //     HttpParts parts;
     //     Regex::getHttpParts(url, parts);
