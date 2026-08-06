@@ -143,10 +143,10 @@ public:
      * @brief setup
      * @param urlpath
      * @param p one of the port value to be understood, and is ignored (only for java semantics)
-     */
     void setup(const string& urlpath, const Port& p = {}) {
         protocolpath = urlpath;
     }
+     */
 
     // JProtocol(string protocolpath) : protocolpath(protocolpath) { }
     // JProtocol() : protocolpath("") { }
