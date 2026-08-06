@@ -41,6 +41,6 @@ Install denpendencies
     ./vcpkg install entt:x64-mingw-dynamic 
 ```
 
-# Myth / TODO
+# ASTs for Tests
 
-Refactor source file tree, to share (copy automatically) ASTs with Anclient.cmake and use generated CRUD / Sesseion (semantier) for test. 
+AST files, *.ast.json, are copied from Anson.cmake/tests/ast.
