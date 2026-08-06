@@ -28,6 +28,7 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
     return {};
 }
 
+/*
 inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
                        const vector<string> &valtype, const JsonOpt &opts) {
 
@@ -61,6 +62,13 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
         }
     }
 
+    if ("float" == opts.primtypes.at(valtype[0]) || "double" == opts.primtypes.at(valtype[0])) {
+        if (inst) {
+            auto *s = inst.try_cast<const double>();
+            return os << *s;
+        }
+    }
+
     if ("boolean" == opts.primtypes.at(valtype[0])) {
         if (inst) {
             auto *s = inst.try_cast<const bool>();
@@ -70,6 +78,77 @@ inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
     }
 
     if ("VarType" == opts.primtypes.at(valtype[0])) {
+        return LangExt::serialize_var(os, inst, opts);
+    }
+
+    return os << "\"serialize error: " << valtype[0] << '"';
+} */
+
+#include <cstdint>
+#include <type_traits>
+
+
+template <typename T>
+static bool try_write_number(ostream &os, meta_any &inst) {
+    if (auto *v = inst.try_cast<const T>()) {
+        // Promote 8-bit types so they print as numbers, not characters.
+        if constexpr (sizeof(T) == 1 && std::is_integral_v<T>) {
+            os << static_cast<int>(*v);
+        } else {
+            os << *v;
+        }
+        return true;
+    }
+    return false;
+}
+
+inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
+                                            const vector<string> &valtype, const JsonOpt &opts) {
+    if (!opts.primtypes.contains(valtype[0])) {
+        anerror(std::format("Cannot serialize [{}]", valtype[0]));
+        return os << "null";
+    }
+
+    const std::string &kind = opts.primtypes.at(valtype[0]);
+
+    if (!inst) {
+        return os << "null";
+    }
+
+    if (kind == "string") {
+        if (auto *s = inst.try_cast<const std::string>())
+            return os << '"' << *s << '"';
+    } else if (kind == "boolean") {
+        // Must be checked before generic int paths — bool/int are
+        // distinct types but easy to conflate in dispatch tables.
+        if (auto *b = inst.try_cast<const bool>())
+            return os << (*b ? "true" : "false");
+    } else if (kind == "int") {
+        // Covers every C++ integer width/signedness that might be
+        // registered under a single "int" JSON kind. try_cast only
+        // succeeds against the exact held type, so each is tried in turn.
+        if (try_write_number<int>(os, inst))                 return os;
+        if (try_write_number<short>(os, inst))               return os;
+        if (try_write_number<long>(os, inst))                return os;
+        if (try_write_number<long long>(os, inst))           return os;
+        if (try_write_number<unsigned int>(os, inst))        return os;
+        if (try_write_number<unsigned short>(os, inst))      return os;
+        if (try_write_number<unsigned long>(os, inst))       return os;
+        if (try_write_number<unsigned long long>(os, inst))  return os;
+        if (try_write_number<int8_t>(os, inst))              return os;
+        if (try_write_number<uint8_t>(os, inst))             return os;
+        if (try_write_number<char>(os, inst))                return os;
+    } else if (kind == "long") {
+        if (try_write_number<long>(os, inst))                return os;
+        if (try_write_number<long long>(os, inst))           return os;
+        if (try_write_number<unsigned long>(os, inst))       return os;
+        if (try_write_number<unsigned long long>(os, inst))  return os;
+    } else if (kind == "float") {
+        if (try_write_number<float>(os, inst))               return os;
+    } else if (kind == "double") {
+        if (try_write_number<double>(os, inst))              return os;
+        if (try_write_number<long double>(os, inst))         return os;
+    } else if (kind == "VarType") {
         return LangExt::serialize_var(os, inst, opts);
     }
 

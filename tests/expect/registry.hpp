@@ -1,6 +1,3 @@
-/**
- * Copied from Anclient.cmake/tests/ast, generated automatically there.
- */
 #pragma once
 
 #include <entt/meta/factory.hpp>
@@ -299,7 +296,7 @@ public:
 
     inline static const string heartbeat = "ping.serv";
     inline static const string session = "login.serv";
-    inline static const string register_ = "regist.serv";
+    inline static const string regist = "regist.serv";
     inline static const string menu = "menu.serv";
 
     Centralport() : JavaEnum(_type_, "_sentinel_") {

@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <regex>
 #include <entt/meta/meta.hpp>
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
@@ -7,6 +8,7 @@
 #include "io/odysz/jprotocol.h"
 #include "io/odysz/entt_jserv.h"
 #include "echoreq.expect.h"
+#include "expect/registry.hpp"
 
 namespace anson {
 
@@ -179,8 +181,29 @@ TEST(Anson, Serialize_Msg) {
 TEST(Anson, Serialize_map) {
     JsonOpt opts{&enums};
     register_jserv(enums, opts);
+
     map<string, vector<LangExt::VarType>> m {{"x", {1, "one"}}};
     string s = map2str(m);
     ASSERT_EQ(R"({"x": [1,"one"]})", s);
 }
+
+TEST(Anson, Serialize_int_float) {
+    JsonOpt opts{&enums};
+    register_jserv(enums, opts);
+    register_centralclientier(enums, "ast");
+
+    SynodeConfig c;
+    c.chsize = 1984;
+    c.syncIns = 3.14159;
+
+    string json = c.toBlock(opts);
+    anlog(json);
+    ASSERT_TRUE(std::regex_search(json, std::regex("\"syncIns\": 3.14159")));
+
+    SynodeConfig d;
+    Anson::from_json(json, d);
+    ASSERT_EQ(c.chsize, d.chsize);
+    ASSERT_EQ(c.syncIns, d.syncIns);
+}
+
 }
