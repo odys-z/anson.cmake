@@ -184,12 +184,16 @@ TEST(RegexTest, TestValidJserv) {
 }
 
 TEST(JSERV, Parse) {
-    JProtocol jprotocol;
-    jprotocol.setup("jserv-album");
+    JProtocol jprotocol{"jserv-album", &contxt};
+    // jprotocol.setup("jserv-album");
     JServUrl jserv{"http://127.0.0.1", jprotocol};
     ASSERT_EQ("http://127.0.0.1:80/jserv-album", jserv.jserv());
     JServUrl jserw{"127.0.0.1", jprotocol};
     ASSERT_EQ("http://127.0.0.1:80/jserv-album", jserw.jserv());
+
+    UrlValidator urlv;
+    ASSERT_TRUE(urlv.isValid(jserv.jserv()));
+    ASSERT_TRUE(jserv.valid());
 
     for (const JservTestCase& test : urls) {
         if (!LangExt::isblank(test.expect)) {
@@ -202,9 +206,17 @@ TEST(JSERV, Parse) {
 
     ASSERT_EQ("https://127.0.0.1:443/jserv-center", jserv2.jserv());
     ASSERT_EQ("jserv-center", jserv2.jprotocol.protocolpath);
-    ASSERT_TRUE(jserv2.https);
-}
 
-// TODO
-// TEST(AUTOGEN, DATASET) { }
-// TEST(AUTOGEN, STREE) { }
+    ASSERT_TRUE(urlv.isValid(jserv2.jserv()));
+    ASSERT_TRUE(jserv2.https);
+    ASSERT_TRUE(jserv2.valid());
+
+    JServUrl jserv3{"abc.eee", &contxt};
+    ASSERT_FALSE(jserv3.valid());
+
+    JServUrl jserv4{"abc.eee", nullptr};
+    ASSERT_FALSE(jserv4.valid());
+
+    JServUrl jserv5{"x:134", &contxt};
+    ASSERT_FALSE(jserv4.valid());
+}

@@ -25,13 +25,13 @@ add_executable(unit_tests
   # t02_entt_basic_serialize.cpp
   # t03_loadsettings.cpp
   # t04_entt_registry.cpp
-  t05_deserialize.cpp
+  # t05_deserialize.cpp
   # t06_java_enum.h
   # t06_java_enum.cpp
   # t07_ansonresp.cpp
   # t08_resultset.cpp
   # t08_resultset.h
-  # t09_expect_semantier.cpp
+  t09_expect_semantier.cpp
   # test.common.h
   # ../src/io/odysz/gen/semantier.hpp
   # expect/t_10_doctier.hpp
@@ -46,14 +46,6 @@ add_executable(unit_tests
 )
 
 add_custom_command(TARGET unit_tests POST_BUILD
-    # COMMAND ${CMAKE_COMMAND} -E copy
-    #     "${CMAKE_CURRENT_SOURCE_DIR}/t03-settings.json"
-    #     "$<TARGET_FILE_DIR:unit_tests>/t03-settings.json"
-
-    # COMMAND ${CMAKE_COMMAND} -E copy
-    #     "${CMAKE_CURRENT_SOURCE_DIR}/t03_echo.body.json"
-    #     "$<TARGET_FILE_DIR:unit_tests>/t03_echo.body.json"
-
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/settings"
         "$<TARGET_FILE_DIR:unit_tests>/settings"

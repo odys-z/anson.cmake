@@ -54,7 +54,7 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
     RegistReq reg{JServUrl{"my-jserv-root", {}}, diction};
     reg.a = RegistReq::A::queryDomConfig;
 
-    AnsonMsg<RegistReq> r{Centralport{Centralport::register_}};
+    AnsonMsg<RegistReq> r{Centralport{Centralport::regist}};
     r.Body(reg);
     string kson = r.toBlock(reg_opts);
     anlog(kson);
@@ -73,7 +73,7 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
     AnsonMsg<RegistReq> s{};
     Anson::from_json(kson, s, &reg_opts);
 
-    ASSERT_EQ(Centralport{Centralport::register_}, s.port);
+    ASSERT_EQ(Centralport{Centralport::regist}, s.port);
     ASSERT_EQ(RegistReq::A::queryDomConfig, s.Body().a);
     ASSERT_EQ(s.Body().uri, reg.uri);
 }

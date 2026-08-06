@@ -151,7 +151,7 @@ public:
     // JProtocol(string protocolpath) : protocolpath(protocolpath) { }
     // JProtocol() : protocolpath("") { }
     JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath), ctx(ctx) { }
-    JProtocol() : JProtocol("", nullptr) { }
+    // JProtocol() : JProtocol("", nullptr) { }
 };
 
 // MsgCode
@@ -305,11 +305,10 @@ public:
 
 class JServUrl : public HttpParts {
 public:
-    // static UrlValidator urlValidator;
-    // string protocolroot;
+    UrlValidator urlValidator;
     JProtocol jprotocol;
 
-    JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts() {
+    JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts(), jprotocol(jprotocol.protocolpath, jprotocol.ctx) {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
 
@@ -317,12 +316,12 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = JProtocol{jprotocol.protocolpath, jprotocol.ctx};
+        // this->jprotocol = JProtocol{jprotocol.protocolpath, jprotocol.ctx};
     }
 
     JServUrl() : JServUrl("", {}) { }
 
-    JServUrl(const string &url, const JsonOpt* ctx) : HttpParts() {
+    JServUrl(const string &url, const JsonOpt* ctx) : HttpParts(), jprotocol("", ctx) {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
 
@@ -330,19 +329,9 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = JProtocol{parts.paths.size() > 0 ? parts.paths[0] : "", ctx};
+        // this->jprotocol = JProtocol{parts.paths.size() > 0 ? parts.paths[0] : "", ctx};
+        this->jprotocol.protocolpath = parts.paths.size() > 0 ? parts.paths[0] : "";
     }
-
-    // JServUrl(const string &url) : HttpParts() {
-    //     HttpParts parts;
-    //     Regex::getHttpParts(url, parts);
-
-    //     this->https = parts.https;
-    //     this->port = parts.port;
-    //     this->scheme = std::move(parts.scheme);
-    //     this->host = std::move(parts.host);
-    //     this->jprotocol = JProtocol{parts.paths[0], IJsonable::contxt_ptr};
-    // }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)
         : JServUrl(std::format("{}:{}", host, port), jprotocol) {}
@@ -367,6 +356,16 @@ public:
               this->host,
               this->port <= 0 ? 80 : this->port,
               this->jprotocol.protocolpath);
+    }
+
+    bool valid() {
+        // bool c = !jprotocol.ctx;
+        // bool d = port >= 80  && !scheme.empty();
+        // bool e = urlValidator.isValid(jserv());
+        return !host.empty()
+               && jprotocol.ctx
+               && port >= 80  && !scheme.empty()
+               && urlValidator.isValid(jserv());
     }
 };
 

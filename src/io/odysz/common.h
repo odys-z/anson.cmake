@@ -495,6 +495,7 @@ public:
             }
         }
 
+        parts.scheme = grps[2];
         parts.https = https;
         parts.host = "[" + regex_replace(host, reg_host_v6_lr, "") + "]";
         parts.port = port;
@@ -536,6 +537,7 @@ public:
             return parts;
 
         // aninfo(grps, {.head="\nGroups:\n", .sep="\n", .pre_item = [](int x){return format("[{}]", x);}});
+        parts.scheme = grps[2];
 
         bool https = "https" == grps[2];
         std::string_view vhttp(grps[2].first, grps[2].second); // Only a MSVC problem?
@@ -654,7 +656,7 @@ public:
     static constexpr uint64_t ALLOW_LOCAL_URLS  = 1 << 3;
 
     explicit UrlValidator(uint64_t options = 0) : options_(options) {
-        allowed_schemes_ = {"http", "https"};
+        allowed_schemes_ = {"http", "https", "ws", "wss"};
     }
 
     bool isValid(std::string_view url) const {
