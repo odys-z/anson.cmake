@@ -683,9 +683,9 @@ inline static void register_varctors() {
     LangExt::register_ctor("list<list<LangExt::VarType", f);
 }
 
-inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const Anson & inst) {
-    return make_shared<Anson>(inst);
-};
+// inline static function<shared_ptr<Anson>(const Anson&)> create_ptr = [](const Anson & inst) {
+//     return make_shared<Anson>(inst);
+// };
 
 template <typename BD, typename BD_Base>
 inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
