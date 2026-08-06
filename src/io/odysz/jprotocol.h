@@ -330,7 +330,7 @@ public:
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        this->jprotocol = JProtocol{parts.paths[0], ctx};
+        this->jprotocol = JProtocol{parts.paths.size() > 0 ? parts.paths[0] : "", ctx};
     }
 
     // JServUrl(const string &url) : HttpParts() {
