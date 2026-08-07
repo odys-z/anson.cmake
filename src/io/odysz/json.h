@@ -82,7 +82,13 @@ inline static AST* createAST(AstMap &asts, const string &base_ast_id,
         anerror(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
         throw runtime_error(std::format("astid.dataAnclass({}) == ast->baseAnclass", ast->dataAnclass));
     }
+
     asts[astid] = unique_ptr<AST>(ast);
+
+    if (!asts.contains(ast->baseAnclass)) {
+        anerror(std::format("[!!! Fatal Error !!!] AST {}'s base {} not found. Please register the base first.",
+                           ast->dataAnclass, ast->baseAnclass));
+    }
     return ast;
 }
 

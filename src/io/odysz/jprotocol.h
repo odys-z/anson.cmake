@@ -359,9 +359,6 @@ public:
     }
 
     bool valid() {
-        // bool c = !jprotocol.ctx;
-        // bool d = port >= 80  && !scheme.empty();
-        // bool e = urlValidator.isValid(jserv());
         return !host.empty()
                && jprotocol.ctx
                && port >= 80  && !scheme.empty()
