@@ -303,34 +303,39 @@ public:
     }
 };
 
-class JServUrl : public HttpParts {
-public:
-    UrlValidator urlValidator;
-    JProtocol jprotocol;
-
-    JServUrl(const string &url, const JProtocol &jprotocol) : HttpParts(), jprotocol(jprotocol.protocolpath, jprotocol.ctx) {
-        HttpParts parts;
-        Regex::getHttpParts(url, parts);
-
+class JServUrl : public Anson {
+    void setparts(const HttpParts & parts) {
         this->https = parts.https;
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        // this->jprotocol = JProtocol{jprotocol.protocolpath, jprotocol.ctx};
+        if (LangExt::isblank(jprotocol.protocolpath))
+            this->jprotocol.protocolpath = parts.paths.size() > 0 ? parts.paths[0] : "";
+    }
+
+public:
+    UrlValidator urlValidator;
+    bool https;
+    int port;
+    string scheme;
+    string host;
+
+    JProtocol jprotocol;
+
+    JServUrl(const string &url, const JProtocol &jprotocol) : jprotocol(jprotocol.protocolpath, jprotocol.ctx) {
+        seturl(url);
     }
 
     JServUrl() : JServUrl("", {}) { }
 
-    JServUrl(const string &url, const JsonOpt* ctx) : HttpParts(), jprotocol("", ctx) {
+    JServUrl(const string &url, const JsonOpt* ctx) : jprotocol("", ctx) {
+        seturl(url);
+    }
+
+    void seturl(const string url) {
         HttpParts parts;
         Regex::getHttpParts(url, parts);
-
-        this->https = parts.https;
-        this->port = parts.port;
-        this->scheme = std::move(parts.scheme);
-        this->host = std::move(parts.host);
-        // this->jprotocol = JProtocol{parts.paths.size() > 0 ? parts.paths[0] : "", ctx};
-        this->jprotocol.protocolpath = parts.paths.size() > 0 ? parts.paths[0] : "";
+        setparts(parts);
     }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)
@@ -361,7 +366,8 @@ public:
     bool valid() {
         return !host.empty()
                && jprotocol.ctx
-               && port >= 80  && !scheme.empty()
+               && port >= 80 && !scheme.empty()
+               && jprotocol.ctx
                && urlValidator.isValid(jserv());
     }
 };

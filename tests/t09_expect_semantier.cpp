@@ -212,7 +212,11 @@ TEST(JSERV, Parse) {
     ASSERT_TRUE(jserv2.valid());
 
     JServUrl jserv3{"abc.eee", &contxt};
-    ASSERT_FALSE(jserv3.valid());
+    ASSERT_TRUE(jserv3.valid());
+
+    JServUrl jserv3_1{"abc.eee", JProtocol{"ccc", nullptr}};
+    ASSERT_EQ(80, jserv3_1.port);
+    ASSERT_FALSE(jserv3_1.valid());
 
     JServUrl jserv4{"abc.eee", nullptr};
     ASSERT_FALSE(jserv4.valid());
