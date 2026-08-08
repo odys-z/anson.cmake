@@ -304,13 +304,23 @@ public:
 };
 
 class JServUrl : public Anson {
+    /*
     void setparts(const HttpParts & parts) {
         this->https = parts.https;
         this->port = parts.port;
         this->scheme = std::move(parts.scheme);
         this->host = std::move(parts.host);
-        if (LangExt::isblank(jprotocol.protocolpath))
-            this->jprotocol.protocolpath = parts.paths.size() > 0 ? parts.paths[0] : "";
+        // if (LangExt::isblank(jprotocol.protocolpath))
+        //     this->jprotocol.protocolpath = parts.paths.size() > 0 ? parts.paths[0] : "";
+    }
+    */
+    void seturl(const string& url, HttpParts& parts) {
+        Regex::getHttpParts(url, parts);
+
+        this->https = parts.https;
+        this->port = parts.port;
+        this->scheme = std::move(parts.scheme);
+        this->host = std::move(parts.host);
     }
 
 public:
@@ -323,19 +333,24 @@ public:
     JProtocol jprotocol;
 
     JServUrl(const string &url, const JProtocol &jprotocol) : jprotocol(jprotocol.protocolpath, jprotocol.ctx) {
-        seturl(url);
+        HttpParts parts;
+        seturl(url, parts);
     }
 
     JServUrl() : JServUrl("", {}) { }
 
     JServUrl(const string &url, const JsonOpt* ctx) : jprotocol("", ctx) {
-        seturl(url);
+        HttpParts parts;
+        // seturl(url, parts);
+        force_update_protocol(url);
     }
 
-    void seturl(const string url) {
+    void force_update_protocol(const string& url) {
         HttpParts parts;
-        Regex::getHttpParts(url, parts);
-        setparts(parts);
+        seturl(url, parts);
+
+        if (parts.paths.size() > 0)
+            this->jprotocol.protocolpath = parts.paths[0];
     }
 
     JServUrl(const string &host, const int port, const JProtocol &jprotocol)

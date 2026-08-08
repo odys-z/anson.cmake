@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 
@@ -104,6 +107,24 @@ public:
     }
 
     inline static std::filesystem::path safeAbsolute(const std::filesystem::path& p);
+
+    inline static std::string timestamp() {
+        using namespace std::chrono;
+
+        auto now = system_clock::now();
+        auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+        std::time_t t = system_clock::to_time_t(now);
+        std::tm tm{};
+#if defined(_WIN32)
+        localtime_s(&tm, &t);
+#else
+        localtime_r(&t, &tm);
+#endif
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+            << '.' << std::setfill('0') << std::setw(3) << ms.count();
+        return oss.str();
+    }
 };
 
 #define LOG_ERROR   1
@@ -120,7 +141,7 @@ public:
 #define anprint(v, ...) \
 do{ \
     if ((v) <= ANSON_VERBOSE) { \
-        std::cout << "<verbose " << v << '/' << ANSON_VERBOSE << ' ' << __FILE__ << ':' << __LINE__ << "> " << endl; \
+        std::cout << "[" << anson::Utils::timestamp() << "] <verbose " << v << '/' << ANSON_VERBOSE << ' ' << __FILE__ << ':' << __LINE__ << "> " << endl; \
         anson::Utils::print(__VA_ARGS__); \
   } \
 } while(0)
