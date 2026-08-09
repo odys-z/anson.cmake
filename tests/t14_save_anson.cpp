@@ -2,10 +2,9 @@
 #include <entt/meta/meta.hpp>
 #include <entt/meta/factory.hpp>
 #include <nlohmann/json.hpp>
-#include <iostream>
 
 #include "io/odysz/entt_jserv.h"
-#include "echoreq.expect.h"
+#include "expect/t14_app_settings.hpp"
 
 namespace anson {
 
@@ -19,7 +18,7 @@ static map<string, meta_type> types;
 
 static JsonOpt contxt{&enums};
 
-TEST(SAVE, Settings) {
+TEST(SAVE, PeerSettings) {
     aninfo(filesystem::current_path().string());
 
     AstMap asts;
@@ -44,4 +43,62 @@ TEST(SAVE, Settings) {
     ASSERT_EQ("testing-target.c++", sets2.cpp_gen);
 }
 
+
+/**
+ * FIXME
+ * This test cannot cover the error case.
+ *
+ * If the serializer's context switched, the auto-generated code is not
+ * switching the context.
+ *
+ * Solution:
+ * The right signature of the callback:
+ *
+ * get_field_instance = [ast](const IJsonable& ans, const string& fieldname, const JsonOpt* contxt) -> meta_any
+ */
+TEST(SAVE, DesktopSettings) {
+    AstMap asts;
+    JsonOpt contxt{&asts};
+    IJsonable::contxt_ptr = &contxt;
+
+    register_asts(asts);
+    register_anclient_cmake(asts, "ast");
+    register_desktopsettingsAst(asts);
+
+    DesktopSettings ds;
+    Anson::from_file("settings/app-settings-t14.json", ds);
+
+    ASSERT_EQ("my", ds.market);
+    ds.to_file("output-t14.json", contxt);
+
+    DesktopSettings ds2;
+    Anson::from_file("output-t14.json", ds2);
+
+    string sysuri;
+    string synuri;
+    string jserv;
+    string org;
+    string domain;
+    string device;
+    string admin;
+    string domain_token;
+    string regiserv;
+    string centralPswd;
+    string temp_dir;
+
+    ASSERT_FALSE(ds2.sysuri.empty());
+    ASSERT_FALSE(ds2.synuri.empty());
+    ASSERT_FALSE(ds2.jserv.empty());
+    ASSERT_FALSE(ds2.org.empty());
+    ASSERT_FALSE(ds2.domain.empty());
+    ASSERT_FALSE(ds2.device.empty());
+    ASSERT_FALSE(ds2.admin.empty());
+    ASSERT_FALSE(ds2.domain_token.empty());
+    ASSERT_FALSE(ds2.regiserv.empty());
+    ASSERT_FALSE(ds2.centralPswd.empty());
+    ASSERT_FALSE(ds2.temp_dir.empty());
+
+    // anerror("FIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME");
+    FAIL() << "fix get_field_instance = [ast](const IJsonable& ans, const string& fieldname, const JsonOpt* contxt) -> meta_any";
+}
 }
