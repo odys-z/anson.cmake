@@ -43,4 +43,10 @@ Install denpendencies
 
 # ASTs for Tests
 
+Use the latest Semantier-generator for generating required headers for testing.
+
+```
+    pip install semantier-generator
+    python -m semantier_gen settings/....json ast # docs TODO
+```
 AST files, *.ast.json, are copied from Anson.cmake/tests/ast.
