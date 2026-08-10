@@ -14,15 +14,16 @@ using namespace anson;
 TEST(ENTT_META, JSON_REGISTRY) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    load_echoAst_test(asts, "ast/echo.ast.json");
+    register_port(&contxt);
+    load_echoAst_test(&contxt, "ast/echo.ast.json");
 
     JsonOpt jsonopts{&asts};
-    IJsonable::contxt_ptr = &jsonopts;
+    // IJsonable::contxt_ptr = &jsonopts;
 
-    AnsonMsg<EchoReq> msg{Port{Port::echo}};
+    AnsonMsg<EchoReq> msg{Port{&jsonopts, Port::echo}};
 
     cout << "Port: " << msg.port << endl;
     EchoReq echobd{"echo msg ..."};
@@ -47,8 +48,8 @@ TEST(ENTT_META, JSON_REGISTRY) {
     }
 
     // string msg_anclass = EchoReq()._type_special(AnsonMsg<EchoReq>::_type_);
-    string msg_anclass = AnsonMsg<EchoReq>().anclass;
-    auto msg_rfl = entt::resolve(hashed_string{msg_anclass.c_str()}).construct(Port(Port::echo));
+    string msg_anclass = AnsonMsg<EchoReq>(&jsonopts).anclass;
+    auto msg_rfl = entt::resolve(hashed_string{msg_anclass.c_str()}).construct(Port(&jsonopts, Port::echo));
 
     std::cout << "Actual Type Name: " << msg_rfl.type().info().name() << std::endl;
 

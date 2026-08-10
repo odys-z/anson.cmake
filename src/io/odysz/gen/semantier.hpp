@@ -25,16 +25,19 @@ public:
         Type(_type_);
         uri = clienturi;
     }
+
+    // No default ctor is not found. Force a compile error here: io.odysz.semantic.jsession.HeartBeat HeartBeat ()
+    HeartBeat() : AnsonBody() { Type(_type_); }
 };
 
-inline static void load_heartbeatAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<HeartBeat, AnsonBody>(asts, ast_path,
-      [](meta_factory<HeartBeat> &entf, AnsonBodyAst *ast) {
+inline static void load_heartbeatAst(JsonOpt* ctx, const string &ast_path) {
+    specialize_msg_astpth<HeartBeat, AnsonBody>(ctx, ast_path,
+      [ctx](meta_factory<HeartBeat> &entf, AnsonBodyAst *ast) {
         entf.data<&HeartBeat::ssid>("ssid");
         entf.data<&HeartBeat::uid>("uid");
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const HeartBeat&>(ans);
                 if ("ssid" == fieldname)
@@ -43,8 +46,8 @@ inline static void load_heartbeatAst(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.uid);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -76,9 +79,9 @@ public:
     }
 };
 
-inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionReq, AnsonBody>(asts, ast_path,
-      [](meta_factory<AnSessionReq> &entf, AnsonBodyAst *ast) {
+inline static void load_ansessionreqAst(JsonOpt* ctx, const string &ast_path) {
+    specialize_msg_astpth<AnSessionReq, AnsonBody>(ctx, ast_path,
+      [ctx](meta_factory<AnSessionReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionReq::uid>("uid");
         entf.data<&AnSessionReq::token>("token");
         entf.data<&AnSessionReq::iv>("iv");
@@ -86,7 +89,7 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
         entf.ctor<>();
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnSessionReq&>(ans);
                 if ("uid" == fieldname)
@@ -99,8 +102,8 @@ inline static void load_ansessionreqAst(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.deviceId);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -134,9 +137,9 @@ public:
     }
 };
 
-inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<AnSessionResp, AnsonResp>(asts, ast_path,
-      [](meta_factory<AnSessionResp> &entf, AnsonBodyAst *ast) {
+inline static void load_ansessionrespAst(JsonOpt* ctx, const string &ast_path) {
+    specialize_msg_astpth<AnSessionResp, AnsonResp>(ctx, ast_path,
+      [ctx](meta_factory<AnSessionResp> &entf, AnsonBodyAst *ast) {
         entf.data<&AnSessionResp::ssInf>("ssInf");
         entf.data<&AnSessionResp::profile>("profile");
         entf.ctor<string, string, string>();
@@ -144,7 +147,7 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
         entf.ctor<>();
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnSessionResp&>(ans);
                 if ("ssInf" == fieldname)
@@ -153,8 +156,8 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.profile);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -164,11 +167,11 @@ inline static void load_ansessionrespAst(AstMap &asts, const string &ast_path) {
     });
 }
 
-inline static void register_semantier(AstMap &asts, const string &ast_folder) {
+inline static void register_semantier(JsonOpt* ctx, const string &ast_folder) {
     filesystem::path folder_path{ast_folder};
-    load_heartbeatAst(asts, (folder_path / "heartbeat.ast.json").string());
-    load_ansessionreqAst(asts, (folder_path / "session-req.ast.json").string());
-    load_ansessionrespAst(asts, (folder_path / "session-resp.ast.json").string());
+    load_heartbeatAst(ctx, (folder_path / "heartbeat.ast.json").string());
+    load_ansessionreqAst(ctx, (folder_path / "session-req.ast.json").string());
+    load_ansessionrespAst(ctx, (folder_path / "session-resp.ast.json").string());
 }
 
 }

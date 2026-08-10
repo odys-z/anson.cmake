@@ -156,30 +156,34 @@ public:
         };
 
     template <typename C>
-    static inline string name(C e) {
-        if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->has_ast(C::_type_)) {
-            AnsonJavaEnumAst * jeast = IJsonable::contxt_ptr->ast<AnsonJavaEnumAst>(C::_type_);
+    static inline string name(const JsonOpt* contxt_ptr, C e) {
+        if (contxt_ptr && contxt_ptr->has_ast(C::_type_)) {
+            AnsonJavaEnumAst * jeast = contxt_ptr->ast<AnsonJavaEnumAst>(C::_type_);
             return jeast->name_of({e.valeur});
         }
         return "null";
     }
 };
 
-inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
-    if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
-        AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
-        return p.enm == ast->encode[s];
-    }
-    return false;
+// inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
+//     // if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
+//     //     AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
+//     //     return p.enm == ast->encode[s];
+//     // }
+//     // return false;
+// }
+
+inline bool JavaEnum::operator==(const std::string& s) const {
+    return ast && ((AnsonJavaEnumAst*)ast)->encode[s] == enm;
 }
 
-inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
-    return p == s;
-}
+// inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
+//     return p == s;
+// }
 
-inline bool operator==(const anson::JavaEnum& p, const anson::JavaEnum& q) {
-    return p.enm == q.enm;
-}
+// inline bool operator==(const anson::JavaEnum& p, const anson::JavaEnum& q) {
+//     return p.enm == q.enm;
+// }
 
 class AnsonBodyAst : public AnsonAst {
 public:
@@ -208,35 +212,55 @@ public:
     AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
-inline JavaEnum:: JavaEnum(const string &anclass, const string &e_v)
-        : IJsonable(), enm(std::move(e_v)) {
+inline JavaEnum::JavaEnum(const AnsonJavaEnumAst* ast, const string &anclass, const string &e_v)
+        : IJsonable(), enm(e_v) {
 
     Anclass(anclass);
 
     this->anclass = anclass;
-    if (contxt_ptr->asts->contains(anclass)) {
-        map<string, string> encode =
-            // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
-            dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
-        if (encode.contains(enm)) {
-            enm = encode[enm];
-            return;
-        }
-    }
-    andebug(std::format("JavaEnum: {}:{}", anclass, enm));
+    // if (contxt_ptr->asts->contains(anclass)) {
+    //     map<string, string> encode =
+    //         // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
+    //         dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
+    //     if (encode.contains(enm)) {
+    //         enm = encode[enm];
+    //         return;
+    //     }
+    // }
+    // andebug(std::format("JavaEnum: {}:{}", anclass, enm));
+    if (!ast)
+        anerror("============= c++ Anson Reflect Enforcement ===============\n["s +
+                anclass + "] cannot be created with a null ast prointer.");
+
+    if (ast->dataAnclass != anclass)
+        anerror("============= c++ Anson Reflect Enforcement ===============\n["s +
+                anclass + " != " + anclass);
+
+    this->ast = ast;
+    map<string, string> encode = ast->encode;
+    if (encode.contains(enm))
+        enm = encode[enm];
 }
 
 inline string JavaEnum::valof() const {
-    if (contxt_ptr->asts->contains(anclass)) {
-        map<string, string> decode =
-            // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
-            dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->decode;
+    // if (contxt_ptr->asts->contains(anclass)) {
+    //     map<string, string> decode =
+    //         // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
+    //         dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->decode;
 
-        if (decode.contains(enm)) {
-            return decode[enm];
-        }
-        // TODO 0.1.1 return null if not decodable?
+    //     if (decode.contains(enm)) {
+    //         return decode[enm];
+    //     }
+    // }
+    // return enm;
+
+    if (!ast) {
+        anerror("============= c++ Anson Reflect Enforcement ===============\n["s +
+                anclass + "] cannot be created with a null ast prointer.");
+        return enm;
     }
+    if (ast->decode.contains(enm))
+        return ast->decode.at(enm);
     return enm;
 }
 

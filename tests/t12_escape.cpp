@@ -15,8 +15,8 @@ static JsonOpt contxt{&asts};
 TEST(ESCAPE, Invalid_payload) {
     AstMap asts;
     JsonOpt opts{&asts};
-    register_jserv(asts, opts);
-    register_doctier(asts, "ast");
+    register_jserv(&opts);
+    register_doctier(&opts, "ast");
 
     map<string, vector<LangExt::VarType>> fileselection;
     fileselection.emplace(R"(C:\Users\github\anclient\examples\example.slint\build\app\libboost_url-gcc16-mt-d-x64-1_91.dll)",
@@ -41,7 +41,7 @@ TEST(ESCAPE, Invalid_payload) {
     uploadreq.limit = 0;
     uploadreq.reset = true;
 
-    AnsonMsg<DocsReq> msg(Port{Port::docstier}, std::move(uploadreq));
+    AnsonMsg<DocsReq> msg(Port{&opts, Port::docstier}, std::move(uploadreq));
     msg.seq = 0;
 
     string invalid_json = R"json({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)json"
@@ -61,10 +61,10 @@ TEST(ESCAPE, Invalid_payload) {
     R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
-    ASSERT_EQ(invalid_json, msg.toBlock());
+    ASSERT_EQ(invalid_json, msg.toBlock(opts));
 
-    AnsonMsg<DocsReq> msg2;
-    Anson::from_json(invalid_json, msg2);
+    AnsonMsg<DocsReq> msg2{&opts};
+    Anson::from_json(invalid_json, msg2, &opts);
     ASSERT_EQ(0, msg2.body.size()) << "Expecting invalid escaping check failed.";
 
 }
@@ -73,8 +73,8 @@ TEST(ESCAPE, Valid_payload) {
 
     AstMap asts;
     JsonOpt opts{&asts};
-    register_jserv(asts, opts);
-    register_doctier(asts, "ast");
+    register_jserv(&opts);
+    register_doctier(&opts, "ast");
 
     map<string, vector<LangExt::VarType>> fileselection;
     fileselection.emplace(IJsonable::escape(R"(C:\Users\github\anclient\examples\example.slint\build\app\libboost_url-gcc16-mt-d-x64-1_91.dll)", opts),
@@ -99,7 +99,7 @@ TEST(ESCAPE, Valid_payload) {
     uploadreq.limit = 0;
     uploadreq.reset = true;
 
-    AnsonMsg<DocsReq> msg(Port{Port::docstier}, std::move(uploadreq));
+    AnsonMsg<DocsReq> msg(Port{&opts, Port::docstier}, std::move(uploadreq));
     msg.seq = 0;
 
     string expjson = R"json({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)json"
@@ -119,14 +119,14 @@ TEST(ESCAPE, Valid_payload) {
     R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
-    ASSERT_EQ(expjson, msg.toBlock());
+    ASSERT_EQ(expjson, msg.toBlock(opts));
 }
 
 TEST(ESCAPE, POSIX_path) {
     AstMap asts;
     JsonOpt opts{&asts};
-    register_jserv(asts, opts);
-    register_doctier(asts, "ast");
+    register_jserv(&opts);
+    register_doctier(&opts, "ast");
 
     map<string, vector<LangExt::VarType>> fileselection;
     fileselection.emplace(Anson::posix_path(R"(C:\Users\github\anclient\examples\example.slint\build\app\libboost_url-gcc16-mt-d-x64-1_91.dll)"),
@@ -151,7 +151,7 @@ TEST(ESCAPE, POSIX_path) {
     uploadreq.limit = 0;
     uploadreq.reset = true;
 
-    AnsonMsg<DocsReq> msg(Port{Port::docstier}, std::move(uploadreq));
+    AnsonMsg<DocsReq> msg(Port{&opts, Port::docstier}, std::move(uploadreq));
     msg.seq = 0;
 
     string expjson = R"json({"type": "io.odysz.semantic.jprotocol.AnsonMsg",)json"
@@ -171,5 +171,5 @@ TEST(ESCAPE, POSIX_path) {
     R"json("code": "ok","header": {"type": "io.odysz.semantic.jprotocol.AnsonHeader","iv64": "","ssToken": "","ssid": "","uid": "","usrAct": []},)json"
     R"json("port": "docstier","seq": 0,"version": ""})json";
 
-    ASSERT_EQ(expjson, msg.toBlock());
+    ASSERT_EQ(expjson, msg.toBlock(opts));
 }

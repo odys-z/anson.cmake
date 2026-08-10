@@ -25,7 +25,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     anson::register_asts(asts);
     anson::register_T_List(asts);
 
@@ -74,7 +74,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     EXPECT_EQ("A1", stub.val[2]);
 
     // case 1
-    EnTTSaxParser handler(stub_ref, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(stub_ref, &contxt);
     vec.push_back("B");
     data_member.set(handler.stack.back().instance, vec);
     EXPECT_EQ(4, stub.val.size());
@@ -84,7 +84,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
     // case 2
     T_List stub2;
     T_List &stub2_ref = stub2;
-    EnTTSaxParser handler2_ref(stub2_ref, IJsonable::contxt_ptr);
+    EnTTSaxParser handler2_ref(stub2_ref, &contxt);
     vec.push_back("C");
     data_member.set(handler2_ref.stack.back().instance, vec);
     EXPECT_EQ(5, vec.size());
@@ -93,7 +93,7 @@ TEST(ENTT, T_LIST_GENERIC_SEQUENCE) {
 
     // Case 3
     T_List stub3;
-    EnTTSaxParser handler3(stub3, IJsonable::contxt_ptr);
+    EnTTSaxParser handler3(stub3, &contxt);
     vec.push_back("D");
     data_member.set(handler3.stack.back().instance, vec);
     EXPECT_EQ(6, vec.size());
@@ -107,7 +107,7 @@ TEST(ENTT, T_LIST_PARSE) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
     register_T_List(asts);
 
@@ -116,7 +116,7 @@ TEST(ENTT, T_LIST_PARSE) {
 
     std::string json_input = std::format(R"({{"type": "{}", "txt": "text", "val": ["a", "b"]}})", T_List::_type_);
 
-    EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
+    EnTTSaxParser handler_parse(anlist, &contxt);
 
     T_List* to_checkList0 = handler_parse.stack.back().instance.try_cast<anson::T_List>();
 
@@ -146,7 +146,7 @@ TEST(ENTT, T_LIST_2D) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
     register_T_List(asts);
     register_2Dasts(asts);
@@ -157,7 +157,7 @@ TEST(ENTT, T_LIST_2D) {
     std::string json_input = std::format(R"({{"type": "{}", "vss": [{{"txt": "x", "val": ["0"]}}] }})",
                                          T_List2D::_type_);
 
-    EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
+    EnTTSaxParser handler_parse(anlist, &contxt);
 
     cout << "[0] " << json_input << endl;
     anlist.type = "";
@@ -182,7 +182,7 @@ TEST(ENTT, T_LIST_2D_Ptr) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
     register_T_List(asts);
     register_2DPtr_asts_callback(asts);
@@ -193,7 +193,7 @@ TEST(ENTT, T_LIST_2D_Ptr) {
     std::string json_input = std::format(R"({{"type": "{}", "vpp": [{{"txt": "y", "val": ["cccc ----"]}}] }})",
                                          T_List2DPtr::_type_);
 
-    EnTTSaxParser handler_parse(anlist, IJsonable::contxt_ptr);
+    EnTTSaxParser handler_parse(anlist, &contxt);
 
     cout << "[0] " << json_input << endl;
     anlist.type = "";

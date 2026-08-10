@@ -16,21 +16,21 @@ static AstMap asts;
 static JsonOpt contxt{&asts};
 
 TEST(AnsonRespons, Deserialize) {
-    register_jserv(asts, contxt);
+    register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     using Rep = AnsonMsg<AnsonResp>;
 
-    string msgclass = Rep().anclass;
+    string msgclass = Rep(&contxt).anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    Rep resp{};
+    Rep resp{&contxt};
     std::string json_input = std::format(R"({{"type": "{}", "port": "query", "code": "ok", "body": [{{"m": "Rep 111"}}]}})",
                                          AnsonMsg<AnsonResp>::_type_);
 
     cout << "[1] " << json_input << endl;
-    bool result = Anson::from_json(json_input, resp);
+    bool result = Anson::from_json(json_input, resp, &contxt);
     anlog(std::format("[2] ok: {}, anclass: {}, port: {}", result, resp.anclass, resp.port.valof()));
 
     ASSERT_TRUE(result);
@@ -43,7 +43,7 @@ TEST(AnsonRespons, Deserialize) {
     AnsonResp repbd = resp.Body();
 
     cout << "[4] body: " << resp.body_size() << ", type: " << repbd.anclass << endl;
-    EXPECT_EQ("ok", AnsonJavaEnumAst::name<MsgCode>(resp.code)) << "[4] body[0].code = 'ok'";
+    EXPECT_EQ("ok", AnsonJavaEnumAst::name<MsgCode>(&contxt, resp.code)) << "[4] body[0].code = 'ok'";
     EXPECT_EQ(MsgCode::Code::ok, resp.code) << "[4] body[0].code = ok";
 
     // issue: there should be an event of on value pasing in the parser.
@@ -59,11 +59,11 @@ TEST(AnsonRespons, Deserialize) {
 }
 
 TEST(AnsonResponse, Serialize) {
-    register_jserv(asts, contxt);
+    register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<AnsonResp>;
-    auto msg = std::make_shared<Req>(Port{Port::query});
+    auto msg = std::make_shared<Req>(Port{&contxt, Port::query});
     AnsonResp bd;
     msg->code = MsgCode::Code::ok;
     bd.m = "TEST AnsonRespse Serialize";

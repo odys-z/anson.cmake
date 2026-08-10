@@ -30,10 +30,10 @@ public:
     }
 };
 
-inline static void register_synorgAst(AstMap & asts) {
+inline static void register_synorgAst(JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <SynOrg, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"orgId", {.dataAnclass="string"} },
         {"orgName", {.dataAnclass="string"} },
         {"orgType", {.dataAnclass="string"} },
@@ -61,7 +61,7 @@ inline static void register_synorgAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const SynOrg&>(ans);
                 if ("orgId" == fieldname)
@@ -84,8 +84,8 @@ inline static void register_synorgAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.album0);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -118,10 +118,10 @@ public:
     }
 };
 
-inline static void register_synodeAst(AstMap & asts) {
+inline static void register_synodeAst(JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <Synode, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"org", {.dataAnclass="string"} },
         {"domain", {.dataAnclass="string"} },
         {"synid", {.dataAnclass="string"} },
@@ -155,7 +155,7 @@ inline static void register_synodeAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const Synode&>(ans);
                 if ("org" == fieldname)
@@ -182,8 +182,8 @@ inline static void register_synodeAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.synuid);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -216,10 +216,10 @@ public:
     }
 };
 
-inline static void register_synodeconfigAst(AstMap & asts) {
+inline static void register_synodeconfigAst(JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <SynodeConfig, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"domain", {.dataAnclass="string"} },
         {"synid", {.dataAnclass="string"} },
         {"sysconn", {.dataAnclass="string"} },
@@ -253,7 +253,7 @@ inline static void register_synodeconfigAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const SynodeConfig&>(ans);
                 if ("domain" == fieldname)
@@ -280,8 +280,8 @@ inline static void register_synodeconfigAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.chsize);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -299,10 +299,10 @@ public:
     inline static const string regist = "regist.serv";
     inline static const string menu = "menu.serv";
 
-    Centralport() : JavaEnum(_type_, "_sentinel_") {
+    Centralport(const JsonOpt* ctx) : JavaEnum(ctx, _type_, "_sentinel_") {
     }
 
-    Centralport(const string& enumval) : JavaEnum(_type_, enumval) {
+    Centralport(const JsonOpt* ctx, const string& enumval) : JavaEnum(ctx, _type_, enumval) {
     }
 };
 
@@ -332,9 +332,9 @@ public:
     RegistReq() : UserReq() { Type(_type_); }
 };
 
-inline static void load_registreqAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<RegistReq, UserReq>(asts, ast_path,
-      [](meta_factory<RegistReq> &entf, AnsonBodyAst *ast) {
+inline static void load_registreqAst(JsonOpt* ctx, const string &ast_path) {
+    specialize_msg_astpth<RegistReq, UserReq>(ctx, ast_path,
+      [ctx](meta_factory<RegistReq> &entf, AnsonBodyAst *ast) {
         entf.data<&RegistReq::market>("market");
         entf.data<&RegistReq::protocolPath>("protocolPath");
         entf.data<&RegistReq::diction>("diction");
@@ -342,7 +342,7 @@ inline static void load_registreqAst(AstMap &asts, const string &ast_path) {
         entf.data<&RegistReq::mystate>("mystate");
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const RegistReq&>(ans);
                 if ("market" == fieldname)
@@ -357,8 +357,8 @@ inline static void load_registreqAst(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.mystate);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -387,15 +387,15 @@ public:
     }
 };
 
-inline static void load_registrespAst(AstMap &asts, const string &ast_path) {
-    specialize_msg_astpth<RegistResp, AnsonResp>(asts, ast_path,
-      [](meta_factory<RegistResp> &entf, AnsonBodyAst *ast) {
+inline static void load_registrespAst(JsonOpt* ctx, const string &ast_path) {
+    specialize_msg_astpth<RegistResp, AnsonResp>(ctx, ast_path,
+      [ctx](meta_factory<RegistResp> &entf, AnsonBodyAst *ast) {
         entf.data<&RegistResp::r>("r");
         entf.data<&RegistResp::diction>("diction");
         entf.data<&RegistResp::orgDomains>("orgDomains");
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const RegistResp&>(ans);
                 if ("r" == fieldname)
@@ -406,8 +406,8 @@ inline static void load_registrespAst(AstMap &asts, const string &ast_path) {
                     return entt::forward_as_meta(concrete.orgDomains);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -417,14 +417,14 @@ inline static void load_registrespAst(AstMap &asts, const string &ast_path) {
     });
 }
 
-inline static void register_centralclientier(AstMap &asts, const string &ast_folder) {
+inline static void register_centralclientier(JsonOpt* ctx, const string &ast_folder) {
     filesystem::path folder_path{ast_folder};
-    register_synorgAst(asts);
-    register_synodeAst(asts);
-    register_synodeconfigAst(asts);
-    register_iport<Centralport>(asts, (folder_path / "centralport.ast.json").string());
-    load_registreqAst(asts, (folder_path / "registreq.ast.json").string());
-    load_registrespAst(asts, (folder_path / "registresp.ast.json").string());
+    register_synorgAst(ctx);
+    register_synodeAst(ctx);
+    register_synodeconfigAst(ctx);
+    register_iport<Centralport>(ctx, (folder_path / "centralport.ast.json").string());
+    load_registreqAst(ctx, (folder_path / "registreq.ast.json").string());
+    load_registrespAst(ctx, (folder_path / "registresp.ast.json").string());
 }
 
 }

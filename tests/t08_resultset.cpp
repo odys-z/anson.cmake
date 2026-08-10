@@ -75,7 +75,7 @@ TEST(AnResultset, IntVal) {
 }
 
 TEST(AnResultset, Serialize_Deserialize) {
-    register_jserv(asts, contxt);
+    register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     map<string, Column> cols {
@@ -94,7 +94,7 @@ TEST(AnResultset, Serialize_Deserialize) {
     anlog("------------------------------------ "s + json);
 
     AnResultset rs;
-    bool result = Anson::from_json(json, rs);
+    bool result = Anson::from_json(json, rs, &contxt);
     anlog(std::format("[2] ok: {}, anclass: {}, rows: {}",
                       result, rs.anclass, rs.getRowCnt()));
 

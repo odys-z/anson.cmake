@@ -30,8 +30,8 @@ public:
     }
 };
 
-inline static AnsonAst* register_AnsTMap(AstMap & asts) {
-    AnsonAst *ast = createAST<AnsTMap, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+inline static AnsonAst* register_AnsTMap(JsonOpt* ctx) {
+    AnsonAst *ast = createAST<AnsTMap, AnsonAst>(*ctx->asts, Anson::_type_, map<string, AnsonField>{
         {"_map", {.dataAnclass="map<string, string"}},
         {"mapArr", {.dataAnclass="map<string, list<LangExt::VarType"}},
         {"mapArr2", {.dataAnclass="map<string, list<VarType"}}
@@ -47,7 +47,7 @@ inline static AnsonAst* register_AnsTMap(AstMap & asts) {
         ;
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnsTMap&>(ans);
@@ -59,8 +59,8 @@ inline static AnsonAst* register_AnsTMap(AstMap & asts) {
                 return entt::forward_as_meta(concrete.mapArr2);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -92,8 +92,8 @@ public:
 
 };
 
-inline static AnsonAst* register_AnsTStrsList(AstMap & asts) {
-    AnsonAst *ast = createAST<AnsTStrsList, AnsonAst>(asts, Anson::_type_,
+inline static AnsonAst* register_AnsTStrsList(JsonOpt* ctx) {
+    AnsonAst *ast = createAST<AnsTStrsList, AnsonAst>(*ctx->asts, Anson::_type_,
                     map<string, AnsonField>{
                         {"lst", {.dataAnclass="list<list<string"}},
                         {"lst3d", {.dataAnclass="list<list<list<LangExt::VarType"}},
@@ -113,7 +113,7 @@ inline static AnsonAst* register_AnsTStrsList(AstMap & asts) {
         ;
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnsTStrsList&>(ans);
@@ -125,8 +125,8 @@ inline static AnsonAst* register_AnsTStrsList(AstMap & asts) {
                 return entt::forward_as_meta(concrete.dim4);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -153,20 +153,18 @@ public:
 };
 
 // MEMO: For test only, is not generated
-//
-// template <typename D, typename DBase>
-inline static optional<AnsonAst*> register_cssast(AstMap & asts, const string& ast_pth) {
-    optional<AnsonAst*> _ast = load_ast(asts, ast_pth);
+inline static optional<AnsonAst*> register_cssast(JsonOpt* ctx, const string& ast_pth) {
+    optional<AnsonAst*> _ast = load_ast(ctx, ast_pth);
     if (_ast) {
         AnsonAst *ast = _ast.value();
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             auto& concrete = static_cast<const T_PhotoCSS&>(ans);
             if ("size" == fieldname)
                 return entt::forward_as_meta(concrete.size);
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -181,9 +179,6 @@ inline static optional<AnsonAst*> register_cssast(AstMap & asts, const string& a
         meta_factory<T_PhotoCSS> protype =
         entt::meta_factory<T_PhotoCSS>()
             .type(enttype)
-            // .template base<DBase>()
-            // .template ctor<>()
-            // .template ctor<string>()
             .base<Anson>()
             .ctor<>()
             .data<&T_PhotoCSS::size>("size")

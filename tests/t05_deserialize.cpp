@@ -24,7 +24,7 @@ JsonOpt contxt{&enums};
 
 TEST(Anson, Base) {
     register_asts(enums);
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     auto an_type = entt::resolve(hashed_string{Anson::_type_.c_str()});
     meta_any anptr = an_type.construct();
@@ -38,7 +38,7 @@ TEST(Anson, Base) {
     ASSERT_EQ(Anson::_type_, anobj2.anclass) << "1. anobj2.type";
 
     std::string json_input = R"({"type": "input"})";
-    EnTTSaxParser handler(anobj2);
+    EnTTSaxParser handler(anobj2, &contxt);
 
     cout << "[2] " << json_input << endl;
     bool result = nlohmann::json::sax_parse(json_input, &handler);
@@ -48,8 +48,8 @@ TEST(Anson, Base) {
 }
 
 TEST(Anson, AnsonBody) {
-    register_msgs(enums);
-    IJsonable::contxt_ptr = &contxt;
+    register_msgs(&contxt);
+    // IJsonable::contxt_ptr = &contxt;
 
     AnsonBody testbody{"test"}; // instantatiate abstract class?
 
@@ -85,14 +85,14 @@ TEST(Anson, AnsonBody) {
 }
 
 TEST(Anson, PORT) {
-    register_port(enums);
+    register_port(&contxt);
     string portclass = Port::_type_;
     AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
     hashed_string portype{portclass.c_str()};
 
     ASSERT_TRUE(portAst->encode.size() > 2);
     ASSERT_TRUE(portAst->decode.contains(Port::echo));
-    ASSERT_TRUE(Port(Port::echo) == "echo");
+    ASSERT_TRUE(Port(&contxt, Port::echo) == "echo");
     ASSERT_TRUE(portAst->decode.size() > 2);
     ASSERT_TRUE(portAst->encode.contains("echo"));
     ASSERT_EQ(portAst->enttypeid, portype);
@@ -104,16 +104,16 @@ TEST(Anson, MsgCode) {
 }
 
 TEST(Anson, AnsonMsg_EchoReq) {
-    register_jserv(enums, contxt);
-    load_echoAst_test(enums, "ast/echo.ast.json");
+    register_jserv(&contxt);
+    load_echoAst_test(&contxt, "ast/echo.ast.json");
 
     using Req = AnsonMsg<EchoReq>;
 
-    string msgclass = Req().anclass;
+    string msgclass = Req(&contxt).anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    auto mv = mt.construct(Port(Port::echo));
+    auto mv = mt.construct(Port(&contxt, Port::echo));
     Req* msg = mv.try_cast<Req>();
     EchoReq body{"Hello"};
     body.a = "";
@@ -128,16 +128,16 @@ TEST(Anson, AnsonMsg_EchoReq) {
     ASSERT_EQ("Hello", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
 
-    Req msg2{};
+    Req msg2{&contxt};
     std::string json_input = R"({"type": "input", "port": "query", "body": [{"a": "test/echo", "echo": "AnsonMsg_EchoReq!"}]})";
 
     cout << "[2] " << json_input << endl;
-    bool result = Anson::from_json(json_input, msg2);
+    bool result = Anson::from_json(json_input, msg2, &contxt);
     cout << "[3] ok: " << result << ", anclass: " << msg2.anclass << ", port: " << msg2.port << endl;
 
     ASSERT_TRUE(result);
     // ASSERT_EQ(EchoReq()._type_special(AnsonMsg<EchoReq>::_type_), msg2.anclass) << "msg->anclass";
-    ASSERT_EQ(AnsonMsg<EchoReq>().anclass, msg2.anclass) << "msg->anclass";
+    ASSERT_EQ(AnsonMsg<EchoReq>(&contxt).anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ("input", msg2.type);
 
     EXPECT_EQ(Port::query, msg2.port.url()) << "[3] msg->port";
@@ -153,12 +153,12 @@ TEST(Anson, AnsonMsg_EchoReq) {
 
 TEST(Anson, Serialize_Msg) {
     JsonOpt opts{&enums};
-    register_jserv(enums, opts);
-    load_echoAst_ext(enums);
+    register_jserv(&opts);
+    load_echoAst_ext(&opts);
     anlog(to_aststring(enums), PrintFormat{.sep="\n"});
 
     using Req = AnsonMsg<EchoReq>;
-    auto msg = std::make_shared<Req>(Port{Port::query});
+    auto msg = std::make_shared<Req>(Port{&opts, Port::query});
     msg->body.push_back(std::make_shared<EchoReq>("Hello World"));
     msg->seq = 8964;
     msg->code = MsgCode::Code::ok;
@@ -180,17 +180,17 @@ TEST(Anson, Serialize_Msg) {
 
 TEST(Anson, Serialize_map) {
     JsonOpt opts{&enums};
-    register_jserv(enums, opts);
+    register_jserv(&opts);
 
     map<string, vector<LangExt::VarType>> m {{"x", {1, "one"}}};
-    string s = map2str(m);
+    string s = map2str(m, opts);
     ASSERT_EQ(R"({"x": [1,"one"]})", s);
 }
 
 TEST(Anson, Serialize_int_float) {
     JsonOpt opts{&enums};
-    register_jserv(enums, opts);
-    register_centralclientier(enums, "ast");
+    register_jserv(&opts);
+    register_centralclientier(&opts, "ast");
 
     SynodeConfig c;
     c.chsize = 1984;
@@ -201,7 +201,7 @@ TEST(Anson, Serialize_int_float) {
     ASSERT_TRUE(std::regex_search(json, std::regex("\"syncIns\": 3.14159")));
 
     SynodeConfig d;
-    Anson::from_json(json, d);
+    Anson::from_json(json, d, &opts);
     ASSERT_EQ(c.chsize, d.chsize);
     ASSERT_EQ(c.syncIns, d.syncIns);
 }

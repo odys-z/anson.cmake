@@ -23,13 +23,13 @@ public:
         Type(_type_);
     }
 
-    inline static void loadLangs(string str_res_json); // { Anson::from_file(str_res_json, langs); }
+    inline static void loadLangs(const JsonOpt* ctx, string str_res_json);
 };
 
-inline static void register_langstringAst(AstMap & asts) {
+inline static void register_langstringAst(const JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <LangString, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"lang", {.dataAnclass="string"} },
         {"en", {.dataAnclass="map<string, string"} },
         {"local", {.dataAnclass="map<string, string"} },
@@ -45,7 +45,7 @@ inline static void register_langstringAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const LangString&>(ans);
                 if ("lang" == fieldname)
@@ -56,8 +56,8 @@ inline static void register_langstringAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.local);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -68,8 +68,8 @@ inline static void register_langstringAst(AstMap & asts) {
 
 inline static LangString langs;
 
-inline void LangString::loadLangs(string str_res_json) {
-    Anson::from_file(str_res_json, langs);
+inline void LangString::loadLangs(const JsonOpt* ctx, string str_res_json) {
+    Anson::from_file(str_res_json, langs, ctx);
 }
 
 inline std::string operator""_ans(const char* str, std::size_t len) {

@@ -36,7 +36,7 @@ public:
     EchoReq() : EchoReq("na") {}
 };
 
-inline static void load_usereqAst_ext(AstMap &asts) {
+inline static void load_usereqAst_ext(JsonOpt* ctx) {
     istringstream ast_is {
         R"({ "type": "io.odysz.anson.AnsonBodyAst",)"
         // R"("dataAnclass": "io.odysz.semantic.jserv.echo.UserReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
@@ -45,23 +45,23 @@ inline static void load_usereqAst_ext(AstMap &asts) {
         R"("fields" : { "data": {"dataAnclass": "map<string, VarType"} })"
         R"(})"};
 
-    anson::template load_msg_specialAst<UserReq, AnsonBody>(asts, ast_is,
-      [](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
+    anson::template load_msg_specialAst<UserReq, AnsonBody>(ctx, ast_is,
+      [ctx](meta_factory<UserReq> &entf, AnsonBodyAst *ast) {
 
         entf.ctor<>();
         entf.ctor<string>();
 
         entf.data<&UserReq::data>("data");
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const UserReq&>(ans);
             if ("data" == fieldname)
                 return entt::forward_as_meta(concrete.data);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -71,27 +71,27 @@ inline static void load_usereqAst_ext(AstMap &asts) {
     });
 }
 
-inline static void load_echoAst_ext(AstMap &asts) {
+inline static void load_echoAst_ext(JsonOpt* ctx) {
     istringstream ast_is {R"({ "type": "io.odysz.anson.AnsonBodyAst",)"
     R"("dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
     R"("A": {"echo":  "echo", "inet":  "inet"},)"
     R"("fields" : { "echo": {"dataAnclass": "java.lang.String"} })"
     R"(})"};
 
-    load_msg_specialAst<EchoReq, AnsonBody>(asts, ast_is,
-      [](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
+    load_msg_specialAst<EchoReq, AnsonBody>(ctx, ast_is,
+      [ctx](meta_factory<EchoReq> &entf, AnsonBodyAst *ast) {
         entf.ctor<string>();
         entf.data<&EchoReq::echo>("echo");
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const EchoReq&>(ans);
                 if ("echo" == fieldname)
                     return entt::forward_as_meta(concrete.echo);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 

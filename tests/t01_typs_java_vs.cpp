@@ -84,7 +84,7 @@ TEST(VarAnyTest, VarType) {
 }
 
 TEST(JAVA_CPP, TypedEnum) {
-    IJsonable::contxt_ptr = &opts;
+    // IJsonable::contxt_ptr = &opts;
     register_enums<MsgCode>(asts);
     register_enums<SampleCode>(asts);
 
@@ -120,7 +120,7 @@ TEST(JAVA_CPP, TypedEnum) {
 }
 
 TEST(JAVA_CPP, JsonVariant) {
-    IJsonable::contxt_ptr = &opts;
+    // IJsonable::contxt_ptr = &opts;
 
     std::optional<string> one = LangExt::var_str("1");
     ASSERT_EQ("1", one) << "'1' == one";

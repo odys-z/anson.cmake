@@ -17,14 +17,14 @@ TEST(Load, PeerSettings) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_peersettings(asts);
+    register_peersettings(&contxt);
 
     PeerSettings settings;
     std::string json_input = std::format(R"({{"type": "{}"}})", PeerSettings::_type_);
-    EnTTSaxParser handler(settings, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(settings, &contxt);
 
     andebug("[0] " + json_input);
     settings.type = "";
@@ -44,7 +44,7 @@ TEST(Load, PeerSettings) {
     settings.type = "";
     result = nlohmann::json::sax_parse(ifstream, &handler2);
     */
-    result = Anson::from_file(t03_json, settings);
+    result = Anson::from_file(t03_json, settings, &contxt);
     ASSERT_TRUE(result);
 
     aninfo(settings.javaEnums);
@@ -82,10 +82,10 @@ TEST(Load, PeerSettings) {
 TEST(Load, AnsonAst_Port) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts);
+    register_port(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string ast_port = "ast/port.ast-only-4-t03.json";
@@ -97,17 +97,17 @@ TEST(Load, AnsonAst_Port) {
     aninfo(string_view("Parsing Port..."));
     AnsonJavaEnumAst portAst{};
     portAst.dataAnclass = Port::_type_;
-    EnTTSaxParser handler(portAst, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(portAst, &contxt);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonJavaEnumAst::_type_, portAst.type) << "portAst.type";
     ASSERT_EQ(AnsonJavaEnumAst().anclass, portAst.anclass) << "portAst.anclass";
     ASSERT_EQ("io.odysz.anson.JavaEnum", portAst.baseAnclass) << "portAst.baseAnclass";
 
-    string port_anclass = Port().anclass;
+    string port_anclass = Port(&contxt).anclass;
     andebug(string_view(port_anclass));
 
-    ASSERT_EQ(Port().anclass, portAst.dataAnclass) << "portAst.dataAnclass";
+    ASSERT_EQ(Port(&contxt).anclass, portAst.dataAnclass) << "portAst.dataAnclass";
 
     ASSERT_EQ((map<string, string>{
                 {"heartbeat", "ping.serv"},
@@ -147,8 +147,8 @@ TEST(Load, AnsonAst_Port) {
 TEST(Load, EchoReq) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    register_jserv(asts, contxt);
-    load_echoAst_test(asts, "ast/echo.ast.json");
+    register_jserv(&contxt);
+    load_echoAst_test(&contxt, "ast/echo.ast.json");
 
     string t03_echo_json = "settings/t03_echo.body.json";
     std::ifstream ifstream(t03_echo_json);
@@ -157,7 +157,7 @@ TEST(Load, EchoReq) {
     }
 
     EchoReq echo{};
-    EnTTSaxParser handler(echo, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(echo, &contxt);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     ASSERT_TRUE(result);
     ASSERT_EQ(EchoReq::_type_, echo.anclass)
@@ -169,10 +169,10 @@ TEST(Load, EchoReq) {
 TEST(Load, EchoAst) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_port(asts);
+    register_port(&contxt);
 
     string echo_msg = "ast/echo-msg.ast-only-4-t03.json";
     std::ifstream ifmsgstream(echo_msg);
@@ -180,7 +180,7 @@ TEST(Load, EchoAst) {
         FAIL() << "Could not open the file! " << echo_msg << endl;
     }
     AnsonMsgAst echomsgAst;
-    EnTTSaxParser handler(echomsgAst, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(echomsgAst, &contxt);
     bool result = nlohmann::json::sax_parse(ifmsgstream, &handler);
     ASSERT_TRUE(result);
 
@@ -195,7 +195,7 @@ TEST(Load, EchoAst) {
     }
 
     AnsonBodyAst echoAst;
-    EnTTSaxParser handler2(echoAst, IJsonable::contxt_ptr);
+    EnTTSaxParser handler2(echoAst, &contxt);
     result = nlohmann::json::sax_parse(ifstream, &handler2);
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsonBodyAst::_type_, echoAst.type) << "echoAst.type.";
