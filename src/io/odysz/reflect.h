@@ -156,7 +156,7 @@ public:
         };
 
     template <typename C>
-    static inline string name(C e, const JsonOpt* contxt_ptr) {
+    static inline string name(const JsonOpt* contxt_ptr, C e) {
         if (contxt_ptr && contxt_ptr->has_ast(C::_type_)) {
             AnsonJavaEnumAst * jeast = contxt_ptr->ast<AnsonJavaEnumAst>(C::_type_);
             return jeast->name_of({e.valeur});

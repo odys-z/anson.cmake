@@ -17,16 +17,16 @@ static AstMap asts;
 static JsonOpt contxt{&asts};
 
 TEST(AUTOGEN, AnsonMsg_EchoReq2) {
-    register_jserv(asts, contxt);
-    load_echoreq2Ast(asts, "ast/echo2.ast.json");
+    register_jserv(&contxt);
+    load_echoreq2Ast(&contxt, "ast/echo2.ast.json");
 
     using Req = AnsonMsg<EchoReq2>;
 
-    string msgclass = Req().anclass;
+    string msgclass = Req(&contxt).anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    auto mv = mt.construct(Port(Port::echo));
+    auto mv = mt.construct(Port(&contxt, Port::echo));
     Req* msg = mv.try_cast<Req>();
     EchoReq2 body{"Hello"};
     body.a = "";
@@ -41,15 +41,15 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     ASSERT_EQ("Hello", msg->body.at(0)->echo) << "[1] msg-body[0].echo";
 
 
-    Req msg2{};
+    Req msg2{&contxt};
     std::string json_input = R"({"type": "input", "port": "query", "body": [{"a": "test/echo", "echo": "AnsonMsg_EchoReq!"}]})";
 
     cout << "[2] " << json_input << endl;
-    bool result = Anson::from_json(json_input, msg2);
+    bool result = Anson::from_json(json_input, msg2, &contxt);
     cout << "[3] ok: " << result << ", anclass: " << msg2.anclass << ", port: " << msg2.port << endl;
 
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<EchoReq2>().anclass, msg2.anclass) << "msg->anclass";
+    ASSERT_EQ(AnsonMsg<EchoReq2>(&contxt).anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ("input", msg2.type);
 
     EXPECT_EQ(Port::query, msg2.port.url()) << "[3] msg->port";
@@ -64,16 +64,16 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
 }
 
 TEST(AUTOGEN, SessionReq) {
-    register_jserv(asts, contxt);
-    register_semantier(asts, "ast/");
+    register_jserv(&contxt);
+    register_semantier(&contxt, "ast/");
 
     using Req = AnsonMsg<AnSessionReq>;
 
-    string msgclass = Req().anclass;
+    string msgclass = Req(&contxt).anclass;
     auto mt = entt::resolve(hashed_string{msgclass.c_str()});
     ASSERT_TRUE(mt) << "resolve " << msgclass;
 
-    auto mv = mt.construct(Port(Port::session));
+    auto mv = mt.construct(Port(&contxt, Port::session));
     Req* msg = mv.try_cast<Req>();
     AnSessionReq body{};
     body.a = AnSessionReq::A::login;
@@ -89,15 +89,15 @@ TEST(AUTOGEN, SessionReq) {
     ASSERT_EQ("ody", msg->body.at(0)->uid) << "[1] msg-body[0].uid";
 
 
-    Req msg2{};
+    Req msg2{&contxt};
     std::string json_input = R"({"type": "input", "port": "session", "body": [{"a": "test/echo", "uid": "Mr. Zelenskyy"}]})";
 
     anlog("[2] "s + json_input);
-    bool result = Anson::from_json(json_input, msg2);
+    bool result = Anson::from_json(json_input, msg2, &contxt);
     anlog(std::format("[3] ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.url()));
 
     ASSERT_TRUE(result);
-    ASSERT_EQ(AnsonMsg<AnSessionReq>().anclass, msg2.anclass) << "msg->anclass";
+    ASSERT_EQ(AnsonMsg<AnSessionReq>(&contxt).anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ("input", msg2.type);
 
     ASSERT_EQ(Port::session, msg2.port.url()) << "[3] msg->port";
@@ -113,21 +113,21 @@ TEST(AUTOGEN, SessionReq) {
 
 TEST(AUTOGEN, SessionResp) {
 
-    register_jserv(asts, contxt);
-    register_semantier(asts, "ast/");
+    register_jserv(&contxt);
+    register_semantier(&contxt, "ast/");
 
     using Resp = AnsonMsg<AnSessionResp>;
-    Resp msg2{};
+    Resp msg2{&contxt};
     std::string json_input = std::format(
         R"({{"type": "{}", "port": "session", "body": [{{"a": "{}", "ssInf": {{"uid": "Mr. Zelenskyy"}}}}]}})",
         Resp::_type_, AnSessionReq::A::pswd);
 
     anlog(json_input);
-    bool result = Anson::from_json(json_input, msg2);
+    bool result = Anson::from_json(json_input, msg2, &contxt);
     anlog(std::format("ok: {}, anclass: {}, port: {}", result, msg2.anclass, msg2.port.valof()));
 
     ASSERT_TRUE(result);
-    ASSERT_EQ(Resp().anclass, msg2.anclass) << "msg->anclass";
+    ASSERT_EQ(Resp(&contxt).anclass, msg2.anclass) << "msg->anclass";
     ASSERT_EQ(Resp::_type_, msg2.type) << "msg->type";
 
     ASSERT_EQ(Port::session, msg2.port.url()) << "[] msg->port";
@@ -149,7 +149,7 @@ TEST(AUTOGEN, SessionResp) {
                 R"("map": null, "uri": null}
 ], "addr": null, "version": "1.1", "seq": 0})";
 
-    result = Anson::from_json(json_input, msg2);
+    result = Anson::from_json(json_input, msg2, &contxt);
     repbd = msg2.Body();
     ASSERT_TRUE(result);
     // EXPECT_EQ(1, msg2.body_size()) << "TODO: clean message body before deserilize list";

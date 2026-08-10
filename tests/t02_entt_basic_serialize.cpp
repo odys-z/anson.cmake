@@ -8,7 +8,7 @@ TEST(ENTT, Serialize_T_List) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
     register_T_List(asts);
     register_2DPtr_asts_callback(asts);
@@ -28,7 +28,7 @@ TEST(ENTT, Serialize_2DPtr) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
     register_asts(asts);
     register_T_List(asts);
     register_2DPtr_asts_callback(asts);

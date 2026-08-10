@@ -13,10 +13,9 @@ static AstMap asts;
 static JsonOpt opts{&asts};
 
 TEST(JUNIT, AnsTMap) {
-    IJsonable::contxt_ptr = &opts;
     register_varctors();
     register_asts(asts);
-    register_AnsTMap(asts);
+    register_AnsTMap(&opts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     map<string, vector<LangExt::VarType>> maparr {
@@ -38,7 +37,7 @@ TEST(JUNIT, AnsTMap) {
     anlog("------------------------------------ "s + json);
 
     AnsTMap res;
-    bool result = Anson::from_json(json, res);
+    bool result = Anson::from_json(json, res, &opts);
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsTMap::_type_, res.anclass) << "[2]res->anclass";
     ASSERT_EQ(2, res.mapArr.size());
@@ -53,7 +52,7 @@ TEST(JUNIT, AnsTMap) {
 TEST(JUNIT, AnsList3D) {
 
     register_varctors();
-    register_AnsTStrsList(asts);
+    register_AnsTStrsList(&opts);
 
     vector<LangExt::VarType>
         r0{"x0", "y0"},
@@ -67,7 +66,7 @@ TEST(JUNIT, AnsList3D) {
     anlog("------------------------------------ "s + json);
 
     AnsTStrsList res;
-    bool result = Anson::from_json(json, res);
+    bool result = Anson::from_json(json, res, &opts);
     ASSERT_TRUE(result);
     ASSERT_EQ(AnsTStrsList::_type_, res.anclass) << "AnsTstrsList->anclass";
     ASSERT_EQ(1, res.lst.size());
@@ -81,7 +80,7 @@ TEST(JUNIT, AnsList3D) {
 }
 
 TEST(JUNIT, NestedList) {
-    register_jserv(asts, opts);
+    register_jserv(&opts);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
     string jblock = R"({"type":"io.odysz.semantic.jserv.U.AnInsertReq",)"
@@ -92,7 +91,7 @@ TEST(JUNIT, NestedList) {
                     R"(})";
 
     AnInsertReq req;
-    bool result = Anson::from_json(jblock, req);
+    bool result = Anson::from_json(jblock, req, &opts);
     ASSERT_TRUE(result);
     ASSERT_EQ("type\"\"type", LangExt::var_str(req.nvs[0][0]));
     // ISSUE Descripency in anson.java:
@@ -105,8 +104,8 @@ TEST(JUNIT, NestedList) {
 }
 
 TEST(JUNIT, NoSql) {
-    register_jserv(asts, opts);
-    register_cssast(asts, "ast/photo_css.json");
+    register_jserv(&opts);
+    register_cssast(&opts, "ast/photo_css.json");
     anlog(to_aststring(asts, T_PhotoCSS::_type_), PrintFormat{.head="------", .sep="\n"});
 
     string jblock = "{\"type\":\"io.odysz.semantic.jprotocol.U.AnInsertReq\","s
@@ -115,12 +114,12 @@ TEST(JUNIT, NoSql) {
                     + "}";
 
     AnInsertReq req;
-    bool result = Anson::from_json(jblock, req);
+    bool result = Anson::from_json(jblock, req, &opts);
     ASSERT_TRUE(result);
     ASSERT_EQ(R"({"type":"io.oz.album.tier.T_PhotoCSS", "size":[4,3,3,4]})", LangExt::var_str(req.nvs[1][1]));
 
     T_PhotoCSS css;
-    result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css);
+    result = Anson::from_json(LangExt::var_str(req.nvs[1][1]).value(), css, &opts);
     ASSERT_TRUE(result);
     ASSERT_EQ(T_PhotoCSS::_type_, css.anclass);
     ASSERT_EQ(css.anclass, css.type);
