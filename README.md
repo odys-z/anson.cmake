@@ -41,6 +41,13 @@ Install denpendencies
     ./vcpkg install entt:x64-mingw-dynamic 
 ```
 
-# Myth / TODO
+# ASTs for Tests
 
-Refactor source file tree, to share (copy automatically) ASTs with Anclient.cmake and use generated CRUD / Sesseion (semantier) for test. 
+Use the latest Semantier-generator for generating required headers for testing.
+
+```
+    pip install semantier-generator
+    python -m semantier_gen settings/....json ast # TODO docs
+```
+
+AST files, *.ast.json, are copied from Anson.cmake/tests/ast.
