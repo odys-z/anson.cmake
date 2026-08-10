@@ -41,9 +41,9 @@ public:
     const map<string, string> astyps;
     /** @deprecated */
     const map<string, string> primtypes;
-    const AstMap *asts;
+    AstMap *asts;
 
-    JsonOpt(const AstMap *asts)
+    JsonOpt(AstMap *asts)
         : asts(asts), primtypes(primtypes_c20()),
         astyps({{"io.odysz.anson.AnsonAst", "AnsonAst"},
                 {"io.odysz.anson.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
@@ -181,10 +181,25 @@ protected:
     /** Only for direct subclasses, Anson, JavaEnum, etc. */
     IJsonable(const string &ancls): anclass(ancls) {}
 
+    // inline static JsonOpt* contxt_ptr = nullptr;
+    /**
+     * contxt_ptr is a reflect context, stands for different bridge to json.
+     * The difference comes with the diferent sets of AST definitions, and
+     * each jsonable object has a connection to JSON.
+     * Currently, 0.1.2, only JavaEnum is using this field.
+     *
+     * TODO This should be generalized to all IJsonables.
+     * @since 0.1.2
+     */
+    // JsonOpt* contxt_ptr = nullptr;
+    // Reason to remove:
+    // 1. Different libs can have Anson class name conflicts.
+    //    A static contxt_ptr is not enough.
+    // 2. It's a burden to create every objects with an arg of contxt_ptr,
+    //    and user can use object without serializing.
+
 public:
     inline static const string _anclass_ = "io.odysz.anson.IJsonable";
-
-    inline static JsonOpt* contxt_ptr = nullptr;
 
     /**
      * Backgroud:
@@ -234,20 +249,31 @@ public:
     // }
 };
 
+class AnsonJavaEnumAst;
+
 /** This is invisible in java. */
 class JavaEnum : public IJsonable {
+protected:
+    /**
+     * @brief ast
+     * Java enum is different to c++ enum. An ast is a helper for translation.
+     * @see IJsonalbe comments about contxt_ptr.
+     * @since 0.1.2
+     */
+    const AnsonJavaEnumAst* ast = nullptr;
 
 public:
     inline static const string _type_ = "io.odysz.anson.JavaEnum";
 
     string enm;
 
-    JavaEnum(const string& dataAnclass, const string& e_v);
-    JavaEnum(const JavaEnum& e) { enm = e.enm; anclass = e.anclass; }
+    JavaEnum(const AnsonJavaEnumAst* ast, const string& dataAnclass, const string& e_v);
+    JavaEnum(const JsonOpt* ctx, const string& dataAnclass, const string& e_v)
+        : JavaEnum(ctx == nullptr ? nullptr : ctx->ast<AnsonJavaEnumAst>(dataAnclass), dataAnclass, e_v) {}
+    JavaEnum(const JavaEnum& e) { ast = e.ast; enm = e.enm; anclass = e.anclass; }
     JavaEnum(JavaEnum&&) = default;
 
     JavaEnum& operator=(const JavaEnum&);
-    // JavaEnum& operator=(const JavaEnum&) = default;
     JavaEnum& operator=(JavaEnum&&) noexcept = default;
 
     string url() {
@@ -265,9 +291,16 @@ public:
         buf += '\"' + valof() + '\"';
         return this;
     }
+
+    bool operator==(const std::string& s) const;
+
+    bool operator==(const anson::JavaEnum& p) const {
+        return p.enm == enm;
+    }
 };
 
 inline JavaEnum& JavaEnum::operator=(const JavaEnum& other) {
+    ast = other.ast;
     enm = other.enm;
     return *this;
 }
@@ -317,14 +350,14 @@ public:
     Anson() : type(_type_) { Type(_type_); }
 
     template <typename T>
-    static bool from_json(const string& json, T &an, const JsonOpt *opts = nullptr) {
+    static bool from_json(const string& json, T &an, const JsonOpt *opts) {
         return parse(json, an, opts);
     }
 
     template <typename An>
-    static bool from_file(const string& pth, An & an, const JsonOpt* contx_ptr = IJsonable::contxt_ptr);
+    static bool from_file(const string& pth, An & an, const JsonOpt* contx_ptr);
 
-    string toBlock(const JsonOpt &jsopt = *IJsonable::contxt_ptr) const {
+    string toBlock(const JsonOpt &jsopt) const {
         std::stringstream ss;
         toBlock(ss, jsopt);
         return std::move(ss).str();
@@ -337,9 +370,9 @@ public:
         return this;
     }
 
-    void to_file(const string& pth, const JsonOpt &jsopt = *IJsonable::contxt_ptr) {
+    void to_file(const string& pth, const JsonOpt *jsopt) {
         std::ofstream ofstream(pth);
-        toBlock(ofstream, jsopt);
+        toBlock(ofstream, *jsopt);
     }
 
     static std::string posix_path(const std::string& s) {
@@ -442,7 +475,7 @@ public:
 };
 
 template <typename An>
-bool Anson::from_file(const string& pth, An & an, const JsonOpt* contx_ptr) {
+bool Anson::from_file(const string& pth, An & an, const JsonOpt* contxt_ptr) {
     EnTTSaxParser h(an, contxt_ptr);
     an.type = "";
 

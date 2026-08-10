@@ -4,7 +4,7 @@
 #include <entt/meta/meta.hpp>
 
 #include "common.h"
-#include "anson.h"
+#include "reflect.h"
 #include "module/rs.h"
 
 namespace anson {
@@ -93,13 +93,26 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
-    Port(): JavaEnum(_type_, "na") {
+    /** Not entt registered */
+    Port(const AnsonJavaEnumAst* ast): JavaEnum(ast, _type_, "na") {
         andebug("Port Default Cosntructor");
     }
 
-    Port(string enum_val) : JavaEnum(_type_, enum_val) {
+    /** Not entt registered */
+    Port(const AnsonJavaEnumAst* ast, string enum_val) : JavaEnum(ast, _type_, enum_val) {
         andebug("Port Cosntructor<string>("s + enum_val + ").enm = " + enm);
     }
+
+    Port(const JsonOpt* ctx, string enumval)
+        : JavaEnum(ctx == nullptr ? nullptr : ctx->ast<AnsonJavaEnumAst>(_type_), _type_, enumval) { }
+
+    /**
+     * @brief Port
+     *
+     * @param ctx The bridge / context of c++ to Json.
+     * A nullptr is tolerated but is senseless if creating a JavaEnum without intending to serialize.
+     */
+    Port(const JsonOpt* ctx): Port(ctx, "na") { }
 };
 
 /**
@@ -239,7 +252,7 @@ public:
     AnsonMsg(JavaEnum port) : Anson(_type_, _type_ + '<' + T::_type_), port(port),
         code(MsgCode::Code::ok) { } // ISSUE 0.1.1 shouldn't be MsgCodeEnum::_sentinel_ ?
 
-    AnsonMsg() : AnsonMsg(Port{"_sentinel_"}) { }
+    AnsonMsg(const JsonOpt* ctx) : AnsonMsg(Port{ctx, "_sentinel_"}) { }
 
     AnsonMsg(JavaEnum port, const T& body) : AnsonMsg(port) {
         this->Body(body);

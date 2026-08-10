@@ -6,6 +6,8 @@
 #include <entt/meta/container.hpp>
 #include <string>
 #include <iostream>
+#include <cstdint>
+#include <type_traits>
 
 #include "reflect.h"
 #include "utils.h"
@@ -27,66 +29,6 @@ inline static entt::meta_data find_field_recursive(entt::meta_type type, id_type
     }
     return {};
 }
-
-/*
-inline static ostream& serialize_prim_value(ostream &os, meta_any &inst,
-                       const vector<string> &valtype, const JsonOpt &opts) {
-
-    if (!opts.primtypes.contains(valtype[0])) {
-        anerror(std::format("Cannot serialize [{}]", valtype[0]));
-        return os << "null";
-    }
-
-    if ("string" == opts.primtypes.at(valtype[0])) {
-        if (inst) {
-            auto *s = inst.try_cast<const std::string>();
-            if (s) {
-                // anostream(os, opts);
-                return os << '"' << *s << '"';
-            }
-        }
-        else return os << "null";
-    }
-
-    if ("int" == opts.primtypes.at(valtype[0])) {
-        if (inst) {
-            auto *s = inst.try_cast<const int>();
-            return os << *s;
-        }
-    }
-
-    if ("long" == opts.primtypes.at(valtype[0])) {
-        if (inst) {
-            auto *s = inst.try_cast<const long>();
-            return os << *s;
-        }
-    }
-
-    if ("float" == opts.primtypes.at(valtype[0]) || "double" == opts.primtypes.at(valtype[0])) {
-        if (inst) {
-            auto *s = inst.try_cast<const double>();
-            return os << *s;
-        }
-    }
-
-    if ("boolean" == opts.primtypes.at(valtype[0])) {
-        if (inst) {
-            auto *s = inst.try_cast<const bool>();
-            bool b = *s;
-            return os << (b ? "true" : "false"); //*s;
-        }
-    }
-
-    if ("VarType" == opts.primtypes.at(valtype[0])) {
-        return LangExt::serialize_var(os, inst, opts);
-    }
-
-    return os << "\"serialize error: " << valtype[0] << '"';
-} */
-
-#include <cstdint>
-#include <type_traits>
-
 
 template <typename T>
 static bool try_write_number(ostream &os, meta_any &inst) {
@@ -265,7 +207,7 @@ inline static ostream& serialize_map(ostream& os, const meta_any &map_any,
     os << '{';
     bool first = true;
 
-    if (AnsonAst * ast = IJsonable::contxt_ptr->ast<AnsonAst>(val_type[0]); ast) {
+    if (AnsonAst * ast = opts.ast<AnsonAst>(val_type[0]); ast) {
         if (!ast->isJsonable)
             anerror(string_view(std::format("Ast {} is not jsonable? ", ast->anclass)));
         else {
@@ -588,9 +530,9 @@ private:
                         // bool res = data.set(top.instance, v);
 
                         entt::meta_type enumtype = entt::resolve(fd_ast->enttypeid);
-                        AnsonJavaEnumAst* enumast = static_cast<AnsonJavaEnumAst*>(fd_ast);
-                        std::string enm = enumast->encode[string_val];
-                        auto v = enumtype.construct(enm);
+                        // AnsonJavaEnumAst* enumast = static_cast<AnsonJavaEnumAst*>(fd_ast);
+                        // std::string enm = enumast->encode.at(string_val);
+                        auto v = enumtype.construct(contxt, string_val);
                         bool res = data.set(top.instance, v);
                         return;
                     }
@@ -631,14 +573,15 @@ public:
      * @param ast_id
      * @param opts
      */
-    EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts = nullptr)
-            : contxt(opts == nullptr ? IJsonable::contxt_ptr : opts) {
+    EnTTSaxParser(T& obj, std::string ast_id, const JsonOpt *opts)
+            // : contxt(opts == nullptr ? IJsonable::contxt_ptr : opts) {
+            : contxt(opts) {
         push(obj, ast_id);
         // contxt = opts == nullptr ? IJsonable::contxt_ptr : opts;
         active_key = 0;
     }
 
-    EnTTSaxParser(T& obj, const JsonOpt *opts = nullptr) : EnTTSaxParser(obj, obj.anclass, opts) {}
+    EnTTSaxParser(T& obj, const JsonOpt *opts) : EnTTSaxParser(obj, obj.anclass, opts) {}
 
     bool start_object(std::size_t size) override {
         if (active_key != 0 && !stack.empty()) {
@@ -657,7 +600,7 @@ public:
                     // Fields is the definition of an AST, and must be merged back to a being loading AST.
                     // The loading of AST according to AST stop the recursive traversal here.
                     // As fields itself has no chances to register the type of a map.
-                    if ("fields" == fieldname && IJsonable::contxt_ptr->is_ast(ast->type)) {
+                    if ("fields" == fieldname && contxt->is_ast(ast->type)) {
                         fd_astid = "map<string,"s + AnsonField_type;
                         meta_any inst = datafield.get(stack.back().instance);
                         AnsonField field_confg = ast->fields[fieldname];
@@ -1065,20 +1008,20 @@ inline static vector<string> to_aststring(const AstMap &asts) {
     return sv;
 }
 
-inline static string map2str(const map<string, vector<LangExt::VarType>>& m) {
+inline static string map2str(const map<string, vector<LangExt::VarType>>& m, const JsonOpt& opts) {
     std::stringstream os;
     if (!LangExt::has_ctor("list<VarType")) {
         anwarn("Cannot deserialize map without Ctor of List<VarType been registered.");
         os << "Cannot deserialize List<VarType.";
     }
     else
-        serialize_map(os, entt::meta_any(m), {"list<VarType", "false"}, *IJsonable::contxt_ptr);
+        serialize_map(os, entt::meta_any(m), {"list<VarType", "false"}, opts);
     return std::move(os).str();
 }
 
-inline static string map2str(const map<string, vector<string>>& m) {
+inline static string map2str(const map<string, vector<string>>& m, const JsonOpt& opts) {
     std::stringstream os;
-    serialize_map(os, entt::meta_any(m), {"list<string", "false"}, *IJsonable::contxt_ptr);
+    serialize_map(os, entt::meta_any(m), {"list<string", "false"}, opts);
     return std::move(os).str();
 }
 }

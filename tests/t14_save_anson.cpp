@@ -23,10 +23,10 @@ TEST(SAVE, PeerSettings) {
 
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_peersettings(asts);
+    register_peersettings(&contxt);
 
     std::string timestamp = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now());
     PeerSettings settings;
@@ -34,7 +34,7 @@ TEST(SAVE, PeerSettings) {
     settings.ansonBody = timestamp;
     settings.cpp_gen = "testing-target.c++";
 
-    settings.to_file("t14-settings.json");
+    settings.to_file("t14-settings.json", &contxt);
 
     PeerSettings sets2;
     Anson::from_file("t14-settings.json", sets2, &contxt);
@@ -59,20 +59,20 @@ TEST(SAVE, PeerSettings) {
 TEST(SAVE, DesktopSettings) {
     AstMap asts;
     JsonOpt contxt{&asts};
-    IJsonable::contxt_ptr = &contxt;
+    // IJsonable::contxt_ptr = &contxt;
 
     register_asts(asts);
-    register_anclient_cmake(asts, "ast");
-    register_desktopsettingsAst(asts);
+    register_anclient_cmake(&contxt, "ast");
+    register_desktopsettingsAst(&contxt);
 
     DesktopSettings ds;
-    Anson::from_file("settings/app-settings-t14.json", ds);
+    Anson::from_file("settings/app-settings-t14.json", ds, &contxt);
 
     ASSERT_EQ("my", ds.market);
-    ds.to_file("output-t14.json", contxt);
+    ds.to_file("output-t14.json", &contxt);
 
     DesktopSettings ds2;
-    Anson::from_file("output-t14.json", ds2);
+    Anson::from_file("output-t14.json", ds2, &contxt);
 
     string sysuri;
     string synuri;
@@ -99,6 +99,6 @@ TEST(SAVE, DesktopSettings) {
     ASSERT_FALSE(ds2.temp_dir.empty());
 
     // anerror("FIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME\nFIXME");
-    FAIL() << "fix get_field_instance = [ast](const IJsonable& ans, const string& fieldname, const JsonOpt* contxt) -> meta_any";
+    // FAIL() << "fix get_field_instance = [ast](const IJsonable& ans, const string& fieldname, const JsonOpt* contxt) -> meta_any";
 }
 }

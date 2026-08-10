@@ -16,11 +16,11 @@ public:
     inline static const std::string echo = "echo.ws";
     inline static const std::string ping = "ping.ws";
 
-    WSPort(): JavaEnum(_type_, "na") {
+    WSPort(const JsonOpt* ctx): JavaEnum(ctx, _type_, "na") {
         andebug("WSPort Default Cosntructor");
     }
 
-    WSPort(string enum_val) : JavaEnum(_type_, enum_val) {
+    WSPort(const JsonOpt* ctx, string enum_val) : JavaEnum(ctx, _type_, enum_val) {
         andebug("WSPort Cosntructor<string>("s + enum_val + ").enm = " + enm);
     }
 };

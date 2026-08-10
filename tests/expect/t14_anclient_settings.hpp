@@ -32,10 +32,10 @@ public:
     }
 };
 
-inline static void register_anclientsettingsAst(AstMap & asts) {
+inline static void register_anclientsettingsAst(JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <AnclientSettings, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"sysuri", {.dataAnclass="string"} },
         {"synuri", {.dataAnclass="string"} },
         {"jserv", {.dataAnclass="string"} },
@@ -68,7 +68,7 @@ inline static void register_anclientsettingsAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnclientSettings&>(ans);
                 if ("sysuri" == fieldname)
@@ -95,8 +95,8 @@ inline static void register_anclientsettingsAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.temp_dir);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -117,10 +117,10 @@ public:
     }
 };
 
-inline static void register_stringvaluesAst(AstMap & asts) {
+inline static void register_stringvaluesAst(JsonOpt* ctx) {
 
     AnsonAst * ast = createAST <StringValues, AnsonAst> (
-        asts, Anson::_type_, map <string, AnsonField> {
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
         {"lang", {.dataAnclass="string"} },
         {"en", {.dataAnclass="map<string, string"} },
         {"local", {.dataAnclass="map<string, string"} },
@@ -136,7 +136,7 @@ inline static void register_stringvaluesAst(AstMap & asts) {
         ;
 
         //
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const StringValues&>(ans);
                 if ("lang" == fieldname)
@@ -147,8 +147,8 @@ inline static void register_stringvaluesAst(AstMap & asts) {
                     return entt::forward_as_meta(concrete.local);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -157,10 +157,10 @@ inline static void register_stringvaluesAst(AstMap & asts) {
         };
 }
 
-inline static void register_anclient_cmake(AstMap &asts, const string &ast_folder) {
+inline static void register_anclient_cmake(JsonOpt* ctx, const string &ast_folder) {
     filesystem::path folder_path{ast_folder};
-    register_anclientsettingsAst(asts);
-    register_stringvaluesAst(asts);
+    register_anclientsettingsAst(ctx);
+    register_stringvaluesAst(ctx);
 }
 
 }

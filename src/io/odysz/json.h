@@ -13,20 +13,21 @@
 #include "anson.h"
 #include "jprotocol.h"
 #include "anserializer.h"
+#include "reflect.h"
 
 namespace anson {
 inline static int cnt = 0;
 using namespace entt;
 using namespace entt::literals;
 
-inline static optional<AnsonAst*> load_ast(AstMap & asts, string ast_pth) {
+inline static optional<AnsonAst*> load_ast(JsonOpt* ctx_ptr, string ast_pth) {
     std::ifstream iss(ast_pth);
     if (!iss.is_open()) {
         anerror(string_view(std::format("Can not open the file {}! ", ast_pth)));
         return nullptr;
     }
     AnsonAst *ast = new AnsonAst{};
-    EnTTSaxParser handler(*ast, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(*ast, ctx_ptr);
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
 
@@ -34,7 +35,7 @@ inline static optional<AnsonAst*> load_ast(AstMap & asts, string ast_pth) {
         anerror(std::format("AST parsing failed. file{}).", ast_pth));
         return nullptr;
     }
-    else if (asts.contains(ast->dataAnclass)) {
+    else if (ctx_ptr->has_ast(ast->dataAnclass)) {
         anwarn(std::format("AST {} already exists. Ingore updating for avoiding unique-ptr deletion error (Only happens with heavy template usage?).",
                            ast->dataAnclass));
         return nullptr;
@@ -49,7 +50,7 @@ inline static optional<AnsonAst*> load_ast(AstMap & asts, string ast_pth) {
             }
 
         andebug(std::format("AST loaded: {}, field size: {}", ast->dataAnclass, ast->fields.size()));
-        asts[ast->dataAnclass] = unique_ptr<AnsonAst>(ast);
+        ctx_ptr->asts->emplace(ast->dataAnclass, unique_ptr<AnsonAst>(ast));
         return ast;
     }
 }
@@ -278,14 +279,14 @@ inline static void register_asts(AstMap &asts) {
 }
 
 template<typename T>
-inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
-    AnsonMsg<T> msg_req;
+inline static void specialize_req(const JsonOpt* ctx, const AnsonBodyAst *body_ast) {
+    AnsonMsg<T> msg_req{ctx};
     string anclass = msg_req.anclass;
     hashed_string enttype{anclass.c_str()};
 
     entt::meta_factory<anson::AnsonMsg<T>>()
         .type(anclass.c_str())
-        .template ctor<>()
+        .template ctor<const JsonOpt*>()
         .template ctor<anson::Port>()
         .template base<anson::Anson>()
         .template data<&anson::AnsonMsg<T>::port>("port")
@@ -311,7 +312,7 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         {"body", {.fieldname = "body", .dataAnclass="list<shared_ptr<"s + T::_type_}}
     };
 
-    ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+    ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
         auto& concrete = static_cast<const AnsonMsg<T>&>(ans);
         if ("port" == fieldname)
             return entt::forward_as_meta(concrete.port);
@@ -326,8 +327,8 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         else if ("body" == fieldname)
             return entt::forward_as_meta(concrete.body);
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -340,12 +341,12 @@ inline static void specialize_req(AstMap &asts, const AnsonBodyAst *body_ast) {
         .type(hashed_string{(string("list<shared_ptr<") + T::_type_ + ">>").c_str()})
         ;
 
-    asts[anclass] = unique_ptr<AnsonMsgAst>(ast);
+    (*ctx->asts)[anclass] = unique_ptr<AnsonMsgAst>(ast);
 }
 
-inline static void specialize_respmsg(AstMap & asts) {
+inline static void specialize_respmsg(const JsonOpt* ctx) {
     //
-    AnsonBodyAst *ast = createAST<AnsonResp, AnsonBodyAst>(asts, AnsonBody::_type_,
+    AnsonBodyAst *ast = createAST<AnsonResp, AnsonBodyAst>(*ctx->asts, AnsonBody::_type_,
         map<string, AnsonField>{
             {"m", {.fieldname="m", .dataAnclass = "string"}},
             {"rs", {.fieldname="rs", .dataAnclass = "list<"s + AnResultset::_type_}},
@@ -367,7 +368,7 @@ inline static void specialize_respmsg(AstMap & asts) {
         ;
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnsonResp&>(ans);
@@ -379,11 +380,11 @@ inline static void specialize_respmsg(AstMap & asts) {
                 return entt::forward_as_meta(concrete.map);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
+        if (ctx->has_ast(ast->baseAnclass)) {
             andebug(std::format("------- {} ------- {} ------ {} ",
                                 ++cnt, ast->dataAnclass, fieldname));
 
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -391,11 +392,11 @@ inline static void specialize_respmsg(AstMap & asts) {
         return {};
     };
 
-    specialize_req<AnsonResp>(asts, ast);
+    specialize_req<AnsonResp>(ctx, ast);
 }
 
-inline static void register_msgs(AstMap &asts) {
-    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(asts, Anson::_type_,
+inline static void register_msgs(const JsonOpt* ctx) {
+    AnsonAst *ast = createAST<SemanticObject, AnsonAst>(*ctx->asts, Anson::_type_,
         map<string, AnsonField>{
             {"data", {.fieldname="data", .dataAnclass = "map<string, string"}}
     });
@@ -408,13 +409,13 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
-    ast = createAST<AnResultset, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+    ast = createAST<AnResultset, AnsonAst>(*ctx->asts, Anson::_type_, map<string, AnsonField>{
         {"columns", {.dataAnclass = "map<string, list<VarType"}},
         {"rows", {.dataAnclass = "list<list<VarType"}}
     });
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnResultset&>(ans);
@@ -424,8 +425,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.rows);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -442,7 +443,7 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
-    ast = createAST<SessionInf, AnsonAst>(asts, Anson::_type_, map<string, AnsonField>{
+    ast = createAST<SessionInf, AnsonAst>(*ctx->asts, Anson::_type_, map<string, AnsonField>{
         {"ssid", {.dataAnclass = "string"}},
         {"uid", {.dataAnclass = "string"}},
         {"roleId", {.dataAnclass = "string"}},
@@ -454,7 +455,7 @@ inline static void register_msgs(AstMap &asts) {
     });
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const SessionInf&>(ans);
@@ -476,8 +477,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.device);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -500,7 +501,7 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
-    ast = createAST<AnsonHeader, AnsonAst>(asts, Anson::_type_,
+    ast = createAST<AnsonHeader, AnsonAst>(*ctx->asts, Anson::_type_,
             map<string, AnsonField>{
               {"uid", {.dataAnclass = "string"}},
               {"ssid",   {.dataAnclass = "string"}},
@@ -510,7 +511,7 @@ inline static void register_msgs(AstMap &asts) {
             });
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnsonHeader&>(ans);
@@ -526,8 +527,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.ssToken);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -548,13 +549,13 @@ inline static void register_msgs(AstMap &asts) {
         ;
 
     //
-    ast = createAST<AnsonBody, AnsonBodyAst>(asts, Anson::_type_, map<string, AnsonField>{
+    ast = createAST<AnsonBody, AnsonBodyAst>(*ctx->asts, Anson::_type_, map<string, AnsonField>{
         {"uri", {.dataAnclass = "string"}},
         {"a",   {.dataAnclass = "string"}}
     });
 
     ast->get_field_instance
-        = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
 
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const AnsonBody&>(ans);
@@ -564,8 +565,8 @@ inline static void register_msgs(AstMap &asts) {
                 return entt::forward_as_meta(concrete.uri);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -619,11 +620,11 @@ inline static void register_enums(AstMap& asts) {
 }
 
 template<typename P>
-inline static void register_iport(AstMap &asts, istream& ifstream) {
+inline static void register_iport(JsonOpt* ctx, istream& ifstream) {
     AnsonJavaEnumAst *portAst = new AnsonJavaEnumAst{};
     portAst->isPortEnum = true;
 
-    EnTTSaxParser handler(*portAst, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(*portAst, ctx);
     bool result = nlohmann::json::sax_parse(ifstream, &handler);
     if (result) {
         string anclass = portAst->dataAnclass;
@@ -632,26 +633,26 @@ inline static void register_iport(AstMap &asts, istream& ifstream) {
         entt::meta_factory<P>()
             .type(enttype)
             .template base<JavaEnum>()
-            .template ctor<>()
-            .template ctor<std::string>()
+            .template ctor<const JsonOpt*>()
+            .template ctor<const JsonOpt*, std::string>()
             ;
 
         portAst->enttypeid = enttype;
 
-        asts[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
-        IJsonable::contxt_ptr->register_polymorph(portAst->baseAnclass, portAst->dataAnclass);
+        (*ctx->asts)[anclass] = unique_ptr<AnsonJavaEnumAst>(portAst);
+        ctx->register_polymorph(portAst->baseAnclass, portAst->dataAnclass);
     }
     else
         anerror("Could not setup Port AST!");
 }
 
 template<typename P>
-inline static void register_iport(AstMap &asts, const string& path) {
+inline static void register_iport(JsonOpt* ctx, const string& path) {
     std::ifstream ifstream(path);
     if (!ifstream.is_open()) {
         throw SemanticException(std::format("Could not open the file {}! ", path));
     }
-    register_iport<P>(asts, ifstream);
+    register_iport<P>(ctx, ifstream);
 }
 /**
  * @brief register_port
@@ -659,7 +660,7 @@ inline static void register_iport(AstMap &asts, const string& path) {
  *
  * @param asts
  */
-inline static void register_port(AstMap &asts) {
+inline static void register_port(JsonOpt* ctx) {
     std::istringstream ifstream(
     R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum",
     "dataAnclass": "io.odysz.semantic.jprotocol.Port",
@@ -669,7 +670,7 @@ inline static void register_port(AstMap &asts) {
       "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
     );
 
-    register_iport<Port>(asts, ifstream);
+    register_iport<Port>(ctx, ifstream);
 }
 
 inline static void register_varctors() {
@@ -694,7 +695,7 @@ inline static void register_varctors() {
 // };
 
 template <typename BD, typename BD_Base>
-inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
+inline static void body_specialize_msg(const JsonOpt* ctx, AnsonBodyAst* bodyAst,
                    const std::function<void(meta_factory<BD>&, AnsonBodyAst *ast)>& registerBodyFields) {
     int l = bodyAst->fields.size();
     for (auto& [fn, f] : bodyAst->fields) {
@@ -723,41 +724,41 @@ inline static void body_specialize_msg(AstMap &asts, AnsonBodyAst* bodyAst,
     bodyAst->enttypeid = enttype;
     registerBodyFields(protype, bodyAst);
 
-    if (!asts.contains(anclass))
-        asts[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
+    if (!ctx->has_ast(anclass))
+        (*ctx->asts)[anclass] = unique_ptr<AnsonBodyAst>(bodyAst);
 
-    specialize_req<BD>(asts, bodyAst);
+    specialize_req<BD>(ctx, bodyAst);
 }
 
 template <typename Rq, typename RqBase>
-inline static bool load_msg_specialAst(AstMap &asts, std::istream &iss,
+inline static bool load_msg_specialAst(const JsonOpt* ctx, std::istream &iss,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)>& registerBodyFields) {
     AnsonBodyAst *bodyAst = new AnsonBodyAst{};
-    EnTTSaxParser handler(*bodyAst, IJsonable::contxt_ptr);
+    EnTTSaxParser handler(*bodyAst, ctx);
 
     bool result = nlohmann::json::sax_parse(iss, &handler);
     if (result) {
-        body_specialize_msg<Rq, RqBase>(asts, bodyAst, registerBodyFields);
+        body_specialize_msg<Rq, RqBase>(ctx, bodyAst, registerBodyFields);
     }
     return result;
 }
 
 template <typename Rq, typename RqBase>
-inline static bool setup_msg_specialAst(AstMap &asts, const string &ast_json,
+inline static bool setup_msg_specialAst(const JsonOpt* ctx, const string &ast_json,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> registerBodyFields) {
     std::istringstream iss(ast_json);
-    return load_msg_specialAst<Rq, RqBase>(asts, iss, registerBodyFields);
+    return load_msg_specialAst<Rq, RqBase>(ctx, iss, registerBodyFields);
 }
 
 template <typename Rq, typename RqBase>
-inline static void specialize_msg_astpth(AstMap &asts, const string &ast_pth,
+inline static void specialize_msg_astpth(const JsonOpt* ctx, const string &ast_pth,
                    const std::function<void(meta_factory<Rq>&, AnsonBodyAst *ast)> & registerBodyFields) {
     std::ifstream ifstream(ast_pth);
     if (!ifstream.is_open()) {
         anerror(string_view(std::format("Could not open the file {}! ", ast_pth)));
         throw SemanticException(std::format("Can not open the file {}! ", ast_pth));
     }
-    else if (!load_msg_specialAst<Rq, RqBase>(asts, ifstream, registerBodyFields)) {
+    else if (!load_msg_specialAst<Rq, RqBase>(ctx, ifstream, registerBodyFields)) {
         anerror(string_view(std::format("Could not load AST from {}!\nAbsolute Path: {}, exists: {}",
                                         ast_pth,
                                         Utils::safeAbsolute({ast_pth}).string(),

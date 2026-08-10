@@ -16,8 +16,8 @@ namespace anson {
 using namespace entt;
 using namespace entt::literals;
 
-inline static void setup_jserv_crud_deprecated(AstMap &asts) {
-    setup_msg_specialAst<AnQueryReq, AnsonBody>(asts,
+inline static void setup_jserv_crud_deprecated(JsonOpt* ctx) {
+    setup_msg_specialAst<AnQueryReq, AnsonBody>(ctx,
         std::format(R"({{"type": "{}")", AnsonBodyAst::_type_) +
         std::format(R"("base": "{}")", AnsonAst::_type_) +
         R"("A": {"echo":  "echo", "inet":  "inet"},)" +
@@ -26,19 +26,19 @@ inline static void setup_jserv_crud_deprecated(AstMap &asts) {
         R"("fields" : {{ "echo": {"dataAnclass": "string"}} }})"
         R"(}})",
 
-        [](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
+        [ctx](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
 
           entf.data<&AnQueryReq::exprs, as_ref_t>("exprs");
 
-          ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+          ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnQueryReq&>(ans);
                 if ("exprs" == fieldname)
                     return entt::forward_as_meta(concrete.exprs);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -48,8 +48,8 @@ inline static void setup_jserv_crud_deprecated(AstMap &asts) {
         });
 }
 
-inline static void setup_jserv_crud(AstMap &asts) {
-    AnsonBodyAst *bdast = createAST<AnQueryReq, AnsonBodyAst>(asts, AnsonBody::_type_,
+inline static void setup_jserv_crud(JsonOpt* ctx) {
+    AnsonBodyAst *bdast = createAST<AnQueryReq, AnsonBodyAst>(*ctx->asts, AnsonBody::_type_,
         map<string, AnsonField>{
             /**Main table */
             {"mtabl", {.dataAnclass="string"}},
@@ -93,8 +93,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
             {"havings", {.dataAnclass="list<list<string"}}
         });
 
-    anson::template body_specialize_msg<AnQueryReq, AnsonBody>(asts, bdast,
-      [](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
+    anson::template body_specialize_msg<AnQueryReq, AnsonBody>(ctx, bdast,
+      [ctx](meta_factory<AnQueryReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnQueryReq::mtabl>("mtabl")
             .data<&AnQueryReq::mAlias>("mAlias")
             .data<&AnQueryReq::joins>("joins")
@@ -108,7 +108,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
             .data<&AnQueryReq::havings>("havings")
             ;
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnQueryReq&>(ans);
                 if ("mtabl" == fieldname)
@@ -135,8 +135,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
                     return entt::forward_as_meta(concrete.havings);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -147,7 +147,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
 
     //
     bdast = createAST<AnUpdateReq, AnsonBodyAst>(
-        asts, AnsonBody::_type_,
+        *ctx->asts, AnsonBody::_type_,
         map<string, AnsonField>{
             /**Main table */
             {"mtabl", {.dataAnclass="string"}},
@@ -184,8 +184,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
             {"attacheds", {.dataAnclass="list<list<VarType"}}
     });
 
-    anson::template body_specialize_msg<AnUpdateReq, AnsonBody>(asts, bdast,
-      [](meta_factory<AnUpdateReq> &entf, AnsonBodyAst *ast) {
+    anson::template body_specialize_msg<AnUpdateReq, AnsonBody>(ctx, bdast,
+      [ctx](meta_factory<AnUpdateReq> &entf, AnsonBodyAst *ast) {
         entf.data<&AnUpdateReq::mtabl>("mtabl")
             .data<&AnUpdateReq::nvs>("nvs")
             .data<&AnUpdateReq::nvss>("nvss")
@@ -196,7 +196,7 @@ inline static void setup_jserv_crud(AstMap &asts) {
             .data<&AnUpdateReq::attacheds>("attacheds")
             ;
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
             if (ast->fields.contains(fieldname)) {
                 auto& concrete = static_cast<const AnUpdateReq&>(ans);
                 if ("mtabl" == fieldname)
@@ -217,8 +217,8 @@ inline static void setup_jserv_crud(AstMap &asts) {
                     return entt::forward_as_meta(concrete.attacheds);
             }
 
-            if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -228,15 +228,15 @@ inline static void setup_jserv_crud(AstMap &asts) {
     });
 
     bdast = createAST<AnInsertReq, AnsonBodyAst>(
-        asts, AnUpdateReq::_type_,
+        *ctx->asts, AnUpdateReq::_type_,
         map<string, AnsonField>{});
 
-    anson::template body_specialize_msg<AnInsertReq, AnUpdateReq>(asts, bdast,
-      [](meta_factory<AnInsertReq> &entf, AnsonBodyAst *ast) {
+    anson::template body_specialize_msg<AnInsertReq, AnUpdateReq>(ctx, bdast,
+      [ctx](meta_factory<AnInsertReq> &entf, AnsonBodyAst *ast) {
 
-        ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-                AnsonBodyAst *bast = IJsonable::contxt_ptr->ast<AnsonBodyAst>(ast->baseAnclass);
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
+        if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonBodyAst *bast = ctx->ast<AnsonBodyAst>(ast->baseAnclass);
                 return bast->get_field_instance(ans, fieldname);
             }
 
@@ -246,10 +246,10 @@ inline static void setup_jserv_crud(AstMap &asts) {
     });
 }
 
-inline static void register_peersettings(AstMap &asts) {
+inline static void register_peersettings(JsonOpt* ctx) {
     //
     AnsonAst *ast = createAST<PeerSettings, AnsonAst>(
-        asts, Anson::_type_, map<string, AnsonField>{
+        *ctx->asts, Anson::_type_, map<string, AnsonField>{
         {"ansonMsg",  {.dataAnclass = "string"}},
         {"ansons",    {.dataAnclass = "list<string"}},
         {"scopeEnums",{.dataAnclass = "list<string"}},
@@ -259,7 +259,7 @@ inline static void register_peersettings(AstMap &asts) {
         {"cpp_gen",   {.dataAnclass = "string"}}
     });
 
-    ast->get_field_instance = [ast](const IJsonable& ans, const string& fieldname) -> meta_any {
+    ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
         if (ast->fields.contains(fieldname)) {
             auto& concrete = static_cast<const PeerSettings&>(ans);
             if ("ansonMsg" == fieldname)
@@ -278,8 +278,8 @@ inline static void register_peersettings(AstMap &asts) {
                 return entt::forward_as_meta(concrete.cpp_gen);
         }
 
-        if (IJsonable::contxt_ptr->has_ast(ast->baseAnclass)) {
-            AnsonAst *bast = IJsonable::contxt_ptr->ast<AnsonAst>(ast->baseAnclass);
+        if (ctx->has_ast(ast->baseAnclass)) {
+            AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
             return bast->get_field_instance(ans, fieldname);
         }
 
@@ -301,19 +301,19 @@ inline static void register_peersettings(AstMap &asts) {
         ;
 }
 
-inline static void register_jserv(AstMap &asts, JsonOpt &ctx_opt) {
-    IJsonable::contxt_ptr = &ctx_opt;
+inline static void register_jserv(JsonOpt* ctx_opt) {
+    // IJsonable::contxt_ptr = &ctx_opt;
 
     register_varctors();
-    register_asts(asts);
-    register_msgs(asts);
-    register_enums<MsgCode>(asts);
-    register_port(asts);
-    specialize_respmsg(asts);
-    setup_jserv_crud(asts);
-    load_usereqAst_ext(asts);
-    load_echoAst_ext(asts);
-    register_peersettings(asts);
+    register_asts(*ctx_opt->asts);
+    register_msgs(ctx_opt);
+    register_enums<MsgCode>(*ctx_opt->asts);
+    register_port(ctx_opt);
+    specialize_respmsg(ctx_opt);
+    setup_jserv_crud(ctx_opt);
+    load_usereqAst_ext(ctx_opt);
+    load_echoAst_ext(ctx_opt);
+    register_peersettings(ctx_opt);
 }
 
 }
