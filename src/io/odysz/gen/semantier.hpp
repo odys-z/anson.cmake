@@ -25,6 +25,9 @@ public:
         Type(_type_);
         uri = clienturi;
     }
+
+    // No default ctor is not found. Force a compile error here: io.odysz.semantic.jsession.HeartBeat HeartBeat ()
+    HeartBeat() : AnsonBody() { Type(_type_); }
 };
 
 inline static void load_heartbeatAst(JsonOpt* ctx, const string &ast_path) {

@@ -37,12 +37,12 @@ add_executable(unit_tests
   expect/t_10_doctier.hpp
   expect/wsport_tobe_generated.hpp
   expect/registry.hpp
-  # t10_design_patterns.cpp
-  # t11_docstier.cpp
-  # t12_escape.cpp
-  # t13_langstring.cpp
+  t10_design_patterns.cpp
+  t11_docstier.cpp
+  t12_escape.cpp
+  t13_langstring.cpp
   t14_save_anson.cpp
-  # t15_multi_context.cpp
+  t15_multi_context.cpp
 )
 
 add_custom_command(TARGET unit_tests POST_BUILD

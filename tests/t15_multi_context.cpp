@@ -16,13 +16,13 @@ using namespace anson;
 TEST(SWITCH_CONTXT, SerializeReqs) {
     AstMap syn_asts;
     JsonOpt syn_opts{&syn_asts};
-    register_jserv(syn_asts, syn_opts);
-    register_doctier(syn_asts, "ast");
+    register_jserv(&syn_opts);
+    register_doctier(&syn_opts, "ast");
 
     AstMap reg_asts;
     JsonOpt reg_opts{&reg_asts};
-    register_jserv(reg_asts, reg_opts);
-    register_centralclientier(reg_asts, "ast");
+    register_jserv(&reg_opts);
+    register_centralclientier(&reg_opts, "ast");
 
     PathsPage pths("device", 0, 1);
     set<string> pathpool;
@@ -42,7 +42,7 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
 
     req.data.insert({"x", "xxx.xxx.yyy.yyy"});
 
-    AnsonMsg<DocsReq> q{Port{Port::docstier}};
+    AnsonMsg<DocsReq> q{Port{&syn_opts, Port::docstier}};
     q.Body(req);
     q.Header(header);
 
@@ -54,26 +54,28 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
     RegistReq reg{JServUrl{"my-jserv-root", {}}, diction};
     reg.a = RegistReq::A::queryDomConfig;
 
-    AnsonMsg<RegistReq> r{Centralport{Centralport::regist}};
+    AnsonMsg<RegistReq> r{Centralport{&reg_opts, Centralport::regist}};
     r.Body(reg);
     string kson = r.toBlock(reg_opts);
     anlog(kson);
 
     //
-    AnsonMsg<DocsReq> p{};
+    AnsonMsg<DocsReq> p{&syn_opts};
     Anson::from_json(json, p, &syn_opts);
 
-    ASSERT_EQ(Port{Port::docstier}, p.port);
+    Port xp{&syn_opts, Port::docstier};
+    ASSERT_EQ(xp, p.port);
     ASSERT_EQ(p.Body().data["x"], LangExt::VarType{"xxx.xxx.yyy.yyy"});
     ASSERT_EQ(p.Body().a, "r/syncflags");
     ASSERT_EQ(p.Body().uri, req.uri);
     ASSERT_EQ(p.Body().synuri, req.synuri);
 
     //
-    AnsonMsg<RegistReq> s{};
+    AnsonMsg<RegistReq> s{&reg_opts};
     Anson::from_json(kson, s, &reg_opts);
 
-    ASSERT_EQ(Centralport{Centralport::regist}, s.port);
+    Centralport xc{&reg_opts, Centralport::regist};
+    ASSERT_EQ(xc, s.port);
     ASSERT_EQ(RegistReq::A::queryDomConfig, s.Body().a);
     ASSERT_EQ(s.Body().uri, reg.uri);
 }

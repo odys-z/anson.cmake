@@ -23,7 +23,7 @@ public:
         Type(_type_);
     }
 
-    inline static void loadLangs(string str_res_json, const JsonOpt* ctx); // { Anson::from_file(str_res_json, langs); }
+    inline static void loadLangs(const JsonOpt* ctx, string str_res_json);
 };
 
 inline static void register_langstringAst(const JsonOpt* ctx) {
@@ -68,7 +68,7 @@ inline static void register_langstringAst(const JsonOpt* ctx) {
 
 inline static LangString langs;
 
-inline void LangString::loadLangs(string str_res_json, const JsonOpt* ctx) {
+inline void LangString::loadLangs(const JsonOpt* ctx, string str_res_json) {
     Anson::from_file(str_res_json, langs, ctx);
 }
 

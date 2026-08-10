@@ -588,8 +588,8 @@ inline static void register_doctier(JsonOpt* ctx, const string &ast_folder) {
     register_synentityAst(ctx);
     register_pathspageAst(ctx);
     register_expsyncdocAst(ctx);
-    load_docsreqAst(ctx, (folder_path / "docsreq.ast.json").string());
-    load_docsrespAst(ctx, (folder_path / "docsresp.ast.json").string());
+    load_docsreqAst(ctx, (folder_path / "./docsreq.ast.json").string());
+    load_docsrespAst(ctx, (folder_path / "./docsresp.ast.json").string());
 }
 
 }

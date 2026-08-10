@@ -13,12 +13,13 @@ static AstMap asts;
 static JsonOpt contxt{&asts};
 
 TEST(DESGIN, FORCE_TYPE_GENERATE) {
-    IJsonable::contxt_ptr = &contxt;
+    register_asts(asts);
+    register_port(&contxt);
 
     AnResultset rs{};
     ASSERT_EQ(AnResultset::_type_, rs.type);
 
-    Port p{};
+    Port p{&contxt};
     ASSERT_EQ(Port::_type_, p.anclass);
 
     AnsonBody bd{};
@@ -26,8 +27,8 @@ TEST(DESGIN, FORCE_TYPE_GENERATE) {
 
     EchoReq echo{};
     ASSERT_EQ(EchoReq::_type_, echo.type);
-    AnsonMsg<EchoReq> msg{};
-    ASSERT_EQ(AnsonMsg<EchoReq>().anclass, msg.anclass);
+    AnsonMsg<EchoReq> msg{&contxt};
+    ASSERT_EQ(AnsonMsg<EchoReq>(&contxt).anclass, msg.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, msg.type);
     ASSERT_EQ(AnsonMsg<AnQueryReq>::_type_, msg.type);
 
@@ -42,28 +43,27 @@ TEST(DESGIN, FORCE_TYPE_GENERATE) {
 
     AnQueryReq qr{};
     ASSERT_EQ(AnQueryReq::_type_, qr.type);
-    AnsonMsg<AnQueryReq> qm{};
-    ASSERT_EQ(AnsonMsg<AnQueryReq>().anclass, qm.anclass);
+    AnsonMsg<AnQueryReq> qm{&contxt};
+    ASSERT_EQ(AnsonMsg<AnQueryReq>(&contxt).anclass, qm.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, qm.type);
     ASSERT_EQ(AnsonMsg<AnQueryReq>::_type_, qm.type);
 
     AnUpdateReq upr{};
     ASSERT_EQ(AnUpdateReq::_type_, upr.type);
-    AnsonMsg<AnUpdateReq> um{};
-    ASSERT_EQ(AnsonMsg<AnUpdateReq>().anclass, um.anclass);
+    AnsonMsg<AnUpdateReq> um{&contxt};
+    ASSERT_EQ(AnsonMsg<AnUpdateReq>(&contxt).anclass, um.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, um.type);
     ASSERT_EQ(AnsonMsg<AnUpdateReq>::_type_, um.type);
 
     AnInsertReq ir{};
     ASSERT_EQ(AnInsertReq::_type_, ir.type);
-    AnsonMsg<AnInsertReq> im{};
-    ASSERT_EQ(AnsonMsg<AnInsertReq>().anclass, im.anclass);
+    AnsonMsg<AnInsertReq> im{&contxt};
+    ASSERT_EQ(AnsonMsg<AnInsertReq>(&contxt).anclass, im.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, im.type);
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
 }
 
 TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
-    IJsonable::contxt_ptr = &contxt;
 
     PageInf pi{};
     ASSERT_EQ(PageInf::_type_, pi.type);
@@ -88,25 +88,25 @@ TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
 
     DocsReq dr{"fake", {"test-docsreq.file"}};
     ASSERT_EQ(DocsReq::_type_, dr.type);
-    AnsonMsg<DocsReq> dm{};
+    AnsonMsg<DocsReq> dm{&contxt};
     andebug(dm.anclass);
-    ASSERT_EQ(AnsonMsg<DocsReq>().anclass, dm.anclass);
+    ASSERT_EQ(AnsonMsg<DocsReq>(&contxt).anclass, dm.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, dm.type);
     ASSERT_EQ(AnsonMsg<DocsReq>::_type_, dm.type);
 
     DocsReq dr2{"h_photos", sd, "uri"};
     ASSERT_EQ(DocsReq::_type_, dr2.type);
-    AnsonMsg<DocsReq> dm2{};
+    AnsonMsg<DocsReq> dm2{&contxt};
     andebug(dm2.anclass);
-    ASSERT_EQ(AnsonMsg<DocsReq>().anclass, dm2.anclass);
+    ASSERT_EQ(AnsonMsg<DocsReq>(&contxt).anclass, dm2.anclass);
     ASSERT_EQ(AnsonMsg<EchoReq>::_type_, dm2.type);
     ASSERT_EQ(dm.type, dm2.type);
 
     DocsResp drp{};
     ASSERT_EQ(DocsResp::_type_, drp.type);
-    AnsonMsg<DocsResp> rpm{};
+    AnsonMsg<DocsResp> rpm{&contxt};
     andebug(rpm.anclass);
-    ASSERT_EQ(AnsonMsg<DocsResp>().anclass, rpm.anclass);
+    ASSERT_EQ(AnsonMsg<DocsResp>(&contxt).anclass, rpm.anclass);
     ASSERT_EQ(AnsonMsg<AnsonResp>::_type_, rpm.type);
     ASSERT_EQ(dm.type , rpm.type);
     ASSERT_EQ(dm2.type, rpm.type);
@@ -115,14 +115,14 @@ TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
 TEST(Generator, Validate_Doctier) {
     AstMap asts;
     JsonOpt opts{&asts};
-    register_jserv(asts, opts);
-    register_doctier(asts, "ast");
+    register_jserv(&opts);
+    register_doctier(&opts, "ast");
 
     PageInf pi{};
     bool res = Anson::from_json(
         R"({"type": ")" + PageInf::_type_ + R"(",)"
       + R"("page": 1, "size": 20, "total": 42, "arrCondts": [["n0", "v0"], ["n1", "v1"]]})",
-        pi);
+        pi, &opts);
 
     ASSERT_EQ(1, pi.page);
     ASSERT_EQ(20, pi.size);
@@ -132,7 +132,7 @@ TEST(Generator, Validate_Doctier) {
 
     pi.page = 2;
     pi.arrCondts[0][1] = "www";
-    string json = pi.toBlock();
+    string json = pi.toBlock(opts);
 
     ASSERT_EQ(json,
         R"({"type": "io.odysz.transact.sql.PageInf",)"
