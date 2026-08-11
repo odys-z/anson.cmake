@@ -16,7 +16,7 @@ static AstMap asts;
 
 static JsonOpt contxt{&asts};
 
-TEST(AUTOGEN, AnsonMsg_EchoReq2) {
+TEST(T09_AUTOGEN, AnsonMsg_EchoReq2) {
     register_jserv(&contxt);
     load_echoreq2Ast(&contxt, "ast/echo2.ast.json");
 
@@ -63,7 +63,7 @@ TEST(AUTOGEN, AnsonMsg_EchoReq2) {
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
 
-TEST(AUTOGEN, SessionReq) {
+TEST(T09_AUTOGEN, SessionReq) {
     register_jserv(&contxt);
     register_semantier(&contxt, "ast/");
 
@@ -111,7 +111,7 @@ TEST(AUTOGEN, SessionReq) {
     ASSERT_EQ("Mr. Zelenskyy", reqbd.uid) << "[4] body[0].uid";
 }
 
-TEST(AUTOGEN, SessionResp) {
+TEST(T09_AUTOGEN, SessionResp) {
 
     register_jserv(&contxt);
     register_semantier(&contxt, "ast/");
@@ -160,7 +160,7 @@ TEST(AUTOGEN, SessionResp) {
         << "session error msg";
 }
 
-TEST(RegexTest, TestValidJserv) {
+TEST(T09_RegexTest, TestValidJserv) {
     // Test isIPv6
     for (const auto& entry : urls) {
         EXPECT_EQ(entry.ipv6, Regex::isIPv6(entry.url)) << "Failed IPv6 test for: " << entry.url;
@@ -183,7 +183,7 @@ TEST(RegexTest, TestValidJserv) {
     }
 }
 
-TEST(JSERV, Parse) {
+TEST(T09_JSERV, Parse) {
     JProtocol jprotocol{"jserv-album", &contxt};
     // jprotocol.setup("jserv-album");
     JServUrl jserv{"http://127.0.0.1", jprotocol};
