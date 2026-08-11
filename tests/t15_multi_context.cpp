@@ -10,10 +10,8 @@
 #include "expect/registry.hpp"
 
 using namespace anson;
-// static AstMap asts;
-// static JsonOpt contxt{&asts};
 
-TEST(SWITCH_CONTXT, SerializeReqs) {
+TEST(T15_SWITCH_CONTXT, SerializeReqs) {
     AstMap syn_asts;
     JsonOpt syn_opts{&syn_asts};
     register_jserv(&syn_opts);

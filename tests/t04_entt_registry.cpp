@@ -11,7 +11,7 @@
 using json = nlohmann::json;
 using namespace anson;
 
-TEST(ENTT_META, JSON_REGISTRY) {
+TEST(T04_ENTT_META, JSON_REGISTRY) {
     AstMap asts;
     JsonOpt contxt{&asts};
     // IJsonable::contxt_ptr = &contxt;

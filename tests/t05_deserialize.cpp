@@ -22,7 +22,7 @@ map<string, meta_type> types;
 
 JsonOpt contxt{&enums};
 
-TEST(Anson, Base) {
+TEST(T05_Anson, Base) {
     register_asts(enums);
     // IJsonable::contxt_ptr = &contxt;
 
@@ -47,7 +47,7 @@ TEST(Anson, Base) {
     ASSERT_EQ("input", anobj2.type) << "anobj2.type: {type: input}.";
 }
 
-TEST(Anson, AnsonBody) {
+TEST(T05_Anson, AnsonBody) {
     register_msgs(&contxt);
     // IJsonable::contxt_ptr = &contxt;
 
@@ -84,7 +84,7 @@ TEST(Anson, AnsonBody) {
     ASSERT_EQ("d/del", anc.a) << "[3.6]";
 }
 
-TEST(Anson, PORT) {
+TEST(T05_Anson, PORT) {
     register_port(&contxt);
     string portclass = Port::_type_;
     AnsonJavaEnumAst* portAst = dynamic_cast<AnsonJavaEnumAst*>(enums.at(portclass).get());
@@ -98,12 +98,12 @@ TEST(Anson, PORT) {
     ASSERT_EQ(portAst->enttypeid, portype);
 }
 
-TEST(Anson, MsgCode) {
+TEST(T05_Anson, MsgCode) {
     ASSERT_EQ("ok", MsgCode::to_string(MsgCode::Code{MsgCode::Code::ok}));
     ASSERT_EQ("exDA", MsgCode::to_string(MsgCode::Code{MsgCode::Code::exDA}));
 }
 
-TEST(Anson, AnsonMsg_EchoReq) {
+TEST(T05_Anson, AnsonMsg_EchoReq) {
     register_jserv(&contxt);
     load_echoAst_test(&contxt, "ast/echo.ast.json");
 
@@ -151,7 +151,7 @@ TEST(Anson, AnsonMsg_EchoReq) {
     EXPECT_EQ("test/echo", reqbd.a) << "[4] body[0].a = test/echo";
 }
 
-TEST(Anson, Serialize_Msg) {
+TEST(T05_Anson, Serialize_Msg) {
     JsonOpt opts{&enums};
     register_jserv(&opts);
     load_echoAst_ext(&opts);

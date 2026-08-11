@@ -12,7 +12,7 @@ using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(DOCSTIER, SerializeDocsReq) {
+TEST(T11_DOCSTIER, SerializeDocsReq) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(&opts);
@@ -52,7 +52,7 @@ TEST(DOCSTIER, SerializeDocsReq) {
     ASSERT_EQ(p.Body().synuri, req.synuri);
 }
 
-TEST(DOCSTIER, DeserializeDocsResp) {
+TEST(T11_DOCSTIER, DeserializeDocsResp) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(&opts);
@@ -97,7 +97,7 @@ TEST(DOCSTIER, DeserializeDocsResp) {
     ASSERT_EQ("xyz", rep.body[0]->device.devname);
 }
 
-TEST(DOCSTIER, DE_ReserializeDocsResp) {
+TEST(T11_DOCSTIER, DE_ReserializeDocsResp) {
 
     AstMap asts;
     JsonOpt opts{&asts};

@@ -14,7 +14,7 @@ static AstMap asts;
 
 static JsonOpt contxt{&asts};
 
-TEST(AnResultset, StringVal) {
+TEST(T08_AnResultset, StringVal) {
 
     map<string, Column> cols {
       {"X", {0, "x"}},
@@ -45,7 +45,7 @@ TEST(AnResultset, StringVal) {
     EXPECT_EQ(std::nullopt, rstr.getString("y"));
 }
 
-TEST(AnResultset, IntVal) {
+TEST(T08_AnResultset, IntVal) {
     map<string, Column> cols {
       {"M", {0, "m"}},
       {"N", {1, "n"}},
@@ -74,7 +74,7 @@ TEST(AnResultset, IntVal) {
     EXPECT_EQ(std::nullopt, intrs.getString("n"));
 }
 
-TEST(AnResultset, Serialize_Deserialize) {
+TEST(T08_AnResultset, Serialize_Deserialize) {
     register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 

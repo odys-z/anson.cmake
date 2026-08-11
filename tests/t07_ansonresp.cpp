@@ -15,7 +15,7 @@ static AstMap asts;
 
 static JsonOpt contxt{&asts};
 
-TEST(AnsonRespons, Deserialize) {
+TEST(T07_AnsonRespons, Deserialize) {
     register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 
@@ -58,7 +58,7 @@ TEST(AnsonRespons, Deserialize) {
     anwarn(issue);
 }
 
-TEST(AnsonResponse, Serialize) {
+TEST(T07_AnsonResponse, Serialize) {
     register_jserv(&contxt);
     anlog(to_aststring(asts), PrintFormat{.sep="\n"});
 

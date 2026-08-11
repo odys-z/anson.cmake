@@ -12,7 +12,7 @@ using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(DESGIN, FORCE_TYPE_GENERATE) {
+TEST(T13_DESGIN, FORCE_TYPE_GENERATE) {
     register_asts(asts);
     register_port(&contxt);
 
@@ -63,7 +63,7 @@ TEST(DESGIN, FORCE_TYPE_GENERATE) {
     ASSERT_EQ(AnsonMsg<AnInsertReq>::_type_, im.type);
 }
 
-TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
+TEST(T13_Generator, FORCE_TYPE_GENERATE_Doctier) {
 
     PageInf pi{};
     ASSERT_EQ(PageInf::_type_, pi.type);
@@ -112,7 +112,7 @@ TEST(Generator, FORCE_TYPE_GENERATE_Doctier) {
     ASSERT_EQ(dm2.type, rpm.type);
 }
 
-TEST(Generator, Validate_Doctier) {
+TEST(T13_Generator, Validate_Doctier) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(&opts);

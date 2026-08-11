@@ -31,18 +31,18 @@ add_executable(unit_tests
   # t07_ansonresp.cpp
   # t08_resultset.cpp
   # t08_resultset.h
-  t09_autogen_Regex_Jservr.cpp
+  # t09_autogen_Regex_Jservr.cpp
   test.common.h
   ../src/io/odysz/gen/semantier.hpp
   expect/t_10_doctier.hpp
   expect/wsport_tobe_generated.hpp
   expect/registry.hpp
-  # t10_design_patterns.cpp
-  # t11_docstier.cpp
-  # t12_escape.cpp
-  # t13_langstring.cpp
-  # t14_save_anson.cpp
-  # t15_multi_context.cpp
+  t10_escape.cpp
+  t11_docstier.cpp
+  t12_langstring.cpp
+  t13_design_patterns.cpp
+  t14_save_anson.cpp
+  t15_multi_context.cpp
 )
 
 add_custom_command(TARGET unit_tests POST_BUILD

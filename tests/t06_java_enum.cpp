@@ -19,7 +19,7 @@ using namespace entt;
 AstMap asts;
 map<string, meta_type> enttypes;
 
-TEST(JAVAENUM, PORT) {
+TEST(T06_JAVAENUM, PORT) {
     JsonOpt contxt{&asts};
     register_jserv(&contxt);
     load_usereqAst_test(&contxt, "ast/usereq.ast.json");
@@ -60,7 +60,7 @@ TEST(JAVAENUM, PORT) {
               json_input)  << "serialize usreq";
 }
 
-TEST(JAVAENUM, WSPORT) {
+TEST(T06_JAVAENUM, WSPORT) {
     JsonOpt contxt{&asts};
     register_jserv(&contxt);
     // load_usereqAst_test(asts, "ast/usereq.ast.json");

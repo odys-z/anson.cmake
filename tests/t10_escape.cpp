@@ -12,7 +12,7 @@ using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(ESCAPE, Invalid_payload) {
+TEST(T10_ESCAPE, Invalid_payload) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(&opts);
@@ -69,7 +69,7 @@ TEST(ESCAPE, Invalid_payload) {
 
 }
 
-TEST(ESCAPE, Valid_payload) {
+TEST(T10_ESCAPE, Valid_payload) {
 
     AstMap asts;
     JsonOpt opts{&asts};
@@ -122,7 +122,7 @@ TEST(ESCAPE, Valid_payload) {
     ASSERT_EQ(expjson, msg.toBlock(opts));
 }
 
-TEST(ESCAPE, POSIX_path) {
+TEST(T10_ESCAPE, POSIX_path) {
     AstMap asts;
     JsonOpt opts{&asts};
     register_jserv(&opts);

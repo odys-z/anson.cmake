@@ -10,7 +10,7 @@ using namespace anson;
 static AstMap asts;
 static JsonOpt contxt{&asts};
 
-TEST(Translate, en) {
+TEST(T12_Translate, en) {
     register_jserv(&contxt);
     register_langstringAst(&contxt);
 

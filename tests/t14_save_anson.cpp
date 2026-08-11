@@ -18,7 +18,7 @@ static map<string, meta_type> types;
 
 static JsonOpt contxt{&enums};
 
-TEST(SAVE, PeerSettings) {
+TEST(T14_SAVE, PeerSettings) {
     aninfo(filesystem::current_path().string());
 
     AstMap asts;
@@ -43,7 +43,6 @@ TEST(SAVE, PeerSettings) {
     ASSERT_EQ("testing-target.c++", sets2.cpp_gen);
 }
 
-
 /**
  * FIXME
  * This test cannot cover the error case.
@@ -56,7 +55,7 @@ TEST(SAVE, PeerSettings) {
  *
  * get_field_instance = [ast](const IJsonable& ans, const string& fieldname, const JsonOpt* contxt) -> meta_any
  */
-TEST(SAVE, DesktopSettings) {
+TEST(T14_SAVE, DesktopSettings) {
     AstMap asts;
     JsonOpt contxt{&asts};
     // IJsonable::contxt_ptr = &contxt;
