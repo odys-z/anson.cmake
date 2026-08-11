@@ -534,6 +534,8 @@ private:
                         // std::string enm = enumast->encode.at(string_val);
                         auto v = enumtype.construct(contxt, string_val);
                         bool res = data.set(top.instance, v);
+                        if (!res)
+                            anerror("set_value(): failed to set "s + fieldname + " value: " + string_val);
                         return;
                     }
                     if (fd_ast->isEnum) {

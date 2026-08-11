@@ -19,10 +19,10 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
     register_jserv(&syn_opts);
     register_doctier(&syn_opts, "ast");
 
-    AstMap reg_asts;
-    JsonOpt reg_opts{&reg_asts};
-    register_jserv(&reg_opts);
-    register_centralclientier(&reg_opts, "ast");
+                                    AstMap reg_asts;
+                                    JsonOpt reg_opts{&reg_asts};
+                                    register_jserv(&reg_opts);
+                                    register_centralclientier(&reg_opts, "ast");
 
     PathsPage pths("device", 0, 1);
     set<string> pathpool;
@@ -42,40 +42,40 @@ TEST(SWITCH_CONTXT, SerializeReqs) {
 
     req.data.insert({"x", "xxx.xxx.yyy.yyy"});
 
-    AnsonMsg<DocsReq> q{Port{&syn_opts, Port::docstier}};
-    q.Body(req);
-    q.Header(header);
+    AnsonMsg<DocsReq> synm{Port{&syn_opts, Port::docstier}};
+    synm.Body(req);
+    synm.Header(header);
 
-    string json = q.toBlock(syn_opts);
-    anlog(json);
+    string syn_json = synm.toBlock(syn_opts);
+    anlog(syn_json);
+
+                                    //
+                                    SynodeConfig diction;
+                                    RegistReq reg{JServUrl{"my-jserv-root", {}}, diction};
+                                    reg.a = RegistReq::A::queryDomConfig;
+
+                                    AnsonMsg<RegistReq> regm{Centralport{&reg_opts, Centralport::regist}};
+                                    regm.Body(reg);
+                                    string reg_json = regm.toBlock(reg_opts);
+                                    anlog(reg_json);
 
     //
-    SynodeConfig diction;
-    RegistReq reg{JServUrl{"my-jserv-root", {}}, diction};
-    reg.a = RegistReq::A::queryDomConfig;
-
-    AnsonMsg<RegistReq> r{Centralport{&reg_opts, Centralport::regist}};
-    r.Body(reg);
-    string kson = r.toBlock(reg_opts);
-    anlog(kson);
-
-    //
-    AnsonMsg<DocsReq> p{&syn_opts};
-    Anson::from_json(json, p, &syn_opts);
+    AnsonMsg<DocsReq> synm2{&syn_opts};
+    Anson::from_json(syn_json, synm2, &syn_opts);
 
     Port xp{&syn_opts, Port::docstier};
-    ASSERT_EQ(xp, p.port);
-    ASSERT_EQ(p.Body().data["x"], LangExt::VarType{"xxx.xxx.yyy.yyy"});
-    ASSERT_EQ(p.Body().a, "r/syncflags");
-    ASSERT_EQ(p.Body().uri, req.uri);
-    ASSERT_EQ(p.Body().synuri, req.synuri);
+    ASSERT_EQ(xp, synm2.port);
+    ASSERT_EQ(synm2.Body().data["x"], LangExt::VarType{"xxx.xxx.yyy.yyy"});
+    ASSERT_EQ(synm2.Body().a, "r/syncflags");
+    ASSERT_EQ(synm2.Body().uri, req.uri);
+    ASSERT_EQ(synm2.Body().synuri, req.synuri);
 
-    //
-    AnsonMsg<RegistReq> s{&reg_opts};
-    Anson::from_json(kson, s, &reg_opts);
+                                    //
+                                    AnsonMsg<RegistReq> regm2{&reg_opts};
+                                    Anson::from_json(reg_json, regm2, &reg_opts);
 
-    Centralport xc{&reg_opts, Centralport::regist};
-    ASSERT_EQ(xc, s.port);
-    ASSERT_EQ(RegistReq::A::queryDomConfig, s.Body().a);
-    ASSERT_EQ(s.Body().uri, reg.uri);
+                                    Centralport xc{&reg_opts, Centralport::regist};
+                                    ASSERT_EQ(xc, regm2.port);
+                                    ASSERT_EQ(RegistReq::A::queryDomConfig, regm2.Body().a);
+                                    ASSERT_EQ(regm2.Body().uri, reg.uri);
 }

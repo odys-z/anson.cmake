@@ -287,7 +287,7 @@ inline static void specialize_req(const JsonOpt* ctx, const AnsonBodyAst *body_a
     entt::meta_factory<anson::AnsonMsg<T>>()
         .type(anclass.c_str())
         .template ctor<const JsonOpt*>()
-        .template ctor<anson::Port>()
+        .template ctor<anson::JavaEnum>() // .template ctor<anson::Port>()
         .template base<anson::Anson>()
         .template data<&anson::AnsonMsg<T>::port>("port")
         .template data<&anson::AnsonMsg<T>::code>("code")

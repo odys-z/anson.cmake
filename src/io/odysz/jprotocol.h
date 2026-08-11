@@ -239,7 +239,7 @@ public:
 
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
-    const JavaEnum port;
+    JavaEnum port;
 
     MsgCode::Code code;
 
