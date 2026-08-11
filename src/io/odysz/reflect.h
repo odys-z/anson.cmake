@@ -264,6 +264,20 @@ inline string JavaEnum::valof() const {
     return enm;
 }
 
+template<typename AST>
+inline AST* JsonOpt::ast(const string &astId) const {
+    string astid = polymorph(astId);
+
+    auto it = asts->find(astid);
+    if (it != asts->end()) {
+        return dynamic_cast<AST*>(it->second.get());
+    }
+    if (!primtypes.contains(astid))
+        if (!LangExt::has_ctor(astid))
+        anerror(std::format("JsonOpt.ast(): cannot find ast with id: '{}'.", astid));
+    return nullptr;
+}
+
 class PeerSettings : public Anson {
 public:
     inline static const string _type_ = "io.odysz.semantier.PeerSettings";

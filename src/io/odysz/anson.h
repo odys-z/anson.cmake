@@ -54,18 +54,19 @@ public:
     };
 
     template<typename AST>
-    AST* ast(const string &astId) const {
-        string astid = polymorph(astId);
+    inline AST* ast(const string &astId) const ;
+    // {
+    //     string astid = polymorph(astId);
 
-        auto it = asts->find(astid);
-        if (it != asts->end()) {
-            return dynamic_cast<AST*>(it->second.get());
-        }
-        if (!primtypes.contains(astid))
-            if (!LangExt::has_ctor(astid))
-                anerror(std::format("JsonOpt.ast(): cannot find ast with id: '{}'.", astid));
-        return nullptr;
-    }
+    //     auto it = asts->find(astid);
+    //     if (it != asts->end()) {
+    //         return dynamic_cast<AST*>(it->second.get());
+    //     }
+    //     if (!primtypes.contains(astid))
+    //         if (!LangExt::has_ctor(astid))
+    //             anerror(std::format("JsonOpt.ast(): cannot find ast with id: '{}'.", astid));
+    //     return nullptr;
+    // }
 
     bool has_ast(const string &astid) const {
         return asts->contains(astid);
