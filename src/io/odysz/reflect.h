@@ -48,8 +48,6 @@ public:
 };
 
 /**
- * ISSUE: shouldn't be the subclass of SemanExpr or Semnatics?
- *
  * @brief The AnsonAst class
  *
  *  isEnum: bool
@@ -165,26 +163,6 @@ public:
     }
 };
 
-// inline bool operator==(const anson::JavaEnum& p, const std::string& s) {
-//     // if (IJsonable::contxt_ptr && IJsonable::contxt_ptr->asts->contains(p.anclass)) {
-//     //     AnsonJavaEnumAst * ast = dynamic_cast<AnsonJavaEnumAst*>(IJsonable::contxt_ptr->asts->at(p.anclass).get());
-//     //     return p.enm == ast->encode[s];
-//     // }
-//     // return false;
-// }
-
-inline bool JavaEnum::operator==(const std::string& s) const {
-    return ast && ((AnsonJavaEnumAst*)ast)->encode[s] == enm;
-}
-
-// inline bool operator==(const std::string& s, const anson::JavaEnum& p) {
-//     return p == s;
-// }
-
-// inline bool operator==(const anson::JavaEnum& p, const anson::JavaEnum& q) {
-//     return p.enm == q.enm;
-// }
-
 class AnsonBodyAst : public AnsonAst {
 public:
     inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";
@@ -212,22 +190,15 @@ public:
     AnsonMsgAst(string anclass, bool isEnum = false) : AnsonAst(anclass) { }
 };
 
+inline bool JavaEnum::operator==(const std::string& s) const {
+    return ast && ((AnsonJavaEnumAst*)ast)->encode[s] == enm;
+}
+
 inline JavaEnum::JavaEnum(const AnsonJavaEnumAst* ast, const string &anclass, const string &e_v)
         : IJsonable(), enm(e_v) {
-
     Anclass(anclass);
-
     this->anclass = anclass;
-    // if (contxt_ptr->asts->contains(anclass)) {
-    //     map<string, string> encode =
-    //         // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
-    //         dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->encode;
-    //     if (encode.contains(enm)) {
-    //         enm = encode[enm];
-    //         return;
-    //     }
-    // }
-    // andebug(std::format("JavaEnum: {}:{}", anclass, enm));
+
     if (!ast)
         anerror("============= c++ Anson Reflect Enforcement ===============\n["s +
                 anclass + "] cannot be created with a null ast prointer.");
@@ -243,17 +214,6 @@ inline JavaEnum::JavaEnum(const AnsonJavaEnumAst* ast, const string &anclass, co
 }
 
 inline string JavaEnum::valof() const {
-    // if (contxt_ptr->asts->contains(anclass)) {
-    //     map<string, string> decode =
-    //         // ISSUE JavaEnum is depending on AnsonJavaEnumAst, is this a design error?
-    //         dynamic_cast<AnsonJavaEnumAst*>(contxt_ptr->asts->at(anclass).get())->decode;
-
-    //     if (decode.contains(enm)) {
-    //         return decode[enm];
-    //     }
-    // }
-    // return enm;
-
     if (!ast) {
         anerror("============= c++ Anson Reflect Enforcement ===============\n["s +
                 anclass + "] cannot be created with a null ast prointer.");
