@@ -7,6 +7,7 @@
 #include <entt/meta/meta.hpp>
 
 #include "common.h"
+#include "io/odysz/reflect.h"
 
 namespace anson {
 
@@ -276,7 +277,7 @@ public:
     JavaEnum& operator=(const JavaEnum&);
     JavaEnum& operator=(JavaEnum&&) noexcept = default;
 
-    string url() {
+    string url() const {
         return enm;
     }
 

@@ -239,7 +239,7 @@ public:
 
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.AnsonMsg";
 
-    JavaEnum port;
+    const JavaEnum port;
 
     MsgCode::Code code;
 
@@ -282,7 +282,7 @@ public:
         return *this;
     }
 
-    T& Body() {
+    T& Body() const {
         if (body.empty()) {
             throw std::runtime_error(std::format(
                 "Body list is empty. port: {}, code: {}, seq: {}", port.valof(), MsgCode::to_string(code), seq));
