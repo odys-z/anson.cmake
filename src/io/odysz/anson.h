@@ -170,6 +170,7 @@ protected:
     /** Only for direct subclasses, Anson, JavaEnum, etc. */
     IJsonable(const string &ancls): anclass(ancls) {}
 
+    // Desgin Notes
     // inline static JsonOpt* contxt_ptr = nullptr;
     /**
      * contxt_ptr is a reflect context, stands for different bridge to json.
@@ -231,11 +232,6 @@ public:
         }
         return ss.str();
     }
-
-    // static std::string unescape(const std::string& s, const JsonOpt& opts) {
-    //     // shouldn't be used?
-    //     return s;
-    // }
 };
 
 class AnsonJavaEnumAst;
