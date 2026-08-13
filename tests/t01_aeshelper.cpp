@@ -157,9 +157,9 @@ TEST(T01_AESHelper, Verify_Tokon) {
     {
         // save for js tests
         std::ofstream ofstream(AESHelperTest::sessn_token);
-        ofstream << ssinf.ssid << endl;
-        ofstream << knows << endl;
-        ofstream << ssinf.ssToken << endl;
+        ofstream << "ssinf.ssid\t\t:" << ssinf.ssid << endl;
+        ofstream << "knows\t\t\t:" << knows << endl;
+        ofstream << "ssinf.ssToken\t:" << ssinf.ssToken << endl;
     }
 
     std::string verify  = std::format("verify {} {} {} {}", ssinf.uid, pswd, ssinf.ssToken, knows);
