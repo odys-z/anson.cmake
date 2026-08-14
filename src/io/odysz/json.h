@@ -664,9 +664,9 @@ inline static void register_port(JsonOpt* ctx) {
     std::istringstream ifstream(
     R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum",
     "dataAnclass": "io.odysz.semantic.jprotocol.Port",
-    "encode" : { "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
+    "encode" : { "ping": "ping.ws", "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
       "file": "file.serv", "userstier": "users.tier", "stree": "s-tree.serv", "dataset": "ds.serv", "datasetier": "ds.tier", "docstier": "docs.tier", "syntier": "sync.tier" },
-    "decode" : { "ping.serv": "heartbeat", "login.serv": "session", "r.serv": "query", "u.serv": "update", "c.serv": "insert", "d.serv": "del", "echo.less": "echo",
+    "decode" : { "ping.ws": "ping", "ping.serv": "heartbeat", "login.serv": "session", "r.serv": "query", "u.serv": "update", "c.serv": "insert", "d.serv": "del", "echo.less": "echo",
       "file.serv": "file", "users.tier": "userstier", "s-tree.serv": "stree", "ds.serv": "dataset", "ds.tier": "datasetier", "docs.tier": "docstier", "sync.tier": "syntier" } })"
     );
 

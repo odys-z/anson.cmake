@@ -81,6 +81,7 @@ class Port : public JavaEnum {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jprotocol.Port";
 
+    inline static const std::string ping = "ping.ws";
     inline static const std::string heartbeat = "ping.serv";
     inline static const std::string session = "login.serv";
 
