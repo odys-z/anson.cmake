@@ -162,26 +162,31 @@ public:
         return oss.str();
     }
 
-    inline static bool isblank(const string s) {
+    inline static bool isblank(const string& s) {
         int l = s.length();
         bool b = l == 0;
         return s.length() == 0;
     }
 
-    inline static bool isblank(const string s, const string &blank) {
+    inline static bool isblank(const string& s, const string &blank) {
         return s.length() == 0 || s == blank;
     }
 
-    inline static bool isblank(const string s, const string &blank0, const string &blank1) {
+    inline static bool isblank(const string& s, const string &blank0, const string &blank1) {
         return s.length() == 0 || s == blank0 || s == blank1;
     }
 
-    inline static bool isblank(const string s, const vector<string> &asblank) {
+    inline static bool isblank(const string& s, const vector<string> &asblank) {
         if (s.length() == 0)
             return true;
         else for (string as : asblank)
                 if (s == as) return true;
         return false;
+    }
+
+    inline static bool endwith(const string& s, const string& suffix) {
+        return s.size() >= suffix.size() &&
+            s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
     }
 
     inline static void mustnonull(const string& s, const string& msg = "") {

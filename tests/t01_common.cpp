@@ -6,14 +6,14 @@
 #include <nlohmann/json.hpp>
 
 using namespace anson;
-TEST(RegexTest, TestIsHttps) {
+TEST(T01_RegexTest, TestIsHttps) {
     EXPECT_TRUE(Regex::isHttps("https://odys-z.github.io"));
     EXPECT_TRUE(Regex::isHttp("http://odys-z.github.io"));
     EXPECT_FALSE(Regex::isHttps("http://odys-z.github.io"));
 
 }
 
-TEST(RegexTest, TestUrlIlligalChar) {
+TEST(T01_RegexTest, TestUrlIlligalChar) {
     UrlValidator v;
     EXPECT_FALSE(v.isValid("http://odys-z.github.io/notes /"));
     EXPECT_TRUE(v.isValid("http://odys-z.github.io/notes%20/"));
@@ -23,7 +23,7 @@ TEST(RegexTest, TestUrlIlligalChar) {
     EXPECT_TRUE(v.isValid(Regex::asJserv("//odys-z.github.io%20")));
 }
 
-TEST(RegexTest, TestIsEnvelope) {
+TEST(T01_RegexTest, TestIsEnvelope) {
 
     EXPECT_TRUE(Regex::startEnvelope("'{\"type\": \"com.examples.test\"}"));
     EXPECT_TRUE(Regex::startEnvelope("'{ \"type\": \"com.examples.test\"}"));
@@ -39,7 +39,7 @@ TEST(RegexTest, TestIsEnvelope) {
     EXPECT_TRUE(Regex::startEnvelope("{'type': \"com.examples.test\"}"));
 }
 
-TEST(RegexTest, TestPareseTypes) {
+TEST(T01_RegexTest, TestPareseTypes) {
     ASSERT_EQ((std::vector<std::string>{"string", "false"}),
               Regex::parse_val_type("string")) << "0.1";
 
@@ -94,7 +94,7 @@ TEST(RegexTest, TestPareseTypes) {
               Regex::parseMapValtype(R"(map.string, shared_ptr<T_List)")) << "::-1";
 }
 
-TEST(LANGEXT, ISENVELOPE) {
+TEST(T01_LANGEXT, ISENVELOPE) {
     ASSERT_FALSE(LangExt::isenvelope("")) << "false: ''";
     ASSERT_FALSE(LangExt::isenvelope("session openned")) << "false: 'session ....'";
     ASSERT_FALSE(LangExt::isenvelope("{\"x\": 1}")) << "false: ''";
@@ -102,10 +102,29 @@ TEST(LANGEXT, ISENVELOPE) {
     ASSERT_TRUE(LangExt::isenvelope("{\"type\": ")) << "false: type: ''";
 }
 
+TEST(T01_LANGEXT, ENDWITH) {
+    ASSERT_FALSE(LangExt::endwith("", ".")) << "endwith() - 1";
+    ASSERT_TRUE (LangExt::endwith(".", ""))  << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("", ""))  << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("abc", "")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("", "abc")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("", "abc")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("x", "abc")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("abc", "b")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("x", "b")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("x", "x")) << "endwith() - 2";
+    ASSERT_FALSE(LangExt::endwith("123", "6")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("123", "3")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("abcd", "abcd")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("abcd", "bcd")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("abcd", "cd")) << "endwith() - 2";
+    ASSERT_TRUE (LangExt::endwith("abcd", "d")) << "endwith() - 2";
+}
+
 /**
  * See anson.java/test/io.odysz.anson.AnsonTest.testEscape()
  */
-TEST(ANOSTREAM, Escape) {
+TEST(T01_ANOSTREAM, Escape) {
     JsonOpt opts{nullptr};
     string value = "1\t 2\n 3\" 4\\";
     // 1\\t 2\\n 3\" 4\\
