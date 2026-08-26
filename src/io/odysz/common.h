@@ -189,6 +189,11 @@ public:
             s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
     }
 
+    inline static int ix(const std::vector<std::string>& arr, const std::string& of) {
+        auto it = std::ranges::find(arr, std::string_view{of});
+        return (it != arr.end()) ? static_cast<int>(std::ranges::distance(arr.begin(), it)) : -1;
+    }
+
     inline static void mustnonull(const string& s, const string& msg = "") {
         if (s.length() == 0)
             throw new logic_error(isblank(msg) ? "string is blank" : msg);
