@@ -51,3 +51,75 @@ Use the latest Semantier-generator for generating required headers for testing.
 ```
 
 AST files, *.ast.json, are copied from Anson.cmake/tests/ast.
+
+# Compile on Ubuntu
+
+## Prerequisites
+
+Install build tooling:
+
+```
+    sudo apt update
+    sudo apt install -y build-essential ninja-build git curl zip unzip tar \
+        pkg-config autoconf automake libtool python3
+```
+
+CMake must be v4.4.2 or newer. Ubuntu's `apt` package, and the `cmake` PyPI wheel,
+are both normally too old to satisfy this. Download a current build from the
+official [CMake releases page](https://cmake.org/download/) instead:
+
+```
+    cd /tmp
+    wget https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz
+    tar xzf cmake-4.4.2-linux-x86_64.tar.gz
+    sudo mv cmake-4.4.2-linux-x86_64 /opt/cmake-4.4.2
+    sudo ln -sf /opt/cmake-4.4.2/bin/cmake /usr/local/bin/cmake
+```
+### Compiler version
+
+Requires `g++-16`.
+
+FYI, installing a newer one does not automatically make it the default — `g++`/`gcc`
+are usually symlinks managed by `update-alternatives`. To make a newer version
+the default:
+
+```
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-16 16
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-16 16
+    sudo update-alternatives --config g++
+    sudo update-alternatives --config gcc
+```
+
+## vcpkg
+
+Clone vcpkg as a sibling directory to this project (`../vcpkg` relative to this repo)
+and bootstrap it:
+
+```
+    cd ..
+    git clone https://github.com/microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+```
+
+Install the dependencies for the Linux triplet:
+
+```
+    ./vcpkg install boost-url:x64-linux openssl:x64-linux \
+        nlohmann-json:x64-linux entt:x64-linux
+```
+
+`CMakeLists.txt` auto-selects the `x64-linux` triplet on Linux, so no extra
+`-DVCPKG_TARGET_TRIPLET` flag is needed for a native build. Pass one explicitly
+only if you want to cross-compile (e.g. Windows binaries via MinGW).
+
+## Build
+
+```
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+    cmake --build build
+```
+
+GoogleTest is fetched automatically via `FetchContent` when tests are enabled
+(`ANSON_BUILD_TESTS`, on by default), so make sure git/network access (and any
+proxy configuration) is available at configure time.
