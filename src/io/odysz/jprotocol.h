@@ -94,6 +94,13 @@ public:
     /** document manager's semantic tier ("docs.tier") */
     inline static const std::string docstier = "docs.tier";
 
+    /**
+     * FIXME
+     * A temperary port for avoiding new IPort type in *.cmake.
+     * Must be moved to SynDocollPort in Anclient.cmake 0.1.1.
+     */
+    inline static const std::string docoll = "docoll.syn";
+
     /** Not entt registered */
     Port(const AnsonJavaEnumAst* ast): JavaEnum(ast, _type_, "na") {
         andebug("Port Default Cosntructor");
