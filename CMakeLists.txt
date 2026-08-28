@@ -7,6 +7,9 @@ add_compile_options(-std=gnu++20)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/../vcpkg/installed" CACHE PATH "vcpkg install dir")
 
+# cmake 4.x won't happy with AnsonResp.map
+# set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 # Pick a sane default triplet per-platform. Override on the command line with
 # -DVCPKG_TARGET_TRIPLET=... / -DVCPKG_HOST_TRIPLET=... if you need something else
 # (e.g. cross-compiling Windows binaries from Linux via MinGW).
