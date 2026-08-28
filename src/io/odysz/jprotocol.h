@@ -218,7 +218,7 @@ public:
 
     string m;
     vector<AnResultset> rs;
-    map<string, Anson> map;
+    std::map<std::string, Anson> map;
 
     AnsonResp() : AnsonResp("NA") {}
     // AnsonResp(string type) : AnsonBody("NA", type) {}

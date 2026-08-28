@@ -10,6 +10,14 @@
 #include "io/odysz/entt_jserv.h"
 #include "io/odysz/json.h"
 
+#ifdef _WIN32
+    #include <direct.h>
+    #define GETCWD _getcwd
+#else
+    #include <unistd.h>
+    #define GETCWD getcwd
+#endif
+
 class AESHelperTest : public ::testing::Test {
 public:
     /** To install the jar package, semantic.transact$ mvn install */
@@ -62,7 +70,7 @@ TEST(T01_AESHelper, Decrypt) {
     using namespace anson;
 
     char buff[FILENAME_MAX];
-    _getcwd(buff, FILENAME_MAX);
+    GETCWD(buff, FILENAME_MAX);
     anwarn("This test can work on Windows only with system setting of Beta Utf-8.");
     anlog("Current working dir: "s + buff);
 
