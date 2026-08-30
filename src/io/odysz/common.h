@@ -196,12 +196,12 @@ public:
 
     inline static void mustnonull(const string& s, const string& msg = "") {
         if (s.length() == 0)
-            throw new logic_error(isblank(msg) ? "string is blank" : msg);
+            throw logic_error(isblank(msg) ? "string is blank" : msg);
     }
 
     inline static void mustin(int v, int l_include, int r_exclude, const string& msg = "") {
         if (v < l_include || v >= r_exclude)
-            throw new logic_error(isblank(msg) ? std::format("{} is out of range [{}, {}).", v, l_include, r_exclude) : msg);
+            throw logic_error(isblank(msg) ? std::format("{} is out of range [{}, {}).", v, l_include, r_exclude) : msg);
     }
 
     #include <regex>
