@@ -65,3 +65,4 @@ qstr.txt
 
 ast-cpy
 tests/res/debug.*
+tests/res/*.jar
