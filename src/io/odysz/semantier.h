@@ -17,6 +17,7 @@ public:
     struct A {
         inline static const string echo = "echo";
         inline static const string inet = "inet";
+        inline static const string pubConfig = "pub-cfg";
     };
 
     string echo;

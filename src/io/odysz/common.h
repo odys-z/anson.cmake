@@ -163,8 +163,8 @@ public:
     }
 
     inline static bool isblank(const string& s) {
-        int l = s.length();
-        bool b = l == 0;
+        // int l = s.length();
+        // bool b = l == 0;
         return s.length() == 0;
     }
 

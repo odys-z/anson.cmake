@@ -218,10 +218,11 @@ public:
 
     string m;
     vector<AnResultset> rs;
+
+    // FIXME: should be {string: VarType}, see java version.
     std::map<std::string, Anson> map;
 
     AnsonResp() : AnsonResp("NA") {}
-    // AnsonResp(string type) : AnsonBody("NA", type) {}
     AnsonResp(string a) : AnsonBody(a) { Type(_type_); }
 
     AnsonResp& msg(const string & m) {
