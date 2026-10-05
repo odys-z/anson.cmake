@@ -24,7 +24,7 @@ if(NOT DEFINED VCPKG_HOST_TRIPLET)
 endif()
 
 project(anson.cmake
-    VERSION 0.1.3
+    VERSION 0.1.4
     DESCRIPTION "The cpp peer of Anson"
     HOMEPAGE_URL "https://github.com/odys-z/anson.cmake"
     LANGUAGES CXX)

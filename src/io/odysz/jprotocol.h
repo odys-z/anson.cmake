@@ -407,6 +407,19 @@ public:
                && jprotocol.ctx
                && urlValidator.isValid(jserv());
     }
+
+    /**
+     * @since 0.1.4
+     * @brief valid_port
+     * @param s port in string
+     * @return ok or not
+     */
+    static bool valid_port(const string& s) {
+        string p = LangExt::trim(s);
+        return !p.empty() && p.size() <= 5
+            && std::all_of(p.begin(), p.end(), [](unsigned char c) { return std::isdigit(c); })
+            && validUrlPort(std::stoi(p), {1, 65535});
+    }
 };
 
 class OnOk_ {
