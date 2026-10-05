@@ -3,9 +3,8 @@
 #include <entt/meta/factory.hpp>
 #include <entt/meta/meta.hpp>
 
-#include <io/odysz/anson.h>
-#include <io/odysz/jprotocol.h>
-#include <io/odysz/entt_jserv.h>
+#include "../anson.h"
+#include "../json.h"
 
 
 

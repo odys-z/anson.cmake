@@ -6,8 +6,8 @@
 #include <vector>
 #include <chrono>
 
-#include "io/odysz/common.h"
-#include "io/odysz/anson.h"
+#include "../common.h"
+#include "../anson.h"
 
 namespace anson {
 

@@ -5,6 +5,7 @@
 
 #include "io/odysz/module/langstring.h"
 #include "io/odysz/reflect.h"
+#include "io/odysz/entt_jserv.h"
 
 using namespace anson;
 static AstMap asts;
