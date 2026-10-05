@@ -9,7 +9,7 @@
 #include <entt/meta/container.hpp>
 #include <string>
 #include <fstream>
-#include <io/odysz/semantic/x.h>
+#include "semantic/x.h"
 #include "anson.h"
 #include "jprotocol.h"
 #include "anserializer.h"
