@@ -57,53 +57,53 @@ protected:
 } // namespace
 
 TEST_F(T16_EnvPath, Tilde) {
-    EXPECT_EQ("/home/ody",       resolveHomePath("~"));
-    EXPECT_EQ("/home/ody/a/b",   resolveHomePath("~/a/b"));
-    EXPECT_EQ("/home/ody\\a",    resolveHomePath("~\\a"));
+    EXPECT_EQ("/home/ody",       EnvPath::replaceEnv("~"));
+    EXPECT_EQ("/home/ody/a/b",   EnvPath::replaceEnv("~/a/b"));
+    EXPECT_EQ("/home/ody\\a",    EnvPath::replaceEnv("~\\a"));
 
     // only a leading ~, and no ~user
-    EXPECT_EQ("~user/a",         resolveHomePath("~user/a"));
-    EXPECT_EQ("a/~/b",           resolveHomePath("a/~/b"));
+    EXPECT_EQ("~user/a",         EnvPath::replaceEnv("~user/a"));
+    EXPECT_EQ("a/~/b",           EnvPath::replaceEnv("a/~/b"));
 
     // TEST_F(T16_EnvPath, Home) {
-    EXPECT_EQ("/home/ody/x",     resolveHomePath("$HOME/x"));
-    EXPECT_EQ("x//home/ody",     resolveHomePath("x/$HOME"));
-    EXPECT_EQ("$HOMEX/x",        resolveHomePath("$HOMEX/x"));     // whole name only
+    EXPECT_EQ("/home/ody/x",     EnvPath::replaceEnv("$HOME/x"));
+    EXPECT_EQ("x//home/ody",     EnvPath::replaceEnv("x/$HOME"));
+    EXPECT_EQ("$HOMEX/x",        EnvPath::replaceEnv("$HOMEX/x"));     // whole name only
 
     // a trailing separator of home is not doubled for ~
     set_env(home_var(), "/home/ody/");
-    EXPECT_EQ("/home/ody/a",     resolveHomePath("~/a"));
+    EXPECT_EQ("/home/ody/a",     EnvPath::replaceEnv("~/a"));
 
     // TEST_F(T16_EnvPath, VolumeHome) {
     // not set: kept as is (and warned), so the name shows up where the path is reported
-    EXPECT_EQ("$VOLUME_HOME/syntity.json", resolveHomePath("$VOLUME_HOME/syntity.json"));
+    EXPECT_EQ("$VOLUME_HOME/syntity.json", EnvPath::replaceEnv("$VOLUME_HOME/syntity.json"));
 
     // from the environment; '\' -> '/', and '$' in the value is literal
     set_env("VOLUME_HOME", "D:\\vol$1");
-    EXPECT_EQ("D:/vol$1/s.db",   resolveHomePath("$VOLUME_HOME/s.db"));
+    EXPECT_EQ("D:/vol$1/s.db",   EnvPath::replaceEnv("$VOLUME_HOME/s.db"));
 
     // set by the app: takes precedence; a leading ~ in the value is expanded
     EnvPath::volume_home("~/vol");
-    EXPECT_EQ("/home/ody/vol/s.db", resolveHomePath("$VOLUME_HOME/s.db"));
+    EXPECT_EQ("/home/ody/vol/s.db", EnvPath::replaceEnv("$VOLUME_HOME/s.db"));
 
     // cleared: back to the environment
     EnvPath::volume_home("");
-    EXPECT_EQ("D:/vol$1/s.db",   resolveHomePath("$VOLUME_HOME/s.db"));
+    EXPECT_EQ("D:/vol$1/s.db",   EnvPath::replaceEnv("$VOLUME_HOME/s.db"));
 }
 
 TEST_F(T16_EnvPath, OtherNamesAreLiteral) {
     set_env("VOLUME_HOME", "/v");
-    EXPECT_EQ("/v//home/ody/$JAVA_HOME", resolveHomePath("$VOLUME_HOME/$HOME/$JAVA_HOME"));
-    EXPECT_EQ("price$5/a",       resolveHomePath("price$5/a"));
-    EXPECT_EQ("a$",              resolveHomePath("a$"));
-    EXPECT_EQ("$",               resolveHomePath("$"));
-    EXPECT_EQ("",                resolveHomePath(""));
+    EXPECT_EQ("/v//home/ody/$JAVA_HOME", EnvPath::replaceEnv("$VOLUME_HOME/$HOME/$JAVA_HOME"));
+    EXPECT_EQ("price$5/a",       EnvPath::replaceEnv("price$5/a"));
+    EXPECT_EQ("a$",              EnvPath::replaceEnv("a$"));
+    EXPECT_EQ("$",               EnvPath::replaceEnv("$"));
+    EXPECT_EQ("",                EnvPath::replaceEnv(""));
 
     // TEST_F(T16_EnvPath, Utf8) {
-    EXPECT_EQ("/opt/日本語//home/ody", resolveHomePath("/opt/日本語/$HOME"));
+    EXPECT_EQ("/opt/日本語//home/ody", EnvPath::replaceEnv("/opt/日本語/$HOME"));
 
     set_env(home_var(), "/home/奥迪");
-    EXPECT_EQ("/home/奥迪/vol",  resolveHomePath("~/vol"));
+    EXPECT_EQ("/home/奥迪/vol",  EnvPath::replaceEnv("~/vol"));
 }
 
 #ifdef _WIN32

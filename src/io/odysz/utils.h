@@ -316,9 +316,9 @@ private:
 /**
  * Resolves ~, $HOME and $VOLUME_HOME in a UTF-8 path, see EnvPath.
  * (Moved here from Anclient example.slint, ipcagent_manager.h.)
- */
 inline std::string resolveHomePath(const std::string& inputPath) {
     return EnvPath::replaceEnv(inputPath);
 }
+ */
 
 }
