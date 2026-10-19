@@ -8,6 +8,11 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <optional>
+#include <cstdlib>
+#include <cctype>
+#include <algorithm>
+#include <format>
 
 using namespace std;
 
@@ -198,6 +203,122 @@ inline std::filesystem::path Utils::safeAbsolute(const std::filesystem::path& p)
         anerror("Unknown exception while converting to absolute path\n");
     }
     return {}; // fallback: empty path
+}
+
+/**
+ * The C++ counterpart of io.odysz.common.EnvPath (semantic.transact), with a fixed set of names.
+ *
+ * Accepted, on Linux and Windows alike:
+ *   ~              at the start of a path, alone or before '/' or '\': the user's home;
+ *   $HOME          the user's home, same as ~;
+ *   $VOLUME_HOME   EnvPath::volume_home(path) if set by the app, else the environment variable VOLUME_HOME.
+ *
+ * The user's home is USERPROFILE (then HOME) on Windows, HOME on Linux.
+ * Any other $NAME is not a variable here and is kept as is. A known variable without a value is
+ * also kept as is, with a warning, so the unresolved name shows up wherever the path is reported.
+ * Values have '\' turned into '/', as EnvPath does with FilenameUtils.winpath2unix().
+ * Input and output are UTF-8; on Windows nothing goes through the ANSI code page.
+ */
+class EnvPath {
+public:
+    inline static const std::string VOLUME_HOME = "VOLUME_HOME";
+    inline static const std::string HOME = "HOME";
+
+    /** Sets $VOLUME_HOME, taking precedence over the environment variable. */
+    inline static void volume_home(const std::string& utf8_path) { _volume() = utf8_path; }
+
+    inline static std::optional<std::string> volume_home() {
+        if (_volume() && !_volume()->empty()) return _volume();
+        return getEnv(VOLUME_HOME.c_str());
+    }
+
+    /** The user's home folder, UTF-8. */
+    inline static std::optional<std::string> home() {
+#ifdef _WIN32
+        if (auto p = getEnv("USERPROFILE")) return p;
+#endif
+        return getEnv("HOME");
+    }
+
+    /** An environment variable as UTF-8; nullopt if not set or empty. Names are ASCII. */
+    inline static std::optional<std::string> getEnv(const char* name) {
+#ifdef _WIN32
+        // _wgetenv, not _wdupenv_s: MinGW's msvcrt.dll (vcpkg x64-mingw-*) doesn't export the latter.
+        std::wstring wname(name, name + std::char_traits<char>::length(name));
+#ifdef _MSC_VER
+#pragma warning(suppress: 4996)
+#endif
+        const wchar_t* buf = _wgetenv(wname.c_str());
+        if (buf == nullptr || *buf == L'\0') return std::nullopt;
+        std::wstring w(buf);
+        std::u8string u = std::filesystem::path(w).u8string();
+        return std::string(u.begin(), u.end());
+#else
+        const char* v = std::getenv(name);
+        if (v == nullptr || *v == '\0') return std::nullopt;
+        return std::string(v);
+#endif
+    }
+
+    /**
+     * Replaces $HOME, $VOLUME_HOME and a leading ~. See the class comment.
+     * @param src UTF-8 path, e.g. "$VOLUME_HOME/syntity.json", "~/.anclient/settings.json"
+     * @return UTF-8 path
+     */
+    inline static std::string replaceEnv(const std::string& src) {
+        auto isw = [](char c) { return std::isalnum((unsigned char)c) || c == '_'; };
+
+        std::string out;
+        out.reserve(src.size());
+        for (size_t i = 0; i < src.size();) {
+            if (src[i] != '$') { out += src[i++]; continue; }
+
+            size_t j = i + 1;
+            while (j < src.size() && isw(src[j])) j++;
+            std::string name = src.substr(i + 1, j - i - 1);
+
+            std::optional<std::string> v;
+            if (name == HOME) v = home();
+            else if (name == VOLUME_HOME) v = volume_home();
+            else { out.append(src, i, j - i); i = j; continue; }    // not a variable here
+
+            if (v) out += unixsep(*v);
+            else {
+                anwarn(std::format("EnvPath: ${} has no value, kept as is: {}", name, src));
+                out.append(src, i, j - i);
+            }
+            i = j;
+        }
+
+        if (!out.empty() && out[0] == '~' && (out.size() == 1 || out[1] == '/' || out[1] == '\\')) {
+            if (auto h = home()) {
+                std::string hm = unixsep(*h);
+                while (hm.size() > 1 && hm.back() == '/') hm.pop_back();
+                out = hm + out.substr(1);
+            }
+            else anwarn(std::format("EnvPath: no home folder for ~, kept as is: {}", src));
+        }
+        return out;
+    }
+
+private:
+    inline static std::optional<std::string>& _volume() {
+        static std::optional<std::string> v;
+        return v;
+    }
+
+    inline static std::string unixsep(std::string s) {
+        std::replace(s.begin(), s.end(), '\\', '/');
+        return s;
+    }
+};
+
+/**
+ * Resolves ~, $HOME and $VOLUME_HOME in a UTF-8 path, see EnvPath.
+ * (Moved here from Anclient example.slint, ipcagent_manager.h.)
+ */
+inline std::string resolveHomePath(const std::string& inputPath) {
+    return EnvPath::replaceEnv(inputPath);
 }
 
 }
