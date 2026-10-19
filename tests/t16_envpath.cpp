@@ -64,9 +64,8 @@ TEST_F(T16_EnvPath, Tilde) {
     // only a leading ~, and no ~user
     EXPECT_EQ("~user/a",         resolveHomePath("~user/a"));
     EXPECT_EQ("a/~/b",           resolveHomePath("a/~/b"));
-}
 
-TEST_F(T16_EnvPath, Home) {
+    // TEST_F(T16_EnvPath, Home) {
     EXPECT_EQ("/home/ody/x",     resolveHomePath("$HOME/x"));
     EXPECT_EQ("x//home/ody",     resolveHomePath("x/$HOME"));
     EXPECT_EQ("$HOMEX/x",        resolveHomePath("$HOMEX/x"));     // whole name only
@@ -74,9 +73,8 @@ TEST_F(T16_EnvPath, Home) {
     // a trailing separator of home is not doubled for ~
     set_env(home_var(), "/home/ody/");
     EXPECT_EQ("/home/ody/a",     resolveHomePath("~/a"));
-}
 
-TEST_F(T16_EnvPath, VolumeHome) {
+    // TEST_F(T16_EnvPath, VolumeHome) {
     // not set: kept as is (and warned), so the name shows up where the path is reported
     EXPECT_EQ("$VOLUME_HOME/syntity.json", resolveHomePath("$VOLUME_HOME/syntity.json"));
 
@@ -100,9 +98,8 @@ TEST_F(T16_EnvPath, OtherNamesAreLiteral) {
     EXPECT_EQ("a$",              resolveHomePath("a$"));
     EXPECT_EQ("$",               resolveHomePath("$"));
     EXPECT_EQ("",                resolveHomePath(""));
-}
 
-TEST_F(T16_EnvPath, Utf8) {
+    // TEST_F(T16_EnvPath, Utf8) {
     EXPECT_EQ("/opt/日本語//home/ody", resolveHomePath("/opt/日本語/$HOME"));
 
     set_env(home_var(), "/home/奥迪");
