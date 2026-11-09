@@ -3,7 +3,7 @@
   "baseAnclass": "io.odysz.semantic.jprotocol.AnsonResp",
   "fields" : {
     "ssInf": {"dataAnclass": "io.odysz.semantics.SessionInf"},
-    "profile": {"dataAnclass": "io.odysz.anson.Anson"}
+    "profile": {"dataAnclass": "io.odysz.semantic.jsession.JProfile"}
   },
   "ctors": [[[], ["string", "ssInf.ssid", "=", "ssid"],
                  ["string", "ssInf.uid", "=", "uid"],

@@ -12,6 +12,58 @@
 
 namespace anson {
 
+class JProfile : public anson::Anson {
+public:
+    inline static const std::string _type_ = "io.odysz.semantic.jsession.JProfile";
+    string home;
+    string orgId;
+    string customExt;
+
+    JProfile() : Anson() {
+        Type(_type_);
+    }
+};
+
+inline static void register_jprofileAst(JsonOpt* ctx) {
+
+    AnsonAst * ast = createAST <JProfile, AnsonAst> (
+        *ctx->asts, Anson::_type_, map <string, AnsonField> {
+        {"home", {.dataAnclass="string"} },
+        {"orgId", {.dataAnclass="string"} },
+        {"customExt", {.dataAnclass="string"} },
+       });
+
+    entt::meta_factory <anson::JProfile> ()
+        .type(ast->enttypeid)
+        .base<Anson>()
+
+        .data<&anson::JProfile::home>("home")
+        .data<&anson::JProfile::orgId>("orgId")
+        .data<&anson::JProfile::customExt>("customExt")
+        ;
+
+        //
+        ast->get_field_instance = [ast, ctx](const IJsonable& ans, const string& fieldname) -> meta_any {
+            if (ast->fields.contains(fieldname)) {
+                auto& concrete = static_cast<const JProfile&>(ans);
+                if ("home" == fieldname)
+                    return entt::forward_as_meta(concrete.home);
+                if ("orgId" == fieldname)
+                    return entt::forward_as_meta(concrete.orgId);
+                if ("customExt" == fieldname)
+                    return entt::forward_as_meta(concrete.customExt);
+            }
+
+            if (ctx->has_ast(ast->baseAnclass)) {
+                AnsonAst *bast = ctx->ast<AnsonAst>(ast->baseAnclass);
+                return bast->get_field_instance(ans, fieldname);
+            }
+
+            anerror("get_field_instance<JProfile>(): Failed to get entt instance (meta_any)");
+            return { };
+        };
+}
+
 class HeartBeat : public anson::AnsonBody {
 public:
     inline static const std::string _type_ = "io.odysz.semantic.jsession.HeartBeat";
@@ -120,7 +172,7 @@ public:
     struct A {
     };
     SessionInf ssInf;
-    Anson profile;
+    JProfile profile;
 
     AnSessionResp(string ssid, string uid, string roleId) : AnsonResp() {
         Type(_type_);
@@ -169,6 +221,7 @@ inline static void load_ansessionrespAst(JsonOpt* ctx, const string &ast_path) {
 
 inline static void register_semantier(JsonOpt* ctx, const string &ast_folder) {
     filesystem::path folder_path{ast_folder};
+    register_jprofileAst(ctx);
     load_heartbeatAst(ctx, (folder_path / "heartbeat.ast.json").string());
     load_ansessionreqAst(ctx, (folder_path / "session-req.ast.json").string());
     load_ansessionrespAst(ctx, (folder_path / "session-resp.ast.json").string());
