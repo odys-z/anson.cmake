@@ -1,0 +1,10 @@
+{ "type": "io.odysz.reflect.AnsonAst",
+  "dataAnclass": "io.odysz.semantic.jsession.JProfile",
+  "baseAnclass": "io.odysz.anson.Anson",
+  "fields" : {
+    "home": {"dataAnclass": "string"},
+    "orgId": {"dataAnclass": "string"},
+    "customExt": {"dataAnclass": "string"}
+  },
+  "ctorsemantics": []
+}
