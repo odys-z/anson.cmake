@@ -1,4 +1,4 @@
-{ "type"      : "io.odysz.reflect.PeerSettings",
+{ "type"      : "io.odysz.semantier.PeerSettings",
   "tier_name" : "semantier",
   "ansonMsg"  : "io.odysz.semantic.jprotocol.AnsonMsg",
   "ansons"    : ["jprofile.ast.json"],
