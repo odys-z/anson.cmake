@@ -581,6 +581,7 @@ inline static void register_msgs(const JsonOpt* ctx) {
         .ctor<string>()
         .data<&anson::AnsonBody::uri>("uri")
         .data<&anson::AnsonBody::a>("a")
+        .data<&anson::AnsonBody::parent>("parent")
         ;
 }
 

@@ -20,6 +20,14 @@ public:
     string a;
     string uri;
 
+    /**
+     * Java: @AnsonField(ref=AnsonField.enclosing) AnsonMsg parent, serialized by java as the
+     * envelope's class name. Kept here only to accept that value when deserializing; it is
+     * registered in entt meta but not in the AST fields, so it is never serialized from c++.
+     * TODO: replace with generated ignoreFrom/ignoreTo support for all language peers.
+     */
+    string parent;
+
     AnsonBody() : Anson(_type_) {}
     AnsonBody(string a) : Anson(_type_), a(a) {}
 };
