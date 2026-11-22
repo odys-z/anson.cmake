@@ -1,4 +1,4 @@
-{ "type": "io.odysz.anson.AnsonBodyAst",
+{ "type": "io.odysz.reflect.AnsonBodyAst",
   "A": {"echo":  "echo", "inet":  "inet"},
   "dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq",
   "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",

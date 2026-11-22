@@ -45,10 +45,10 @@ public:
 
     JsonOpt(AstMap *asts)
         : asts(asts), primtypes(primtypes_c20()),
-        astyps({{"io.odysz.anson.AnsonAst", "AnsonAst"},
-                {"io.odysz.anson.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
-                {"io.odysz.anson.AnsonBodyAst", "AnsonBodyAst"},
-                {"io.odysz.anson.AnsonMsgAst", "AnsonMsgAst"}}),
+        astyps({{"io.odysz.reflect.AnsonAst", "AnsonAst"},
+                {"io.odysz.reflect.AnsonJavaEnumAst", "AnsonJavaEnumAst"},
+                {"io.odysz.reflect.AnsonBodyAst", "AnsonBodyAst"},
+                {"io.odysz.reflect.AnsonMsgAst", "AnsonMsgAst"}}),
         serialize_type(true) {
         andebug(std::format("prim-types's size: {}", primtypes.size()));
     };
@@ -374,7 +374,7 @@ public:
 
 };
 
-inline static const string AnsonField_type = "io.odysz.anson.AnsonField";
+inline static const string AnsonField_type = "io.odysz.reflect.AnsonField";
 struct AnsonField {
 
     /** No conter-part in java */

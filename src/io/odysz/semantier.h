@@ -39,7 +39,7 @@ public:
 
 inline static void load_usereqAst_ext(JsonOpt* ctx) {
     istringstream ast_is {
-        R"({ "type": "io.odysz.anson.AnsonBodyAst",)"
+        R"({ "type": "io.odysz.reflect.AnsonBodyAst",)"
         // R"("dataAnclass": "io.odysz.semantic.jserv.echo.UserReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
         R"("dataAnclass": ")" + UserReq::_type_ + R"(", "baseAnclass": ")" + AnsonBody::_type_ + R"(",)"
         R"("A": {"test":  "test.only"},)"
@@ -73,7 +73,7 @@ inline static void load_usereqAst_ext(JsonOpt* ctx) {
 }
 
 inline static void load_echoAst_ext(JsonOpt* ctx) {
-    istringstream ast_is {R"({ "type": "io.odysz.anson.AnsonBodyAst",)"
+    istringstream ast_is {R"({ "type": "io.odysz.reflect.AnsonBodyAst",)"
     R"("dataAnclass": "io.odysz.semantic.jserv.echo.EchoReq", "baseAnclass": "io.odysz.semantic.jprotocol.AnsonBody",)"
     R"("A": {"echo":  "echo", "inet":  "inet"},)"
     R"("fields" : { "echo": {"dataAnclass": "java.lang.String"} })"

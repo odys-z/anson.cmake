@@ -19,14 +19,14 @@ using AstMap = map<string, unique_ptr<AnsonAst>>;
 
 class Semantics : public Anson {
 public:
-    inline static const string _type_ = "io.odysz.anson.Semantics";
+    inline static const string _type_ = "io.odysz.reflect.Semantics";
 
     Semantics() : Anson(_type_) {}
 };
 
 class SemanExpr : public Semantics {
 public:
-    inline static const string _type_ = "io.odysz.anson.SemanExpr";
+    inline static const string _type_ = "io.odysz.reflect.SemanExpr";
     /** Semantype { "()", "", "ini" } */
     string stype;
     vector<string> args;
@@ -38,7 +38,7 @@ public:
 
 class AnCtor : public Semantics {
 public:
-    inline static const string _type_ = "io.odysz.anson.AnCtor";
+    inline static const string _type_ = "io.odysz.reflect.AnCtor";
     SemanExpr base;
     vector<SemanExpr> args;
     vector<SemanExpr> body;
@@ -59,7 +59,7 @@ public:
  */
 class AnsonAst : public Anson {
 public:
-    inline static const string _type_ = "io.odysz.anson.AnsonAst";
+    inline static const string _type_ = "io.odysz.reflect.AnsonAst";
 
     virtual ~AnsonAst() = default;
 
@@ -130,7 +130,7 @@ const string AnsonAst::find_field_astid(const AstMap* asts, const string & field
 
 class AnsonJavaEnumAst: public AnsonAst {
 public:
-    inline static const string _type_ = "io.odysz.anson.AnsonJavaEnumAst";
+    inline static const string _type_ = "io.odysz.reflect.AnsonJavaEnumAst";
 
     map<string, string> encode;
     map<string, string> decode;
@@ -165,7 +165,7 @@ public:
 
 class AnsonBodyAst : public AnsonAst {
 public:
-    inline static const string _type_ = "io.odysz.anson.AnsonBodyAst";
+    inline static const string _type_ = "io.odysz.reflect.AnsonBodyAst";
 
     // ISSUE not adding uri to fields?
     string uri;
@@ -178,7 +178,7 @@ public:
 
 class AnsonMsgAst : public AnsonAst {
 public:
-    inline static const string _type_ = "io.odysz.anson.AnsonMsgAst";
+    inline static const string _type_ = "io.odysz.reflect.AnsonMsgAst";
 
     string bodyAnclass;
     string bodyAst;

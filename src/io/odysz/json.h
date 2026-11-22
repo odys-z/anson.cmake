@@ -663,7 +663,7 @@ inline static void register_iport(JsonOpt* ctx, const string& path) {
  */
 inline static void register_port(JsonOpt* ctx) {
     std::istringstream ifstream(
-    R"({   "type": "io.odysz.anson.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum",
+    R"({   "type": "io.odysz.reflect.AnsonJavaEnumAst", "baseAnclass": "io.odysz.anson.JavaEnum",
     "dataAnclass": "io.odysz.semantic.jprotocol.Port",
     "encode" : { "ping": "ping.ws", "heartbeat": "ping.serv", "session": "login.serv", "query": "r.serv", "update": "u.serv", "insert": "c.serv", "del": "d.serv", "echo": "echo.less",
       "file": "file.serv", "userstier": "users.tier", "stree": "s-tree.serv", "dataset": "ds.serv", "datasetier": "ds.tier", "docstier": "docs.tier", "syntier": "sync.tier" },

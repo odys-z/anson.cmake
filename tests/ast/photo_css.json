@@ -1,4 +1,4 @@
-{ "type": "io.odysz.anson.AnsonAst",
+{ "type": "io.odysz.reflect.AnsonAst",
   "dataAnclass": "io.oz.album.tier.T_PhotoCSS",
   "baseAnclass": "io.odysz.anson.Anson",
   "fields" : {
