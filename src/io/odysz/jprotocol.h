@@ -166,21 +166,7 @@ public:
     const JsonOpt* ctx = nullptr;
     string protocolpath;
 
-    /**
-     * The very right first line of main, to setup a protocol layer.
-     *
-     * @brief setup
-     * @param urlpath
-     * @param p one of the port value to be understood, and is ignored (only for java semantics)
-    void setup(const string& urlpath, const Port& p = {}) {
-        protocolpath = urlpath;
-    }
-     */
-
-    // JProtocol(string protocolpath) : protocolpath(protocolpath) { }
-    // JProtocol() : protocolpath("") { }
     JProtocol(const string& protocolpath, const JsonOpt* ctx) : protocolpath(protocolpath), ctx(ctx) { }
-    // JProtocol() : JProtocol("", nullptr) { }
 };
 
 // MsgCode
