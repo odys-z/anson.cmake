@@ -33,15 +33,15 @@ protected:
     }
 
 public:
-    bool serialize_type;
-    bool escape4DB;
+    bool serialize_type{};
+    bool escape4DB{};
     string doubleFormat;
     string indent;
 
     const map<string, string> astyps;
     /** @deprecated */
     const map<string, string> primtypes;
-    AstMap *asts;
+    AstMap *asts = nullptr;
 
     JsonOpt(AstMap *asts)
         : asts(asts), primtypes(primtypes_c20()),
@@ -73,7 +73,7 @@ public:
 
 class jsoncharstream : public std::streambuf {
 private:
-    std::streambuf* destBuffer;
+    std::streambuf* destBuffer = nullptr;
     const JsonOpt& options;
 
 protected:
@@ -437,7 +437,7 @@ public:
      * Last Sequence
      * @since 1.4.37
      */
-    int seq;
+    int seq{};
 
     string device;
 
@@ -450,7 +450,7 @@ protected:
     AnsonException(const string& typ, const string & err) : Anson(typ), runtime_error(err), code(0) {}
 
 public:
-    int code;
+    int code{};
 
     AnsonException() : AnsonException(_type_, _type_) {}
 

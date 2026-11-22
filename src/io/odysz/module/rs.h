@@ -33,10 +33,10 @@ using Row = vector<LangExt::VarType>;
  */
 class AnResultset : public Anson {
     /** start at 0 */
-    int rowIdx;
+    int rowIdx{};
     // int rowCnt;
     // int colCnt;
-    long total;
+    long total{};
 
 public:
     inline static const string _type_ = "io.odysz.module.rs.AnResultset";

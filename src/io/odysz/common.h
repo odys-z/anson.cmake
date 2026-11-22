@@ -355,8 +355,8 @@ inline std::vector<T>& operator<<(std::vector<T>& vec, U&& element) {
  * Structure to hold decomposed URL parts
  */
 struct HttpParts {
-    bool https;
-    int port;
+    bool https{};
+    int port{};
     string scheme;
     string host;
     vector<string> paths;
@@ -701,7 +701,7 @@ public:
     }
 
 private:
-    uint64_t options_;
+    uint64_t options_{};
     std::unordered_set<std::string> allowed_schemes_;
 };
 
@@ -723,7 +723,7 @@ public:
 
             std::vector<unsigned char> cipherbytes(plain.size() + 16);
 
-            int len, cipher_len;
+            int len = 0, cipher_len = 0;
 
             // Select Cipher Type
             const EVP_CIPHER* cipherType = nullptr;
@@ -774,7 +774,7 @@ public:
             std::vector<unsigned char> cipherbytes = AESHelper2::decode64(cipher64);
             std::vector<unsigned char> key_bytes = AESHelper2::hash_key_sha256(key);
 
-            int len, plain_len;
+            int len = 0, plain_len = 0;
 
             std::vector<unsigned char> plainbytes(cipherbytes.size());
 

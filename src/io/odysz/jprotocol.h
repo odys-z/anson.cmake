@@ -163,7 +163,7 @@ public:
  */
 class JProtocol {
 public:
-    const JsonOpt* ctx;
+    const JsonOpt* ctx = nullptr;
     string protocolpath;
 
     /**
@@ -244,7 +244,7 @@ template <typename T //anson::AnsonBody
 class AnsonMsg: public Anson {
 public:
     string version;
-    int seq;
+    int seq{};
 
     /**
      * Bodies are proected as the error of a unique-ptr will result in
@@ -355,8 +355,8 @@ class JServUrl : public Anson {
 
 public:
     UrlValidator urlValidator;
-    bool https;
-    int port;
+    bool https{};
+    int port{};
     string scheme;
     string host;
 
@@ -482,8 +482,8 @@ public:
      - group-obj: {tabl: "b_articles/t_alais", expr: "recId" } */
     vector<string> groups;
 
-    int page;
-    int pgsize;
+    int page{};
+    int pgsize{};
 
     vector<string> limt;
 

@@ -377,7 +377,7 @@ private:
     id_type active_key{0};
 
     AnsonAst* find_field_ast(const AnsonAst *inst_ast, const std::string &fieldname) {
-        AnsonAst *base_ast;
+        AnsonAst *base_ast = nullptr;
         if (inst_ast->fields.contains(fieldname))
             return contxt->ast<AnsonAst>(inst_ast->fields.at(fieldname).dataAnclass);
         else if (!LangExt::isblank(inst_ast->baseAnclass) &&
@@ -562,7 +562,7 @@ private:
     }
 
 public:
-    const JsonOpt *contxt;
+    const JsonOpt *contxt = nullptr;
 
     std::deque<ParseNode> stack;
 
