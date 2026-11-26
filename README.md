@@ -13,7 +13,7 @@ The cmake peer of [Antson](https://github.com/odys-z/antson).
 Switch to MinGW with g++ 16.1.0.
 
 Note the official Qt Online Installer does not ship a MinGW package higher than GCC 13.1.
-This source use distribution from [x86_64-16.1.0-release-posix-seh-ucrt-rt_v14-rev1.7z](https://github.com/niXman/mingw-builds-binaries/releases).
+This source use distribution from [niXman mingw-builds-binaries x86_64-16.1.0-release-posix-seh-ucrt-rt_v14-rev1.7z](https://github.com/niXman/mingw-builds-binaries/releases).
 
 Anson.cmake reguires dependencies like
 [entt](https://github.com/skypjack/entt),
